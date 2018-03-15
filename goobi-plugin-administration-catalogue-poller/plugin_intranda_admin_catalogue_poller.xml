@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config_plugin>
+	
+	<rule title="Archive project">
+		<!-- which projects to use for (can be more then one, otherwise use *) -->
+		<filter>618686231</filter>
+		<!-- which catalogue to use (GBV, Wiener, CBL Adlib ...) -->
+		<catalogue>GBV</catalogue>
+		<!-- which identifier to use for the catalogue request (use standard variable replacer compatible value here) -->
+		<catalogueIdentifier>$(meta.CatalogIDDigital)</catalogueIdentifier>
+		<!-- define if existing structure subelements shall be kept (true), otherwise a complete new mets file is created and overwrites 
+			the existing one (false) -->
+		<mergeRecords>true</mergeRecords>
+		<!-- if records shall be merged: which existing fields shall not be replace with new values? (use the metadatatypes from 
+			ruleset) -->
+		<skipField>TitleDocMain</skipField>
+		<skipField>CatalogueIDDigital</skipField>
+		<skipField>DocLanguage</skipField>
+	</rule>
+	
+	<rule title="Mauscript project">
+		<!-- which projects to use for (can be more then one, otherwise use *) -->
+		<filter>bergsphi_625017145</filter>
+		<!-- which catalogue to use (GBV, Wiener, CBL Adlib ...) -->
+		<catalogue>GBV</catalogue>
+		<!-- which identifier to use for the catalogue request (use standard variable replacer compatible value here) -->
+		<catalogueIdentifier>$(meta.CatalogIDDigital)</catalogueIdentifier>
+		<!-- define if existing structure subelements shall be kept (true), otherwise a complete new mets file is created and overwrites 
+			the existing one (false) -->
+		<mergeRecords>true</mergeRecords>
+		<!-- if records shall be merged: which existing fields shall not be replace with new values? (use the metadatatypes from 
+			ruleset) -->
+		<skipField>TitleDocMain</skipField>
+		<skipField>CatalogueIDDigital</skipField>
+		<skipField>DocLanguage</skipField>
+	</rule>
+	
+	<lastRun>1521030703702</lastRun>
+
+</config_plugin>
