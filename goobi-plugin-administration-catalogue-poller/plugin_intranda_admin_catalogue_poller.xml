@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config_plugin>
-	
+
 	<rule title="Archive project">
 		<!-- which projects to use for (can be more then one, otherwise use *) -->
-		<filter>618686231</filter>
+		<filter>project:Archive</filter>
 		<!-- which catalogue to use (GBV, Wiener, CBL Adlib ...) -->
 		<catalogue>GBV</catalogue>
 		<!-- which identifier to use for the catalogue request (use standard variable replacer compatible value here) -->
@@ -18,9 +18,9 @@
 		<skipField>DocLanguage</skipField>
 	</rule>
 	
-	<rule title="Mauscript project">
+	<rule title="Manuscript project">
 		<!-- which projects to use for (can be more then one, otherwise use *) -->
-		<filter>bergsphi_625017145</filter>
+		<filter>project:Manuscript</filter>
 		<!-- which catalogue to use (GBV, Wiener, CBL Adlib ...) -->
 		<catalogue>GBV</catalogue>
 		<!-- which identifier to use for the catalogue request (use standard variable replacer compatible value here) -->
@@ -35,6 +35,5 @@
 		<skipField>DocLanguage</skipField>
 	</rule>
 	
-	<lastRun>1521030703702</lastRun>
-
+	<lastRun>1537117476547</lastRun>
 </config_plugin>

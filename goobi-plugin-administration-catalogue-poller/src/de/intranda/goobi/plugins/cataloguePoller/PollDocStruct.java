@@ -23,11 +23,15 @@ public class PollDocStruct {
     public PollDocStruct(DocStruct inStruct) {
         types = new ArrayList<PullMetadataType>();
         personTypes = new ArrayList<PullPersonType>();
-        for (Metadata md : inStruct.getAllMetadata()) {
-            addMetadata(md.getType().getName(),md.getValue());
+        if (inStruct.getAllMetadata()!= null) {
+	        for (Metadata md : inStruct.getAllMetadata()) {
+	            addMetadata(md.getType().getName(),md.getValue());
+	        }
         }
-        for (Person p : inStruct.getAllPersons()) {
-            addPerson(p.getType().getName(), p.getFirstname(), p.getLastname(), p.getAuthorityURI(), p.getAuthorityValue());
+        if (inStruct.getAllPersons() != null) {
+	        for (Person p : inStruct.getAllPersons()) {
+	            addPerson(p.getType().getName(), p.getFirstname(), p.getLastname(), p.getAuthorityURI(), p.getAuthorityValue());
+	        }
         }
     }
 
