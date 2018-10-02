@@ -32,6 +32,7 @@ import ugh.dl.DigitalDocument;
 import ugh.dl.DocStruct;
 import ugh.dl.Fileformat;
 import ugh.dl.Metadata;
+import ugh.dl.MetadataGroup;
 import ugh.dl.Person;
 import ugh.dl.Prefs;
 
@@ -40,7 +41,7 @@ import ugh.dl.Prefs;
 public class CataloguePoll {
     private XMLConfiguration config;
     private List<PullDiff> differences;
-    
+
     public CataloguePoll() {
         config = ConfigPlugins.getPluginConfig("intranda_admin_catalogue_poller");
         config.setExpressionEngine(new XPathExpressionEngine());
@@ -52,7 +53,7 @@ public class CataloguePoll {
     public void execute() {
         log.debug(" Starting to update the METS files fo all processes defined in the rules ");
         differences = new ArrayList<>();
-        
+
         // run through all rules
         List<HierarchicalConfiguration> rulelist = config.configurationsAt("rule");
         for (HierarchicalConfiguration rule : rulelist) {
@@ -205,6 +206,29 @@ public class CataloguePoll {
                         }
                     }
                 }
+
+                // check if the new record contains metadata groups
+                if (topstructNew.getAllMetadataGroups() != null) {
+                    for (MetadataGroup newGroup : topstructNew.getAllMetadataGroups()) {
+                        // check if the group should be skipped
+                        if (!configSkipFields.contains(newGroup.getType().getName())) {
+                            // if not, remove the old groups of the type
+                            List<MetadataGroup> groupsToRemove = topstructOld.getAllMetadataGroupsByType(newGroup.getType());
+                            if (groupsToRemove != null) {
+                                for (MetadataGroup oldGroup : groupsToRemove) {
+                                    topstructOld.removeMetadataGroup(oldGroup);
+                                }
+                            }
+                        }
+                    }
+                    // add new metadata groups
+                    for (MetadataGroup newGroup : topstructNew.getAllMetadataGroups()) {
+                        if (!configSkipFields.contains(newGroup.getType().getName())) {
+                            topstructOld.addMetadataGroup(newGroup);
+                        }
+                    }
+                }
+
 
                 // then write the updated old file format
                 // ffOld.write(p.getMetadataFilePath());
