@@ -139,9 +139,7 @@ public class PollDocStruct {
      * @param topstructOld
      * @return
      */
-    public static PullDiff checkDifferences(DocStruct topstructNew, DocStruct topstructOld, List<String> configSkipFields) {
-        PullDiff differences = new PullDiff();
-        differences.setMessages(new ArrayList<String>());
+    public static void checkDifferences(DocStruct topstructNew, DocStruct topstructOld, List<String> configSkipFields, PullDiff differences) {
 
         PollDocStruct pdsOld = new PollDocStruct(topstructOld);
         PollDocStruct pdsNew = new PollDocStruct(topstructNew);
@@ -230,7 +228,7 @@ public class PollDocStruct {
                     }
                 }
             }
-        }return differences;
+        }
     }
 
     /**
@@ -289,7 +287,7 @@ public class PollDocStruct {
     public static class PullDiff {
         private Integer processId;
         private String processTitle;
-        private List<String> messages;
+        private List<String> messages = new ArrayList<>();
     }
 
     @Data

@@ -35,6 +35,7 @@ import ugh.dl.Metadata;
 import ugh.dl.MetadataGroup;
 import ugh.dl.Person;
 import ugh.dl.Prefs;
+import ugh.exceptions.MetadataTypeNotAllowedException;
 
 @Data
 @Log4j
@@ -71,8 +72,7 @@ public class CataloguePoll {
             String query = FilterHelper.criteriaBuilder(filter, false, null, null, null, true, false);
             List<Process> processes = ProcessManager.getProcesses("prozesse.titel", query);
             for (Process process : processes) {
-                updateMetsFileForProcess(process, configCatalogue, configCatalogueId, configMergeRecords,
-                        configSkipFields);
+                updateMetsFileForProcess(process, configCatalogue, configCatalogueId, configMergeRecords, configSkipFields);
             }
         }
 
@@ -89,45 +89,42 @@ public class CataloguePoll {
      * Method to update the mets file of a process with new data
      * 
      * @param p
-     * @param configCatalogue
-     *            the catalogue name to use (e.g. GBV, Wiener, ...)
-     * @param configCatalogueId
-     *            the identifierfield to use (e.g. $(meta.CatalogIDDigital))
-     * @param configMergeRecords
-     *            define if the content shall be merged (true) or overwritten
-     *            (false)
-     * @param configSkipFields
-     *            define a list of fields that shall now be updated during
-     *            merging (e.g. CatalogueIDDigital, DocLanguage ...)
+     * @param configCatalogue the catalogue name to use (e.g. GBV, Wiener, ...)
+     * @param configCatalogueId the identifierfield to use (e.g. $(meta.CatalogIDDigital))
+     * @param configMergeRecords define if the content shall be merged (true) or overwritten (false)
+     * @param configSkipFields define a list of fields that shall now be updated during merging (e.g. CatalogueIDDigital, DocLanguage ...)
      * @return
      */
-    public boolean updateMetsFileForProcess(Process p, String configCatalogue, String configCatalogueId,
-            boolean configMergeRecords, List<String> configSkipFields) {
-        log.debug("Starting catalogue request using catalogue: " + configCatalogue + " with identifier field "
-                + configCatalogueId);
+    public boolean updateMetsFileForProcess(Process p, String configCatalogue, String configCatalogueId, boolean configMergeRecords,
+            List<String> configSkipFields) {
+        log.debug("Starting catalogue request using catalogue: " + configCatalogue + " with identifier field " + configCatalogueId);
 
         // first read the original METS file for the process
         Fileformat ffOld = null;
         DigitalDocument dd = null;
         Prefs prefs = p.getRegelsatz().getPreferences();
         DocStruct topstructOld = null;
+        DocStruct anchorOld = null;
+        DocStruct physOld = null;
+
         try {
             ffOld = p.readMetadataFile();
             if (ffOld == null) {
                 log.error("Metadata file is not readable for process with ID " + p.getId());
-                Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG,
-                        "Metadata file is not readable for catalogue poller plugin");
+                Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, "Metadata file is not readable for catalogue poller plugin");
                 return false;
             }
             dd = ffOld.getDigitalDocument();
-            topstructOld = ffOld.getDigitalDocument().getLogicalDocStruct();
+            topstructOld = dd.getLogicalDocStruct();
             if (topstructOld.getType().isAnchor()) {
+                anchorOld = topstructOld;
                 topstructOld = topstructOld.getAllChildren().get(0);
             }
+            physOld = dd.getPhysicalDocStruct();
         } catch (Exception e) {
             log.error("Exception occurred while reading the metadata file for process with ID " + p.getId(), e);
-            Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG,
-                    "Exception occurred in catalogue poller plugin while reading the metadata file: " + e.getMessage());
+            Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, "Exception occurred in catalogue poller plugin while reading the metadata file: "
+                    + e.getMessage());
             return false;
         }
 
@@ -145,8 +142,8 @@ public class CataloguePoll {
             ffNew = myImportOpac.search("12", catalogueId, coc, prefs);
         } catch (Exception e) {
             log.error("Exception while requesting the catalogue", e);
-            Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG,
-                    "Exception while requesting the catalogue inside of catalogue poller plugin: " + e.getMessage());
+            Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, "Exception while requesting the catalogue inside of catalogue poller plugin: " + e
+                    .getMessage());
             return false;
         }
 
@@ -156,11 +153,21 @@ public class CataloguePoll {
             if (configMergeRecords) {
                 // first load logical topstruct or first child
                 DocStruct topstructNew = ffNew.getDigitalDocument().getLogicalDocStruct();
+                DocStruct anchorNew = null;
+                DocStruct physNew = ffNew.getDigitalDocument().getPhysicalDocStruct();
                 if (topstructNew.getType().isAnchor()) {
+                    anchorNew = topstructNew;
                     topstructNew = topstructNew.getAllChildren().get(0);
                 }
+                PullDiff diff = new PullDiff();
+                PollDocStruct.checkDifferences(topstructNew, topstructOld, configSkipFields, diff);
+                if (anchorNew != null && anchorOld != null) {
+                    PollDocStruct.checkDifferences(anchorNew, anchorOld, configSkipFields, diff);
+                }
+                if (physNew != null && physOld != null) {
+                    PollDocStruct.checkDifferences(physNew, physOld, configSkipFields, diff);
+                }
 
-                PullDiff diff = PollDocStruct.checkDifferences(topstructNew, topstructOld, configSkipFields);
                 diff.setProcessId(p.getId());
                 diff.setProcessTitle(p.getTitel());
                 differences.add(diff);
@@ -168,67 +175,13 @@ public class CataloguePoll {
                 // then run through all new metadata and check if these should
                 // replace the old ones
                 // if yes remove the old ones from the old fileformat
-                if (topstructNew.getAllMetadata() != null) {
-                    for (Metadata md : topstructNew.getAllMetadata()) {
-                        if (!configSkipFields.contains(md.getType().getName())) {
-                            List<? extends Metadata> remove = topstructOld.getAllMetadataByType(md.getType());
-                            if (remove != null) {
-                                for (Metadata mdRm : remove) {
-                                    topstructOld.removeMetadata(mdRm);
-                                }
-                            }
-                        }
-                    }
-                    // now add the new metadata to the old topstruct
-                    for (Metadata md : topstructNew.getAllMetadata()) {
-                        if (!configSkipFields.contains(md.getType().getName())) {
-                            topstructOld.addMetadata(md);
-                        }
-                    }
+                mergeMetadataRecords(configSkipFields, topstructOld, topstructNew);
+                if (anchorNew != null && anchorOld != null) {
+                    mergeMetadataRecords(configSkipFields, anchorOld, anchorNew);
                 }
-
-                // now do the same with persons
-                if (topstructNew.getAllPersons() != null) {
-                    for (Person pd : topstructNew.getAllPersons()) {
-                        if (!configSkipFields.contains(pd.getType().getName())) {
-                            List<? extends Person> remove = topstructOld.getAllPersonsByType(pd.getType());
-                            if (remove != null) {
-                                for (Person pdRm : remove) {
-                                    topstructOld.removePerson(pdRm);
-                                }
-                            }
-                        }
-                    }
-                    // now add the new persons to the old topstruct
-                    for (Person pd : topstructNew.getAllPersons()) {
-                        if (!configSkipFields.contains(pd.getType().getName())) {
-                            topstructOld.addPerson(pd);
-                        }
-                    }
+                if (physNew != null && physOld != null) {
+                    mergeMetadataRecords(configSkipFields, physOld, physNew);
                 }
-
-                // check if the new record contains metadata groups
-                if (topstructNew.getAllMetadataGroups() != null) {
-                    for (MetadataGroup newGroup : topstructNew.getAllMetadataGroups()) {
-                        // check if the group should be skipped
-                        if (!configSkipFields.contains(newGroup.getType().getName())) {
-                            // if not, remove the old groups of the type
-                            List<MetadataGroup> groupsToRemove = topstructOld.getAllMetadataGroupsByType(newGroup.getType());
-                            if (groupsToRemove != null) {
-                                for (MetadataGroup oldGroup : groupsToRemove) {
-                                    topstructOld.removeMetadataGroup(oldGroup);
-                                }
-                            }
-                        }
-                    }
-                    // add new metadata groups
-                    for (MetadataGroup newGroup : topstructNew.getAllMetadataGroups()) {
-                        if (!configSkipFields.contains(newGroup.getType().getName())) {
-                            topstructOld.addMetadataGroup(newGroup);
-                        }
-                    }
-                }
-
 
                 // then write the updated old file format
                 // ffOld.write(p.getMetadataFilePath());
@@ -241,16 +194,89 @@ public class CataloguePoll {
         } catch (Exception e) {
             log.error("Exception while writing the updated METS file into the file system", e);
             Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG,
-                    "Exception while writing the updated METS file into the file system inside of catalogue poller plugin: "
-                            + e.getMessage());
+                    "Exception while writing the updated METS file into the file system inside of catalogue poller plugin: " + e.getMessage());
             return false;
         }
 
         // everything finished
         log.debug("Finished with catalogue request");
-        Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG,
-                "Mets file updeded by catalogue poller plugin successfully");
+        Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, "Mets file updeded by catalogue poller plugin successfully");
         return true;
+    }
+
+    /**
+     * Replaces the metadata of the old docstruct with the values of the new docstruct.
+     * If a metadata type of the old docstruct is marked as to skip, it gets not replaced.
+     * Otherwise all old data is removed and all new metadata is added.
+     * 
+     * @param configSkipFields
+     * @param docstructOld
+     * @param docstructNew
+     * @throws MetadataTypeNotAllowedException
+     */
+
+    private void mergeMetadataRecords(List<String> configSkipFields, DocStruct docstructOld, DocStruct docstructNew)
+            throws MetadataTypeNotAllowedException {
+        if (docstructNew.getAllMetadata() != null) {
+            for (Metadata md : docstructNew.getAllMetadata()) {
+                if (!configSkipFields.contains(md.getType().getName())) {
+                    List<? extends Metadata> remove = docstructOld.getAllMetadataByType(md.getType());
+                    if (remove != null) {
+                        for (Metadata mdRm : remove) {
+                            docstructOld.removeMetadata(mdRm);
+                        }
+                    }
+                }
+            }
+            // now add the new metadata to the old topstruct
+            for (Metadata md : docstructNew.getAllMetadata()) {
+                if (!configSkipFields.contains(md.getType().getName())) {
+                    docstructOld.addMetadata(md);
+                }
+            }
+        }
+
+        // now do the same with persons
+        if (docstructNew.getAllPersons() != null) {
+            for (Person pd : docstructNew.getAllPersons()) {
+                if (!configSkipFields.contains(pd.getType().getName())) {
+                    List<? extends Person> remove = docstructOld.getAllPersonsByType(pd.getType());
+                    if (remove != null) {
+                        for (Person pdRm : remove) {
+                            docstructOld.removePerson(pdRm);
+                        }
+                    }
+                }
+            }
+            // now add the new persons to the old topstruct
+            for (Person pd : docstructNew.getAllPersons()) {
+                if (!configSkipFields.contains(pd.getType().getName())) {
+                    docstructOld.addPerson(pd);
+                }
+            }
+        }
+
+        // check if the new record contains metadata groups
+        if (docstructNew.getAllMetadataGroups() != null) {
+            for (MetadataGroup newGroup : docstructNew.getAllMetadataGroups()) {
+                // check if the group should be skipped
+                if (!configSkipFields.contains(newGroup.getType().getName())) {
+                    // if not, remove the old groups of the type
+                    List<MetadataGroup> groupsToRemove = docstructOld.getAllMetadataGroupsByType(newGroup.getType());
+                    if (groupsToRemove != null) {
+                        for (MetadataGroup oldGroup : groupsToRemove) {
+                            docstructOld.removeMetadataGroup(oldGroup);
+                        }
+                    }
+                }
+            }
+            // add new metadata groups
+            for (MetadataGroup newGroup : docstructNew.getAllMetadataGroups()) {
+                if (!configSkipFields.contains(newGroup.getType().getName())) {
+                    docstructOld.addMetadataGroup(newGroup);
+                }
+            }
+        }
     }
 
     public String getLastRun() {
