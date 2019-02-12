@@ -4,9 +4,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
@@ -291,19 +289,21 @@ public class CataloguePoll {
      * 
      * @return
      */
-    public List<Map<String, String>> getConfigInfo() {
-        List<Map<String, String>> list = new ArrayList<>();
+    public List<ConfigInfo> getConfigInfo() {
+        List<ConfigInfo> list = new ArrayList<>();
         // run through all rules
         List<HierarchicalConfiguration> rulelist = config.configurationsAt("rule");
         for (HierarchicalConfiguration rule : rulelist) {
-            HashMap<String, String> map = new HashMap<>();
-            map.put("title", rule.getString("@title"));
-            map.put("filter", rule.getString("filter"));
-            map.put("configCatalogue", rule.getString("catalogue"));
-            map.put("configCatalogueId", rule.getString("catalogueIdentifier"));
-            map.put("configMergeRecords", String.valueOf(rule.getBoolean("mergeRecords")));
-            map.put("configSkipFields", String.valueOf(rule.getList("skipField")));
-            list.add(map);
+            ConfigInfo ci = new ConfigInfo(rule.getString("@title"), rule.getString("filter"), rule.getString("catalogue"), rule.getString("catalogueIdentifier"), String.valueOf(rule.getBoolean("mergeRecords")), String.valueOf(rule.getList("skipField")));
+            list.add(ci);
+            //            HashMap<String, String> map = new HashMap<>();
+            //            map.put("title", rule.getString("@title"));
+            //            map.put("filter", rule.getString("filter"));
+            //            map.put("configCatalogue", rule.getString("catalogue"));
+            //            map.put("configCatalogueId", rule.getString("catalogueIdentifier"));
+            //            map.put("configMergeRecords", String.valueOf(rule.getBoolean("mergeRecords")));
+            //            map.put("configSkipFields", String.valueOf(rule.getList("skipField")));
+            //            list.add(map);
         }
         return list;
     }
