@@ -42,7 +42,7 @@ public class CataloguePoll {
     private List<PullDiff> differences;
 
     public CataloguePoll() {
-        config = ConfigPlugins.getPluginConfig("intranda_admin_catalogue_poller");
+        config = ConfigPlugins.getPluginConfig("intranda_administration_catalogue_poller");
         config.setExpressionEngine(new XPathExpressionEngine());
     }
 

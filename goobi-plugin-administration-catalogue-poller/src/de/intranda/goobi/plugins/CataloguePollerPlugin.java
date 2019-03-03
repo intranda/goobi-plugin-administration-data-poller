@@ -18,7 +18,7 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 @Log4j
 public class CataloguePollerPlugin implements IAdministrationPlugin, IPlugin {
 
-    private static final String PLUGIN_NAME = "intranda_admin_catalogue_poller";
+    private static final String PLUGIN_NAME = "intranda_administration_catalogue_poller";
     private static final String GUI = "/uii/administration_cataloguePoller.xhtml";
     private CataloguePoll cp;
     
