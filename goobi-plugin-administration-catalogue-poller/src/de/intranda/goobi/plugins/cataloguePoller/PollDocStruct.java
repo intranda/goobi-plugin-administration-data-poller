@@ -5,14 +5,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import de.intranda.goobi.plugins.CataloguePollerPlugin;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.log4j.Log4j;
 import ugh.dl.DocStruct;
 import ugh.dl.Metadata;
 import ugh.dl.MetadataGroup;
 import ugh.dl.Person;
 
 @Data
+@Log4j
 public class PollDocStruct {
     private List<PullMetadataType> types;
     private List<PullPersonType> personTypes;
@@ -144,9 +147,21 @@ public class PollDocStruct {
         PollDocStruct pdsOld = new PollDocStruct(topstructOld);
         PollDocStruct pdsNew = new PollDocStruct(topstructNew);
         // run through the list of metadata fields
+        
+        // first collect all available metadata types in old and new record
+        Set<String> allTypes = new HashSet<>();
         for (PullMetadataType pmtNew : pdsNew.getTypes()) {
-            if (!configSkipFields.contains(pmtNew.getTitle())) {
-                PullMetadataType pmtOld = pdsOld.getPullMetadataTypeByTitle(pmtNew.getTitle());
+            allTypes.add(pmtNew.getTitle());
+        }
+        for (PullMetadataType pmtOld : pdsOld.getTypes()) {
+            allTypes.add(pmtOld.getTitle());
+        }
+        
+        for (String oneType : allTypes) {
+//            log.debug("check metadata type: " + oneType);
+            if (!configSkipFields.contains(oneType)) {
+                PullMetadataType pmtNew = pdsNew.getPullMetadataTypeByTitle(oneType);
+                PullMetadataType pmtOld = pdsOld.getPullMetadataTypeByTitle(oneType);
                 if (pmtNew.getValues().size() != pmtOld.getValues().size()) {
                     // number of metadata fields is different
                     differences.getMessages().add(pmtNew.getTitle() + ": Number of old values (" + pmtOld.getValues().size()
@@ -172,10 +187,20 @@ public class PollDocStruct {
             }
         }
 
-        // run through all persons
+        // then collect all available person types in old and new record
+        Set<String> allPersonTypes = new HashSet<>();
         for (PullPersonType pptNew : pdsNew.getPersonTypes()) {
-            if (!configSkipFields.contains(pptNew.getRole())) {
-                PullPersonType pptOld = pdsOld.getPullPersonTypeByRole(pptNew.getRole());
+            allPersonTypes.add(pptNew.getRole());
+        }
+        for (PullPersonType pptOld : pdsOld.getPersonTypes()) {
+            allPersonTypes.add(pptOld.getRole());
+        }
+        
+        // run through all persons
+        for (String ppt : allPersonTypes) {
+            if (!configSkipFields.contains(ppt)) {
+                PullPersonType pptNew = pdsNew.getPullPersonTypeByRole(ppt);
+                PullPersonType pptOld = pdsOld.getPullPersonTypeByRole(ppt);
                 if (pptNew.getPersons().size() != pptOld.getPersons().size()) {
                     // number of person fields is different
                     differences.getMessages().add(pptNew.getRole() + ": Number of old persons (" + pptOld.getPersons().size()
@@ -202,18 +227,29 @@ public class PollDocStruct {
                 }
             }
         }
+        
+        // then collect all available grooup types in old and new record
+        Set<String> allGroupTypes = new HashSet<>();
+        for (PullGroup pgtNew : pdsNew.getGroupTypes()) {
+            allGroupTypes.add(pgtNew.getGroupType());
+        }
+        for (PullGroup pgtOld : pdsOld.getGroupTypes()) {
+            allGroupTypes.add(pgtOld.getGroupType());
+        }
+        
         // check new groups
-        for (PullGroup pgNew : pdsNew.getGroupTypes()) {
-            if (!configSkipFields.contains(pgNew.getGroupType())) {
+        for (String type : allGroupTypes) {
+            if (!configSkipFields.contains(type)) {
                 // find old groups of the type
-                PullGroup oldGroup = pdsOld.getPullGroupByType(pgNew.getGroupType());
-                if (pgNew.getMetadataHashs().size() != oldGroup.getMetadataHashs().size()) {
-                    differences.getMessages().add(pgNew.getGroupType() + ": Number of metadata in old groups (" + oldGroup.getMetadataHashs().size()
-                            + ") is different from new groups (" + pgNew.getMetadataHashs().size() + ")");
+                PullGroup newGroup = pdsNew.getPullGroupByType(type);
+                PullGroup oldGroup = pdsOld.getPullGroupByType(type);
+                if (newGroup.getMetadataHashs().size() != oldGroup.getMetadataHashs().size()) {
+                    differences.getMessages().add(newGroup.getGroupType() + ": Number of metadata in old groups (" + oldGroup.getMetadataHashs().size()
+                            + ") is different from new groups (" + newGroup.getMetadataHashs().size() + ")");
                 } else {
-                    for (String metadata : pgNew.getMetadataHashs()) {
+                    for (String metadata : newGroup.getMetadataHashs()) {
                         if (!oldGroup.getMetadataHashs().contains(metadata)) {
-                            differences.getMessages().add(pgNew.getGroupType() + ": New group '" + metadata + "' found.");
+                            differences.getMessages().add(newGroup.getGroupType() + ": New group '" + metadata + "' found.");
                         } else {
                             oldGroup.getMetadataHashs().remove(metadata);
                         }

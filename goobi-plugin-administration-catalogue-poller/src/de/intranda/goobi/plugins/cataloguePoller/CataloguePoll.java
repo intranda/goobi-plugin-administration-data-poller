@@ -4,7 +4,9 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
@@ -18,6 +20,7 @@ import org.goobi.production.plugin.PluginLoader;
 import org.goobi.production.plugin.interfaces.IOpacPlugin;
 
 import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
+import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullMetadataType;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.VariableReplacer;
@@ -31,6 +34,7 @@ import ugh.dl.DocStruct;
 import ugh.dl.Fileformat;
 import ugh.dl.Metadata;
 import ugh.dl.MetadataGroup;
+import ugh.dl.MetadataType;
 import ugh.dl.Person;
 import ugh.dl.Prefs;
 import ugh.exceptions.MetadataTypeNotAllowedException;
@@ -215,8 +219,11 @@ public class CataloguePoll {
 
     private void mergeMetadataRecords(List<String> configSkipFields, DocStruct docstructOld, DocStruct docstructNew)
             throws MetadataTypeNotAllowedException {
+
+        // run through all old metadata fields and delete these if these are not in the ignorelist
         if (docstructNew.getAllMetadata() != null) {
-            for (Metadata md : docstructNew.getAllMetadata()) {
+            List<Metadata> allMetadata = new ArrayList<Metadata> (docstructOld.getAllMetadata());
+            for (Metadata md : allMetadata) {
                 if (!configSkipFields.contains(md.getType().getName())) {
                     List<? extends Metadata> remove = docstructOld.getAllMetadataByType(md.getType());
                     if (remove != null) {
@@ -236,7 +243,8 @@ public class CataloguePoll {
 
         // now do the same with persons
         if (docstructNew.getAllPersons() != null) {
-            for (Person pd : docstructNew.getAllPersons()) {
+            List<Person> allPersons = new ArrayList<Person> (docstructOld.getAllPersons());
+            for (Person pd : allPersons) {
                 if (!configSkipFields.contains(pd.getType().getName())) {
                     List<? extends Person> remove = docstructOld.getAllPersonsByType(pd.getType());
                     if (remove != null) {
@@ -256,11 +264,12 @@ public class CataloguePoll {
 
         // check if the new record contains metadata groups
         if (docstructNew.getAllMetadataGroups() != null) {
-            for (MetadataGroup newGroup : docstructNew.getAllMetadataGroups()) {
+            List<MetadataGroup> allGroups = new ArrayList<MetadataGroup> (docstructOld.getAllMetadataGroups());
+            for (MetadataGroup group : allGroups) {
                 // check if the group should be skipped
-                if (!configSkipFields.contains(newGroup.getType().getName())) {
+                if (!configSkipFields.contains(group.getType().getName())) {
                     // if not, remove the old groups of the type
-                    List<MetadataGroup> groupsToRemove = docstructOld.getAllMetadataGroupsByType(newGroup.getType());
+                    List<MetadataGroup> groupsToRemove = docstructOld.getAllMetadataGroupsByType(group.getType());
                     if (groupsToRemove != null) {
                         for (MetadataGroup oldGroup : groupsToRemove) {
                             docstructOld.removeMetadataGroup(oldGroup);
