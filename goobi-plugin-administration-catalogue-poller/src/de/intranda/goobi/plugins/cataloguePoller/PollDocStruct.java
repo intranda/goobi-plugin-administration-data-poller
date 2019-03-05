@@ -164,8 +164,17 @@ public class PollDocStruct {
                 PullMetadataType pmtOld = pdsOld.getPullMetadataTypeByTitle(oneType);
                 if (pmtNew.getValues().size() != pmtOld.getValues().size()) {
                     // number of metadata fields is different
+                    
+                    String helperOldValues = "";
+                    for (String value : pmtOld.getValues()) {
+                        helperOldValues += value + "; ";
+                    }
+                    String helperNewValues = "";
+                    for (String value : pmtNew.getValues()) {
+                        helperNewValues += value + "; ";
+                    }
                     differences.getMessages().add(pmtNew.getTitle() + ": Number of old values (" + pmtOld.getValues().size()
-                            + ") is different from new values (" + pmtNew.getValues().size() + ")");
+                            + ") is different from new values (" + pmtNew.getValues().size() + ") <br/>[Old values: " + helperOldValues + " => New values: " + helperNewValues + "]");
                 } else {
                     // number of metadata fields is the same
                     for (String value : pmtNew.getValues()) {
@@ -203,8 +212,44 @@ public class PollDocStruct {
                 PullPersonType pptOld = pdsOld.getPullPersonTypeByRole(ppt);
                 if (pptNew.getPersons().size() != pptOld.getPersons().size()) {
                     // number of person fields is different
+                    String helperOldPersons = "";
+                    for (PullPerson pp : pptOld.getPersons()) {
+                        helperOldPersons += pp.getLastName() + ", " + pp.getFirstName();
+                        if (pp.getAuthorityUrl() != null || pp.getAuthorityValue() != null) {
+                            helperOldPersons += " (";
+                            if (pp.getAuthorityUrl() != null) {
+                                helperOldPersons += pp.getAuthorityUrl();
+                            }
+                            if (pp.getAuthorityUrl() != null && pp.getAuthorityValue() != null) {
+                                helperOldPersons += ": ";
+                            }
+                            if (pp.getAuthorityValue() != null) {
+                                helperOldPersons += pp.getAuthorityValue();
+                            }
+                            helperOldPersons += ")";        
+                        }
+                        helperOldPersons += "; ";  
+                    }
+                    String helperNewPersons = "";
+                    for (PullPerson pp : pptNew.getPersons()) {
+                        helperNewPersons += pp.getLastName() + ", " + pp.getFirstName();
+                        if (pp.getAuthorityUrl() != null || pp.getAuthorityValue() != null) {
+                            helperNewPersons += " (";
+                            if (pp.getAuthorityUrl() != null) {
+                                helperNewPersons += pp.getAuthorityUrl();
+                            }
+                            if (pp.getAuthorityUrl() != null && pp.getAuthorityValue() != null) {
+                                helperNewPersons += ": ";
+                            }
+                            if (pp.getAuthorityValue() != null) {
+                                helperNewPersons += pp.getAuthorityValue();
+                            }
+                            helperNewPersons += ")";        
+                        }
+                        helperNewPersons += "; ";        
+                    }
                     differences.getMessages().add(pptNew.getRole() + ": Number of old persons (" + pptOld.getPersons().size()
-                            + ") is different from new persons (" + pptNew.getPersons().size() + ")");
+                            + ") is different from new persons (" + pptNew.getPersons().size() + ") <br/>[Old persons: " + helperOldPersons + " => New persons: " + helperNewPersons + "]");
                 } else {
                     // number of person fields is the same
                     for (PullPerson pp : pptNew.getPersons()) {
@@ -228,7 +273,7 @@ public class PollDocStruct {
             }
         }
         
-        // then collect all available grooup types in old and new record
+        // then collect all available group types in old and new record
         Set<String> allGroupTypes = new HashSet<>();
         for (PullGroup pgtNew : pdsNew.getGroupTypes()) {
             allGroupTypes.add(pgtNew.getGroupType());
@@ -244,8 +289,19 @@ public class PollDocStruct {
                 PullGroup newGroup = pdsNew.getPullGroupByType(type);
                 PullGroup oldGroup = pdsOld.getPullGroupByType(type);
                 if (newGroup.getMetadataHashs().size() != oldGroup.getMetadataHashs().size()) {
+                    // if the sizes of the groups are different
+                    
+                    String helperOldGroups = "";
+                    for (String value : oldGroup.getMetadataHashs()) {
+                        helperOldGroups += value + "; ";
+                    }
+                    String helperNewGroups = "";
+                    for (String value : newGroup.getMetadataHashs()) {
+                        helperNewGroups += value + "; ";
+                    }
+                    
                     differences.getMessages().add(newGroup.getGroupType() + ": Number of metadata in old groups (" + oldGroup.getMetadataHashs().size()
-                            + ") is different from new groups (" + newGroup.getMetadataHashs().size() + ")");
+                            + ") is different from new groups (" + newGroup.getMetadataHashs().size() + ") <br/>[Old values: " + helperOldGroups + " => New values: " + helperNewGroups + "]");
                 } else {
                     for (String metadata : newGroup.getMetadataHashs()) {
                         if (!oldGroup.getMetadataHashs().contains(metadata)) {
