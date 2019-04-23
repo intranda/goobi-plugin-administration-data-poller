@@ -25,31 +25,31 @@
     <build>
         <finalName>${jar.name}</finalName>
         <sourceDirectory>../src</sourceDirectory>
-       <resources>
+        <resources>
             <resource>
                 <directory>../GUI</directory>
             </resource>
             <resource>
                 <directory>../src</directory>
-				
-                <includes>
-                    <include>**/Quartz*.java</include>
-                </includes>
-			</resource>
-		</resources>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </resource>
+            
+        </resources>
         <plugins>
-           <plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.7.0</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-                    <includes>
-                    <include>**/Quartz*.class</include>
-                   
-                       </includes>
-				</configuration>
-			</plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+<!-- TODO comment this in, when quartz job runs without dependencies of other classes -->
+<!--                    <includes> -->
+<!--                         <include>**/Quartz*.java</include> -->
+<!--                      </includes> -->
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

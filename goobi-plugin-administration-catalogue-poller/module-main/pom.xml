@@ -42,7 +42,7 @@
                     <source>1.8</source>
                     <target>1.8</target>
                     <excludes>
-                       <exclude>**/Quartz*.class</exclude>
+                       <exclude>**/Quartz*.java</exclude>
                        </excludes>
                 </configuration>
                 
