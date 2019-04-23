@@ -2,7 +2,8 @@
 <config_plugin>
 
 	<rule title="Archive project">
-		<!-- which projects to use for (can be more then one, otherwise use *) -->
+		<!-- filter which items to run through (can be more then one, otherwise use *)
+		please notice that blanks inside of the filter query need to be surrounded by quotation marks -->
 		<filter>project:Archive</filter>
 		<!-- which catalogue to use (GBV, Wiener, CBL Adlib ...) -->
 		<catalogue>GBV</catalogue>
@@ -21,8 +22,9 @@
 	</rule>
 	
 	<rule title="Manuscript project">
-		<!-- which projects to use for (can be more then one, otherwise use *) -->
-		<filter>project:Manuscript</filter>
+		<!-- filter which items to run through (can be more then one, otherwise use *)
+		please notice that blanks inside of the filter query need to be surrounded by quotation marks -->
+		<filter>"project:Manuscript items"</filter>
 		<!-- which catalogue to use (GBV, Wiener, CBL Adlib ...) -->
 		<catalogue>GBV</catalogue>
 		<!-- which identifier to use for the catalogue request (use standard variable replacer compatible value here) -->

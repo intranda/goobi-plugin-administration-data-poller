@@ -30,7 +30,7 @@ public class QuartzListener implements ServletContextListener {
           SchedulerFactory schedFact = new StdSchedulerFactory();
           Scheduler sched = schedFact.getScheduler();
           sched.deleteJob("Catalogue Poller", "Goobi Admin Plugin");
-          log.debug("Job 'Catalogue Poller' stopped");
+          log.info("Scheduler for 'Catalogue Poller' stopped");
       } catch (SchedulerException e) {
           log.error("Error while stopping the job", e);
       }
@@ -38,7 +38,8 @@ public class QuartzListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent arg0) {
-        try {
+    	log.info("Starting 'Catalogue Poller' scheduler");
+    	try {
             // get default scheduler
             SchedulerFactory schedFact = new StdSchedulerFactory();
             Scheduler sched = schedFact.getScheduler();
