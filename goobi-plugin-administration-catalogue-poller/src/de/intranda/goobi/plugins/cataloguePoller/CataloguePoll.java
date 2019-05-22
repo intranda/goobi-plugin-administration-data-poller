@@ -12,16 +12,20 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
+import org.apache.commons.lang.StringUtils;
 import org.goobi.beans.Process;
+import org.goobi.production.enums.GoobiScriptResultType;
 import org.goobi.production.enums.LogType;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.flow.statistics.hibernate.FilterHelper;
 import org.goobi.production.plugin.PluginLoader;
+import org.goobi.production.plugin.interfaces.IExportPlugin;
 import org.goobi.production.plugin.interfaces.IOpacPlugin;
 
 import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
 import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullMetadataType;
 import de.sub.goobi.config.ConfigPlugins;
+import de.sub.goobi.export.dms.ExportDms;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.VariableReplacer;
 import de.sub.goobi.persistence.managers.ProcessManager;
@@ -66,6 +70,7 @@ public class CataloguePoll {
             String configCatalogue = rule.getString("catalogue");
             String configCatalogueId = rule.getString("catalogueIdentifier");
             boolean configMergeRecords = rule.getBoolean("mergeRecords");
+            boolean exportUpdatedRecords = rule.getBoolean("exportUpdatedRecords", false);
             List<String> configSkipFields = rule.getList("skipField");
             log.debug("Rule '" + title + "' with filter '" + filter + "'");
 
@@ -74,7 +79,7 @@ public class CataloguePoll {
             String query = FilterHelper.criteriaBuilder(filter, false, null, null, null, true, false);
             List<Process> processes = ProcessManager.getProcesses("prozesse.titel", query);
             for (Process process : processes) {
-                updateMetsFileForProcess(process, configCatalogue, configCatalogueId, configMergeRecords, configSkipFields);
+                updateMetsFileForProcess(process, configCatalogue, configCatalogueId, configMergeRecords, configSkipFields, exportUpdatedRecords);
             }
         }
 
@@ -98,7 +103,7 @@ public class CataloguePoll {
      * @return
      */
     public boolean updateMetsFileForProcess(Process p, String configCatalogue, String configCatalogueId, boolean configMergeRecords,
-            List<String> configSkipFields) {
+            List<String> configSkipFields, boolean exportUpdatedRecords) {
         log.debug("Starting catalogue request using catalogue: " + configCatalogue + " with identifier field " + configCatalogueId);
 
         // first read the original METS file for the process
@@ -197,6 +202,13 @@ public class CataloguePoll {
                     processlog += "</ul>";
                 }
                 Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, processlog);
+                
+                // if the record was updated and it shall be exported again then do it now
+                if (diff.getMessages() != null && !diff.getMessages().isEmpty() && exportUpdatedRecords) {
+	            	exportProcess(p);
+                }
+                
+                
             } else {
                 // just write the new one and don't merge any data
                 // ffNew.write(p.getMetadataFilePath());
@@ -216,6 +228,35 @@ public class CataloguePoll {
     }
 
     /**
+     * Do the export of the process without any images.
+     */
+	private void exportProcess(Process p) {
+		try {
+			IExportPlugin export = null;
+		    String pluginName = ProcessManager.getExportPluginName(p.getId());
+		    if (StringUtils.isNotEmpty(pluginName)) {
+		        try {
+		            export = (IExportPlugin) PluginLoader.getPluginByTitle(PluginType.Export, pluginName);
+		        } catch (Exception e) {
+		        	log.error("Can't load export plugin, use default plugin", e);
+		            export = new ExportDms();
+		        }
+		    }
+		    if (export == null) {
+		        export = new ExportDms();
+		    }
+		    export.setExportFulltext(false);
+		    export.setExportImages(false);                        
+		    boolean success = export.startExport(p);
+		    log.info("Export finished inside of catalogue poller for process with ID "
+		            + p.getId());
+		    Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, "Process successfully exported by catalogue poller");
+		} catch (NoSuchMethodError | Exception e) {
+		    log.error("Exception during the export of process " + p.getId(), e);
+		}
+	}
+
+    /**
      * Replaces the metadata of the old docstruct with the values of the new docstruct.
      * If a metadata type of the old docstruct is marked as to skip, it gets not replaced.
      * Otherwise all old data is removed and all new metadata is added.
@@ -225,7 +266,6 @@ public class CataloguePoll {
      * @param docstructNew
      * @throws MetadataTypeNotAllowedException
      */
-
     private void mergeMetadataRecords(List<String> configSkipFields, DocStruct docstructOld, DocStruct docstructNew)
             throws MetadataTypeNotAllowedException {
 
