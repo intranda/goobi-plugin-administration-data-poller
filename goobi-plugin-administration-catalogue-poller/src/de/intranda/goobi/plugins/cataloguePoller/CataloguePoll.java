@@ -179,36 +179,38 @@ public class CataloguePoll {
                 diff.setProcessTitle(p.getTitel());
                 differences.add(diff);
 
-                // then run through all new metadata and check if these should
-                // replace the old ones
-                // if yes remove the old ones from the old fileformat
-                mergeMetadataRecords(configSkipFields, topstructOld, topstructNew);
-                if (anchorNew != null && anchorOld != null) {
-                    mergeMetadataRecords(configSkipFields, anchorOld, anchorNew);
-                }
-                if (physNew != null && physOld != null) {
-                    mergeMetadataRecords(configSkipFields, physOld, physNew);
-                }
+                if (diff.getMessages() != null && !diff.getMessages().isEmpty()) {
+                
+                	// then run through all new metadata and check if these should
+                    // replace the old ones
+                    // if yes remove the old ones from the old fileformat
+                    mergeMetadataRecords(configSkipFields, topstructOld, topstructNew);
+                    if (anchorNew != null && anchorOld != null) {
+                        mergeMetadataRecords(configSkipFields, anchorOld, anchorNew);
+                    }
+                    if (physNew != null && physOld != null) {
+                        mergeMetadataRecords(configSkipFields, physOld, physNew);
+                    }
 
-                // then write the updated old file format
-                // ffOld.write(p.getMetadataFilePath());
-                p.writeMetadataFile(ffOld);
-                String processlog = "Mets file updeded by catalogue poller plugin successfully" + "<br/>";
-                if (diff.getMessages() != null) {
-                    processlog += "<ul>";
+                    // then write the updated old file format
+                    // ffOld.write(p.getMetadataFilePath());
+                    p.writeMetadataFile(ffOld);
+
+                	
+                	String processlog = "Mets file updeded by catalogue poller plugin successfully" + "<br/>";
+                	processlog += "<ul>";
                     for (String s : diff.getMessages()) {
                         processlog += "<li>" + s + "</li>";
                     }
                     processlog += "</ul>";
+                    Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, processlog);
+                    
+                    // if the record was updated and it shall be exported again then do it now
+                    if (exportUpdatedRecords) {
+    	            	exportProcess(p);
+                    }
                 }
-                Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, processlog);
-                
-                // if the record was updated and it shall be exported again then do it now
-                if (diff.getMessages() != null && !diff.getMessages().isEmpty() && exportUpdatedRecords) {
-	            	exportProcess(p);
-                }
-                
-                
+                 
             } else {
                 // just write the new one and don't merge any data
                 // ffNew.write(p.getMetadataFilePath());
