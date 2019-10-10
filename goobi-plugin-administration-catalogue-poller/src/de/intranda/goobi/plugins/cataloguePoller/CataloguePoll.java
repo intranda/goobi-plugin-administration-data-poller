@@ -197,7 +197,7 @@ public class CataloguePoll {
                     p.writeMetadataFile(ffOld);
 
                 	
-                	String processlog = "Mets file updeded by catalogue poller plugin successfully" + "<br/>";
+                	String processlog = "Mets file updated by catalogue poller plugin successfully" + "<br/>";
                 	processlog += "<ul>";
                     for (String s : diff.getMessages()) {
                         processlog += "<li>" + s + "</li>";
