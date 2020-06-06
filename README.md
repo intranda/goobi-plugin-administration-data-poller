@@ -4,14 +4,15 @@ This is the Goobi Plugin to automatically update records inside of Goobi with up
 
 ## Plugin details
 
-More information about the functionality of this plugin and the complete documentation can be found in the central documentation area at https://docs.intranda.com
+More information about the functionality of this plugin and the complete documentation can be found in the central documentation area at https://docs.goobi.io
 
 Detail | Description
 --- | ---
 **Plugin identifier**       | plugin_intranda_administration_catalogue_poller
 **Plugin type**             | Administration plugin
-**Documentation (German)**  | https://docs.intranda.com/goobi-workflow-plugins-de/administration-plugins/catalogue-poller
-**Documentation (English)** | - still to be translated -
+**Licence**                 | GPL 2.0 or newer  
+**Documentation (German)**  | https://docs.goobi.io/goobi-workflow-plugins-de/administration-plugins/catalogue-poller
+**Documentation (English)** | https://docs.goobi.io/goobi-workflow-plugins-en/administration-plugins/catalogue-poller
 
 ## Goobi details
 
