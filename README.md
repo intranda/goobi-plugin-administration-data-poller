@@ -1,6 +1,10 @@
 # Goobi Administration Plugin: Catalogue Poller
 
+<img src="https://goobi.io/wp-content/uploads/logo_goobi_plugin.png" align="right" style="margin:0 0 20px 20px;" alt="Plugin for Goobi workflow" width="175" height="109">
+
 This is the Goobi Plugin to automatically update records inside of Goobi with up to date information from a library catalogue.
+
+This is a plugin for Goobi workflow, the open source workflow tracking software for digitisation projects. More information about Goobi workflow is available under https://goobi.io. If you want to get in touch with the user community simply go to https://community.goobi.io.
 
 ## Plugin details
 
