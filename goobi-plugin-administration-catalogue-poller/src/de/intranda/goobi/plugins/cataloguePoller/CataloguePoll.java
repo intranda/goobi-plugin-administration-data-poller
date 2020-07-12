@@ -3,10 +3,9 @@ package de.intranda.goobi.plugins.cataloguePoller;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
@@ -14,7 +13,6 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.apache.commons.lang.StringUtils;
 import org.goobi.beans.Process;
-import org.goobi.production.enums.GoobiScriptResultType;
 import org.goobi.production.enums.LogType;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.flow.statistics.hibernate.FilterHelper;
@@ -23,7 +21,6 @@ import org.goobi.production.plugin.interfaces.IExportPlugin;
 import org.goobi.production.plugin.interfaces.IOpacPlugin;
 
 import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
-import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullMetadataType;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.export.dms.ExportDms;
 import de.sub.goobi.helper.Helper;
@@ -38,7 +35,6 @@ import ugh.dl.DocStruct;
 import ugh.dl.Fileformat;
 import ugh.dl.Metadata;
 import ugh.dl.MetadataGroup;
-import ugh.dl.MetadataType;
 import ugh.dl.Person;
 import ugh.dl.Prefs;
 import ugh.exceptions.MetadataTypeNotAllowedException;
@@ -71,7 +67,7 @@ public class CataloguePoll {
             String configCatalogueId = rule.getString("catalogueIdentifier");
             boolean configMergeRecords = rule.getBoolean("mergeRecords");
             boolean exportUpdatedRecords = rule.getBoolean("exportUpdatedRecords", false);
-            List<String> configSkipFields = rule.getList("skipField");
+            List<String> configSkipFields = Arrays.asList(rule.getStringArray("skipField"));
             log.debug("Rule '" + title + "' with filter '" + filter + "'");
 
             // now filter the list of all processes that should be affected and
@@ -180,8 +176,8 @@ public class CataloguePoll {
                 differences.add(diff);
 
                 if (diff.getMessages() != null && !diff.getMessages().isEmpty()) {
-                
-                	// then run through all new metadata and check if these should
+
+                    // then run through all new metadata and check if these should
                     // replace the old ones
                     // if yes remove the old ones from the old fileformat
                     mergeMetadataRecords(configSkipFields, topstructOld, topstructNew);
@@ -196,21 +192,21 @@ public class CataloguePoll {
                     // ffOld.write(p.getMetadataFilePath());
                     p.writeMetadataFile(ffOld);
 
-                	
-                	String processlog = "Mets file updated by catalogue poller plugin successfully" + "<br/>";
-                	processlog += "<ul>";
+
+                    String processlog = "Mets file updated by catalogue poller plugin successfully" + "<br/>";
+                    processlog += "<ul>";
                     for (String s : diff.getMessages()) {
                         processlog += "<li>" + s + "</li>";
                     }
                     processlog += "</ul>";
                     Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, processlog);
-                    
+
                     // if the record was updated and it shall be exported again then do it now
                     if (exportUpdatedRecords) {
-    	            	exportProcess(p);
+                        exportProcess(p);
                     }
                 }
-                 
+
             } else {
                 // just write the new one and don't merge any data
                 // ffNew.write(p.getMetadataFilePath());
@@ -232,31 +228,31 @@ public class CataloguePoll {
     /**
      * Do the export of the process without any images.
      */
-	private void exportProcess(Process p) {
-		try {
-			IExportPlugin export = null;
-		    String pluginName = ProcessManager.getExportPluginName(p.getId());
-		    if (StringUtils.isNotEmpty(pluginName)) {
-		        try {
-		            export = (IExportPlugin) PluginLoader.getPluginByTitle(PluginType.Export, pluginName);
-		        } catch (Exception e) {
-		        	log.error("Can't load export plugin, use default plugin", e);
-		            export = new ExportDms();
-		        }
-		    }
-		    if (export == null) {
-		        export = new ExportDms();
-		    }
-		    export.setExportFulltext(false);
-		    export.setExportImages(false);                        
-		    boolean success = export.startExport(p);
-		    log.info("Export finished inside of catalogue poller for process with ID "
-		            + p.getId());
-		    Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, "Process successfully exported by catalogue poller");
-		} catch (NoSuchMethodError | Exception e) {
-		    log.error("Exception during the export of process " + p.getId(), e);
-		}
-	}
+    private void exportProcess(Process p) {
+        try {
+            IExportPlugin export = null;
+            String pluginName = ProcessManager.getExportPluginName(p.getId());
+            if (StringUtils.isNotEmpty(pluginName)) {
+                try {
+                    export = (IExportPlugin) PluginLoader.getPluginByTitle(PluginType.Export, pluginName);
+                } catch (Exception e) {
+                    log.error("Can't load export plugin, use default plugin", e);
+                    export = new ExportDms();
+                }
+            }
+            if (export == null) {
+                export = new ExportDms();
+            }
+            export.setExportFulltext(false);
+            export.setExportImages(false);
+            boolean success = export.startExport(p);
+            log.info("Export finished inside of catalogue poller for process with ID "
+                    + p.getId());
+            Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, "Process successfully exported by catalogue poller");
+        } catch (NoSuchMethodError | Exception e) {
+            log.error("Exception during the export of process " + p.getId(), e);
+        }
+    }
 
     /**
      * Replaces the metadata of the old docstruct with the values of the new docstruct.
@@ -272,9 +268,9 @@ public class CataloguePoll {
             throws MetadataTypeNotAllowedException {
 
         // run through all old metadata fields and delete these if these are not in the ignorelist
-        List<Metadata> allMetadata = new ArrayList<Metadata> ();
+        List<Metadata> allMetadata = new ArrayList<> ();
         if (docstructOld.getAllMetadata() != null) {
-            allMetadata = new ArrayList<Metadata> (docstructOld.getAllMetadata());
+            allMetadata = new ArrayList<> (docstructOld.getAllMetadata());
         }
         for (Metadata md : allMetadata) {
             if (!configSkipFields.contains(md.getType().getName())) {
@@ -296,9 +292,9 @@ public class CataloguePoll {
         }
 
         // now do the same with persons
-        List<Person> allPersons = new ArrayList<Person> ();
+        List<Person> allPersons = new ArrayList<> ();
         if (docstructOld.getAllPersons() != null) {
-            allPersons = new ArrayList<Person> (docstructOld.getAllPersons());
+            allPersons = new ArrayList<> (docstructOld.getAllPersons());
         }
         for (Person pd : allPersons) {
             if (!configSkipFields.contains(pd.getType().getName())) {
@@ -320,9 +316,9 @@ public class CataloguePoll {
         }
 
         // check if the new record contains metadata groups
-        List<MetadataGroup> allGroups = new ArrayList<MetadataGroup>();
+        List<MetadataGroup> allGroups = new ArrayList<>();
         if (docstructOld.getAllMetadataGroups() != null) {
-            allGroups = new ArrayList<MetadataGroup>(docstructOld.getAllMetadataGroups());
+            allGroups = new ArrayList<>(docstructOld.getAllMetadataGroups());
         }
         for (MetadataGroup group : allGroups) {
             // check if the group should be skipped
