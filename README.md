@@ -15,8 +15,8 @@ Detail | Description
 **Plugin identifier**       | plugin_intranda_administration_catalogue_poller
 **Plugin type**             | Administration plugin
 **Licence**                 | GPL 2.0 or newer  
-**Documentation (German)**  | https://docs.goobi.io/goobi-workflow-plugins-de/administration/plugin_intranda_administration_catalogue_poller
-**Documentation (English)** | https://docs.goobi.io/goobi-workflow-plugins-en/administration/plugin_intranda_administration_catalogue_poller
+**Documentation (German)**  | https://docs.goobi.io/goobi-workflow-plugins-de/administration/intranda_administration_catalogue_poller 
+**Documentation (English)** | https://docs.goobi.io/goobi-workflow-plugins-en/administration/intranda_administration_catalogue_poller 
 
 ## Goobi details
 
