@@ -30,6 +30,7 @@ import de.unigoettingen.sub.search.opac.ConfigOpac;
 import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
 import lombok.Data;
 import lombok.extern.log4j.Log4j;
+import ugh.dl.Corporate;
 import ugh.dl.DigitalDocument;
 import ugh.dl.DocStruct;
 import ugh.dl.Fileformat;
@@ -37,6 +38,8 @@ import ugh.dl.Metadata;
 import ugh.dl.MetadataGroup;
 import ugh.dl.Person;
 import ugh.dl.Prefs;
+import ugh.exceptions.DocStructHasNoTypeException;
+import ugh.exceptions.IncompletePersonObjectException;
 import ugh.exceptions.MetadataTypeNotAllowedException;
 
 @Data
@@ -126,8 +129,8 @@ public class CataloguePoll {
             physOld = dd.getPhysicalDocStruct();
         } catch (Exception e) {
             log.error("Exception occurred while reading the metadata file for process with ID " + p.getId(), e);
-            Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, "Exception occurred in catalogue poller plugin while reading the metadata file: "
-                    + e.getMessage());
+            Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG,
+                    "Exception occurred in catalogue poller plugin while reading the metadata file: " + e.getMessage());
             return false;
         }
 
@@ -145,8 +148,8 @@ public class CataloguePoll {
             ffNew = myImportOpac.search("12", catalogueId, coc, prefs);
         } catch (Exception e) {
             log.error("Exception while requesting the catalogue", e);
-            Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, "Exception while requesting the catalogue inside of catalogue poller plugin: " + e
-                    .getMessage());
+            Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG,
+                    "Exception while requesting the catalogue inside of catalogue poller plugin: " + e.getMessage());
             return false;
         }
 
@@ -191,7 +194,6 @@ public class CataloguePoll {
                     // then write the updated old file format
                     // ffOld.write(p.getMetadataFilePath());
                     p.writeMetadataFile(ffOld);
-
 
                     String processlog = "Mets file updated by catalogue poller plugin successfully" + "<br/>";
                     processlog += "<ul>";
@@ -246,8 +248,7 @@ public class CataloguePoll {
             export.setExportFulltext(false);
             export.setExportImages(false);
             boolean success = export.startExport(p);
-            log.info("Export finished inside of catalogue poller for process with ID "
-                    + p.getId());
+            log.info("Export finished inside of catalogue poller for process with ID " + p.getId());
             Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, "Process successfully exported by catalogue poller");
         } catch (NoSuchMethodError | Exception e) {
             log.error("Exception during the export of process " + p.getId(), e);
@@ -255,22 +256,19 @@ public class CataloguePoll {
     }
 
     /**
-     * Replaces the metadata of the old docstruct with the values of the new docstruct.
-     * If a metadata type of the old docstruct is marked as to skip, it gets not replaced.
-     * Otherwise all old data is removed and all new metadata is added.
+     * Replaces the metadata of the old docstruct with the values of the new docstruct. If a metadata type of the old docstruct is marked as to skip,
+     * it gets not replaced. Otherwise all old data is removed and all new metadata is added.
      * 
      * @param configSkipFields
      * @param docstructOld
      * @param docstructNew
-     * @throws MetadataTypeNotAllowedException
      */
-    private void mergeMetadataRecords(List<String> configSkipFields, DocStruct docstructOld, DocStruct docstructNew)
-            throws MetadataTypeNotAllowedException {
+    private void mergeMetadataRecords(List<String> configSkipFields, DocStruct docstructOld, DocStruct docstructNew) {
 
         // run through all old metadata fields and delete these if these are not in the ignorelist
-        List<Metadata> allMetadata = new ArrayList<> ();
+        List<Metadata> allMetadata = new ArrayList<>();
         if (docstructOld.getAllMetadata() != null) {
-            allMetadata = new ArrayList<> (docstructOld.getAllMetadata());
+            allMetadata = new ArrayList<>(docstructOld.getAllMetadata());
         }
         for (Metadata md : allMetadata) {
             if (!configSkipFields.contains(md.getType().getName())) {
@@ -286,15 +284,19 @@ public class CataloguePoll {
             // now add the new metadata to the old topstruct
             for (Metadata md : docstructNew.getAllMetadata()) {
                 if (!configSkipFields.contains(md.getType().getName())) {
-                    docstructOld.addMetadata(md);
+                    try {
+                        docstructOld.addMetadata(md);
+                    } catch (MetadataTypeNotAllowedException | DocStructHasNoTypeException e) {
+                        // ignore metadata not allowed errors
+                    }
                 }
             }
         }
 
         // now do the same with persons
-        List<Person> allPersons = new ArrayList<> ();
+        List<Person> allPersons = new ArrayList<>();
         if (docstructOld.getAllPersons() != null) {
-            allPersons = new ArrayList<> (docstructOld.getAllPersons());
+            allPersons = new ArrayList<>(docstructOld.getAllPersons());
         }
         for (Person pd : allPersons) {
             if (!configSkipFields.contains(pd.getType().getName())) {
@@ -310,7 +312,39 @@ public class CataloguePoll {
             // now add the new persons to the old topstruct
             for (Person pd : docstructNew.getAllPersons()) {
                 if (!configSkipFields.contains(pd.getType().getName())) {
-                    docstructOld.addPerson(pd);
+                    try {
+                        docstructOld.addPerson(pd);
+                    } catch (MetadataTypeNotAllowedException | IncompletePersonObjectException e) {
+                        // ignore metadata not allowed errors
+                    }
+                }
+            }
+        }
+
+        // corporates
+        List<Corporate> allCorporates = new ArrayList<>();
+        if (docstructOld.getAllCorporates() != null) {
+            allCorporates = new ArrayList<>(docstructOld.getAllCorporates());
+        }
+        for (Corporate corporate : allCorporates) {
+            if (!configSkipFields.contains(corporate.getType().getName())) {
+                List<? extends Corporate> remove = docstructOld.getAllCorporatesByType(corporate.getType());
+                if (remove != null) {
+                    for (Corporate pdRm : remove) {
+                        docstructOld.removeCorporate(pdRm);
+                    }
+                }
+            }
+        }
+        if (docstructNew.getAllCorporates() != null) {
+            // now add the new persons to the old topstruct
+            for (Corporate pd : docstructNew.getAllCorporates()) {
+                if (!configSkipFields.contains(pd.getType().getName())) {
+                    try {
+                        docstructOld.addCorporate(pd);
+                    } catch (MetadataTypeNotAllowedException | IncompletePersonObjectException e) {
+                        // ignore metadata not allowed errors
+                    }
                 }
             }
         }
@@ -336,7 +370,11 @@ public class CataloguePoll {
         if (docstructNew.getAllMetadataGroups() != null) {
             for (MetadataGroup newGroup : docstructNew.getAllMetadataGroups()) {
                 if (!configSkipFields.contains(newGroup.getType().getName())) {
-                    docstructOld.addMetadataGroup(newGroup);
+                    try {
+                        docstructOld.addMetadataGroup(newGroup);
+                    } catch (MetadataTypeNotAllowedException | DocStructHasNoTypeException e) {
+                        // ignore metadata not allowed errors
+                    }
                 }
             }
         }
@@ -359,7 +397,9 @@ public class CataloguePoll {
         // run through all rules
         List<HierarchicalConfiguration> rulelist = config.configurationsAt("rule");
         for (HierarchicalConfiguration rule : rulelist) {
-            ConfigInfo ci = new ConfigInfo(rule.getString("@title"), rule.getString("filter"), rule.getString("catalogue"), rule.getString("catalogueIdentifier"), String.valueOf(rule.getBoolean("mergeRecords")), String.valueOf(rule.getList("skipField")));
+            ConfigInfo ci = new ConfigInfo(rule.getString("@title"), rule.getString("filter"), rule.getString("catalogue"),
+                    rule.getString("catalogueIdentifier"), String.valueOf(rule.getBoolean("mergeRecords")),
+                    String.valueOf(rule.getList("skipField")));
             list.add(ci);
             //            HashMap<String, String> map = new HashMap<>();
             //            map.put("title", rule.getString("@title"));
