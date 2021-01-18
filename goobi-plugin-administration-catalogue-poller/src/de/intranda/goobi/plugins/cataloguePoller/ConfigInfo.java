@@ -14,6 +14,7 @@ public class ConfigInfo {
     private String configMergeRecords;
     private String configSkipFields;
 
+    private String lastRun;
 
 
 }

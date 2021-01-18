@@ -38,13 +38,11 @@
                         </div>
 
                         <div class="box-content">
-                            <h:outputText
-                                style="font-size:14px"
-                                value="#{msgs.plugin_admin_cataloguePoller_lastRun}: #{AdministrationForm.administrationPlugin.cp.lastRun}" />
+                       
                             <h:form styleClass="pull-right">
                                 <h:commandLink
                                     styleClass="btn margin-right-10"
-                                    action="#{AdministrationForm.administrationPlugin.cp.execute}"
+                                    action="#{AdministrationForm.administrationPlugin.cp.executeAll}"
                                     title="Run now">
                                     <i class="fa fa-cog margin-right-5" />
                                     <h:outputText value="#{msgs.plugin_admin_cataloguePoller_runNow}" />
@@ -78,6 +76,10 @@
                                             <th>
                                                 <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleSkipFields}" />
                                             </th>
+                                            
+                                            <th>
+                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_lastRun}"/>
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -87,48 +89,13 @@
                                             <td>#{configInfo.configCatalogueId}</td>
                                             <td>#{configInfo.configMergeRecords}</td>
                                             <td>#{configInfo.configSkipFields}</td>
+                                            <td>#{configInfo.lastRun}"</td>
                                         </tr>
                                     </tbody>
 
 
                                 </table>
 
-                                <!--                                 <h:dataTable -->
-                                <!--                                     styleClass="table table-hover dataTable table-bordered responsive" -->
-                                <!--                                     value="#{maps}" -->
-                                <!--                                     var="map" -->
-                                <!--                                     style="margin-top:10px;"> -->
-                                <!--                                     <h:column> -->
-                                <!--                                         <f:facet name="header"> -->
-                                <!--                                             <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleFilter}" /> -->
-                                <!--                                         </f:facet> -->
-                                <!--                                         <h:outputText value="#{maps['filter']}" /> -->
-                                <!--                                     </h:column> -->
-                                <!--                                     <h:column> -->
-                                <!--                                         <f:facet name="header"> -->
-                                <!--                                             <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleCatalogue}" /> -->
-                                <!--                                         </f:facet> -->
-                                <!--                                         <h:outputText value="#{maps['configCatalogue']}" /> -->
-                                <!--                                     </h:column> -->
-                                <!--                                     <h:column> -->
-                                <!--                                         <f:facet name="header"> -->
-                                <!--                                             <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleCatalogueId}" /> -->
-                                <!--                                         </f:facet> -->
-                                <!--                                         <h:outputText value="#{maps['configCatalogueId']}" /> -->
-                                <!--                                     </h:column> -->
-                                <!--                                     <h:column> -->
-                                <!--                                         <f:facet name="header"> -->
-                                <!--                                             <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleMergeRecords}" /> -->
-                                <!--                                         </f:facet> -->
-                                <!--                                         <h:outputText value="#{maps['configMergeRecords']}" /> -->
-                                <!--                                     </h:column> -->
-                                <!--                                     <h:column> -->
-                                <!--                                         <f:facet name="header"> -->
-                                <!--                                             <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleSkipFields}" /> -->
-                                <!--                                         </f:facet> -->
-                                <!--                                         <h:outputText value="#{maps['configSkipFields']}" /> -->
-                                <!--                                     </h:column> -->
-                                <!--                                 </h:dataTable> -->
                             </ui:repeat>
 
                         </div>

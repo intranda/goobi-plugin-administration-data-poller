@@ -48,9 +48,20 @@ public class CataloguePoll {
     private XMLConfiguration config;
     private List<PullDiff> differences;
 
+    private static final DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy hh:mm:ss");
+
     public CataloguePoll() {
         config = ConfigPlugins.getPluginConfig("intranda_administration_catalogue_poller");
         config.setExpressionEngine(new XPathExpressionEngine());
+    }
+
+    public void executeAll() {
+
+        List<HierarchicalConfiguration> rules = config.configurationsAt("rule");
+
+        for (HierarchicalConfiguration rule : rules) {
+            execute(rule.getString("@title"));
+        }
     }
 
     /**
@@ -82,7 +93,7 @@ public class CataloguePoll {
 
         // write last updated time into the configuration file
         try {
-            config.setProperty("lastRun", System.currentTimeMillis());
+            rule.setProperty("lastRun", System.currentTimeMillis());
             config.save();
         } catch (ConfigurationException e) {
             log.error("Error while updating the configuration file", e);
@@ -378,13 +389,6 @@ public class CataloguePoll {
         }
     }
 
-    public String getLastRun() {
-        DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy hh:mm:ss");
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(config.getLong("lastRun", 0));
-        return formatter.format(calendar.getTime());
-    }
-
     /**
      * get the list of all configurations to show it in the GUI
      * 
@@ -395,9 +399,12 @@ public class CataloguePoll {
         // run through all rules
         List<HierarchicalConfiguration> rulelist = config.configurationsAt("rule");
         for (HierarchicalConfiguration rule : rulelist) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(rule.getLong("lastRun", 0));
+
             ConfigInfo ci = new ConfigInfo(rule.getString("@title"), rule.getString("filter"), rule.getString("catalogue"),
-                    rule.getString("catalogueIdentifier"), String.valueOf(rule.getBoolean("mergeRecords")),
-                    String.valueOf(rule.getList("skipField")));
+                    rule.getString("catalogueIdentifier"), String.valueOf(rule.getBoolean("mergeRecords")), String.valueOf(rule.getList("skipField")),
+                    formatter.format(calendar.getTime()));
             list.add(ci);
             //            HashMap<String, String> map = new HashMap<>();
             //            map.put("title", rule.getString("@title"));
