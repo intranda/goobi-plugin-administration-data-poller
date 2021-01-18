@@ -73,6 +73,8 @@ public class QuartzListener implements ServletContextListener {
                 // get delay between trigger / default 24h
                 int delay = rule.getInt("@delay", 24);
 
+                log.info("Definition for rule {} : starting at {}, repeat every {} hour(s).", ruleName, configuredStartTime, delay);
+
                 // configure time to start
                 java.util.Calendar startTime = java.util.Calendar.getInstance();
                 startTime.set(java.util.Calendar.HOUR_OF_DAY, Integer.parseInt(configuredStartTime.substring(0, 2)));
