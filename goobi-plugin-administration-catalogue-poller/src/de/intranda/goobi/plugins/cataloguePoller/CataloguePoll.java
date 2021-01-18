@@ -56,30 +56,28 @@ public class CataloguePoll {
     /**
      * do the pull of catalogue data to update the records for all rules
      */
-    public void execute() {
-        log.debug(" Starting to update the METS files fo all processes defined in the rules ");
+    public void execute(String ruleName) {
+        log.debug(" Starting to update the METS files fo all processes defined in the rule ");
         differences = new ArrayList<>();
 
         // run through all rules
-        List<HierarchicalConfiguration> rulelist = config.configurationsAt("rule");
-        for (HierarchicalConfiguration rule : rulelist) {
-            // first get all parameters of the rule
-            String title = rule.getString("@title");
-            String filter = rule.getString("filter");
-            String configCatalogue = rule.getString("catalogue");
-            String configCatalogueId = rule.getString("catalogueIdentifier");
-            boolean configMergeRecords = rule.getBoolean("mergeRecords");
-            boolean exportUpdatedRecords = rule.getBoolean("exportUpdatedRecords", false);
-            List<String> configSkipFields = Arrays.asList(rule.getStringArray("skipField"));
-            log.debug("Rule '" + title + "' with filter '" + filter + "'");
+        HierarchicalConfiguration rule = config.configurationAt("rule[/@title='" + ruleName + "']");
+        // first get all parameters of the rule
+        String title = rule.getString("@title");
+        String filter = rule.getString("filter");
+        String configCatalogue = rule.getString("catalogue");
+        String configCatalogueId = rule.getString("catalogueIdentifier");
+        boolean configMergeRecords = rule.getBoolean("mergeRecords");
+        boolean exportUpdatedRecords = rule.getBoolean("exportUpdatedRecords", false);
+        List<String> configSkipFields = Arrays.asList(rule.getStringArray("skipField"));
+        log.debug("Rule '" + title + "' with filter '" + filter + "'");
 
-            // now filter the list of all processes that should be affected and
-            // fun through it
-            String query = FilterHelper.criteriaBuilder(filter, false, null, null, null, true, false);
-            List<Process> processes = ProcessManager.getProcesses("prozesse.titel", query);
-            for (Process process : processes) {
-                updateMetsFileForProcess(process, configCatalogue, configCatalogueId, configMergeRecords, configSkipFields, exportUpdatedRecords);
-            }
+        // now filter the list of all processes that should be affected and
+        // fun through it
+        String query = FilterHelper.criteriaBuilder(filter, false, null, null, null, true, false);
+        List<Process> processes = ProcessManager.getProcesses("prozesse.titel", query);
+        for (Process process : processes) {
+            updateMetsFileForProcess(process, configCatalogue, configCatalogueId, configMergeRecords, configSkipFields, exportUpdatedRecords);
         }
 
         // write last updated time into the configuration file

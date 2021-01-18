@@ -16,23 +16,24 @@ public class QuartzJob implements Job {
 
     @Override
     public void execute(JobExecutionContext context) {
-        log.debug("Execute job: " + context.getJobDetail().getName() + " - " + context.getRefireCount());
 
+        log.debug("Execute job for rule: " + context.getJobDetail().getName() + " - " + context.getRefireCount());
+        String ruleName = context.getJobDetail().getJobDataMap().getString("rule");
         CataloguePoll cp = new CataloguePoll();
-        cp.execute();
+        cp.execute(ruleName);
         log.debug(cp.getDifferences().size() + " processes were checked for new catalogue information.");
         int changed = 0;
         for (PullDiff pd : cp.getDifferences()) {
-            if (pd.getMessages().size()>0) {
+            if (pd.getMessages().size() > 0) {
                 log.debug("Catalogue entry updated for process " + pd.getProcessTitle());
                 changed++;
                 for (String diff : pd.getMessages()) {
-                  log.debug("Catalogue difference: " + diff);
-              }
+                    log.debug("Catalogue difference: " + diff);
+                }
             }
         }
         log.debug(changed + " processes were updated with new catalogue information.");
-        
+
         // IAdministrationPlugin plugin = (IAdministrationPlugin)
         // PluginLoader.getPluginByTitle(PluginType.Administration,
         // "intranda_admin_catalogue_poller");

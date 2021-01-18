@@ -2,7 +2,7 @@
 <config_plugin>
 
 	<!-- multiple different rules can be defined for individual use cases -->
-	<rule title="SampleProject">
+	<rule title="SampleProject" startTime="22:00:00" delay="24"> 
 
 		<!-- filter which items to run through (can be more then one, otherwise use *) please notice that blanks inside of the 
 			filter query need to be surrounded by quotation marks -->
@@ -33,7 +33,7 @@
 	</rule>
 
 
-	<rule title="Archive project">
+	<rule title="Archive project" startTime="21:00:00" delay="48">
 		<!-- filter which items to run through (can be more then one, otherwise use *) please notice that blanks inside of the 
 			filter query need to be surrounded by quotation marks -->
 		<filter>project:Archive</filter>
@@ -55,7 +55,7 @@
 		<skipField>_representative</skipField>
 	</rule>
 
-	<rule title="Manuscript project">
+	<rule title="Manuscript project" startTime="23:00:00" delay="24">
 		<!-- filter which items to run through (can be more then one, otherwise use *) please notice that blanks inside of the 
 			filter query need to be surrounded by quotation marks -->
 		<filter>"project:Manuscript items"</filter>
