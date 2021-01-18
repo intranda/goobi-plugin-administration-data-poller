@@ -61,7 +61,7 @@ public class CataloguePoll {
         differences = new ArrayList<>();
 
         // run through all rules
-        HierarchicalConfiguration rule = config.configurationAt("rule[/@title='" + ruleName + "']");
+        HierarchicalConfiguration rule = config.configurationAt("rule[@title='" + ruleName + "']");
         // first get all parameters of the rule
         String title = rule.getString("@title");
         String filter = rule.getString("filter");

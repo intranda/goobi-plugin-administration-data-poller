@@ -65,7 +65,7 @@ public class QuartzListener implements ServletContextListener {
                 if (StringUtils.isBlank(configuredStartTime)) {
                     log.error("No starttime found for rule {}, starting at 22:00:00", ruleName);
                     configuredStartTime = "22:00:00";
-                } else if (!configuredStartTime.matches("([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]")) {
+                } else if (!configuredStartTime.matches("([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]")) {
                     log.error("Invalid time format found for rule {}, use hh:mm:ss. Starting at 22:00:00", ruleName);
                     configuredStartTime = "22:00:00";
                 }
