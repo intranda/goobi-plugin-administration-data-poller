@@ -86,7 +86,7 @@ public class QuartzListener implements ServletContextListener {
                 }
 
                 // create new job
-                JobDetail jobDetail = new JobDetail("Catalogue Poller", "Goobi Admin Plugin", QuartzJob.class);
+                JobDetail jobDetail = new JobDetail("Catalogue Poller " + ruleName, "Goobi Admin Plugin", QuartzJob.class);
                 JobDataMap map = new JobDataMap();
                 map.put("rule", ruleName);
                 jobDetail.setJobDataMap(map);
