@@ -60,7 +60,7 @@ public class QuartzListener implements ServletContextListener {
 
                 String ruleName = rule.getString("@title");
                 // get start time, set Calendar object  / default 22:00:00
-                String configuredStartTime = rule.getString("startTime");
+                String configuredStartTime = rule.getString("@startTime");
 
                 if (StringUtils.isBlank(configuredStartTime)) {
                     log.error("No starttime found for rule {}, starting at 22:00:00", ruleName);
