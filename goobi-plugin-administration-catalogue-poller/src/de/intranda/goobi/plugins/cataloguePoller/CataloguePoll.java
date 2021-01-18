@@ -1,5 +1,7 @@
 package de.intranda.goobi.plugins.cataloguePoller;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,6 +24,7 @@ import org.goobi.production.plugin.interfaces.IOpacPlugin;
 
 import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
 import de.sub.goobi.config.ConfigPlugins;
+import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.export.dms.ExportDms;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.VariableReplacer;
@@ -36,11 +39,13 @@ import ugh.dl.DocStruct;
 import ugh.dl.Fileformat;
 import ugh.dl.Metadata;
 import ugh.dl.MetadataGroup;
+import ugh.dl.MetadataType;
 import ugh.dl.Person;
 import ugh.dl.Prefs;
 import ugh.exceptions.DocStructHasNoTypeException;
 import ugh.exceptions.IncompletePersonObjectException;
 import ugh.exceptions.MetadataTypeNotAllowedException;
+import ugh.exceptions.PreferencesException;
 
 @Data
 @Log4j
@@ -79,6 +84,7 @@ public class CataloguePoll {
         String configCatalogue = rule.getString("catalogue");
         String configCatalogueId = rule.getString("catalogueIdentifier");
         boolean configMergeRecords = rule.getBoolean("mergeRecords");
+        boolean configAnalyseSubElements = rule.getBoolean("analyseSubElements");
         boolean exportUpdatedRecords = rule.getBoolean("exportUpdatedRecords", false);
         List<String> configSkipFields = Arrays.asList(rule.getStringArray("skipField"));
         log.debug("Rule '" + title + "' with filter '" + filter + "'");
@@ -88,13 +94,16 @@ public class CataloguePoll {
         String query = FilterHelper.criteriaBuilder(filter, false, null, null, null, true, false);
         List<Process> processes = ProcessManager.getProcesses("prozesse.titel", query);
         for (Process process : processes) {
-            updateMetsFileForProcess(process, configCatalogue, configCatalogueId, configMergeRecords, configSkipFields, exportUpdatedRecords);
+            updateMetsFileForProcess(process, configCatalogue, configCatalogueId, configMergeRecords, configSkipFields, exportUpdatedRecords,
+                    configAnalyseSubElements);
         }
 
         // write last updated time into the configuration file
         try {
             rule.setProperty("lastRun", System.currentTimeMillis());
-            config.save();
+            Path configurationFile =
+                    Paths.get(ConfigurationHelper.getInstance().getConfigurationFolder(), "plugin_intranda_administration_catalogue_poller.xml");
+            config.save(configurationFile.toString());
         } catch (ConfigurationException e) {
             log.error("Error while updating the configuration file", e);
         }
@@ -111,7 +120,7 @@ public class CataloguePoll {
      * @return
      */
     public boolean updateMetsFileForProcess(Process p, String configCatalogue, String configCatalogueId, boolean configMergeRecords,
-            List<String> configSkipFields, boolean exportUpdatedRecords) {
+            List<String> configSkipFields, boolean exportUpdatedRecords, boolean configAnalyseSubElements) {
         log.debug("Starting catalogue request using catalogue: " + configCatalogue + " with identifier field " + configCatalogueId);
 
         // first read the original METS file for the process
@@ -151,9 +160,11 @@ public class CataloguePoll {
 
         // request the wished catalogue with the correct identifier
         Fileformat ffNew = null;
+        IOpacPlugin myImportOpac = null;
+        ConfigOpacCatalogue coc = null;
         try {
-            ConfigOpacCatalogue coc = ConfigOpac.getInstance().getCatalogueByName(configCatalogue);
-            IOpacPlugin myImportOpac = (IOpacPlugin) PluginLoader.getPluginByTitle(PluginType.Opac, coc.getOpacType());
+            coc = ConfigOpac.getInstance().getCatalogueByName(configCatalogue);
+            myImportOpac = (IOpacPlugin) PluginLoader.getPluginByTitle(PluginType.Opac, coc.getOpacType());
             ffNew = myImportOpac.search("12", catalogueId, coc, prefs);
         } catch (Exception e) {
             log.error("Exception while requesting the catalogue", e);
@@ -186,6 +197,21 @@ public class CataloguePoll {
                 diff.setProcessId(p.getId());
                 diff.setProcessTitle(p.getTitel());
                 differences.add(diff);
+
+                if (configAnalyseSubElements) {
+                    List<DocStruct> dsl = topstructOld.getAllChildren();
+                    if (dsl != null) {
+                        MetadataType type = prefs.getMetadataTypeByName(configCatalogueId.replace("$", "")
+                                .replace("meta.", "")
+                                .replace("(", "")
+                                .replace("{", "")
+                                .replace("}", "")
+                                .replace(")", ""));
+                        for (DocStruct ds : dsl) {
+                            getMetadataForChild(configSkipFields, prefs, myImportOpac, coc, diff, type, ds);
+                        }
+                    }
+                }
 
                 if (diff.getMessages() != null && !diff.getMessages().isEmpty()) {
 
@@ -236,6 +262,23 @@ public class CataloguePoll {
         return true;
     }
 
+    private void getMetadataForChild(List<String> configSkipFields, Prefs prefs, IOpacPlugin myImportOpac, ConfigOpacCatalogue coc, PullDiff diff,
+            MetadataType type, DocStruct ds) throws Exception, PreferencesException {
+        List<? extends Metadata> identifierList = ds.getAllMetadataByType(type);
+        if (identifierList != null && !identifierList.isEmpty()) {
+            String identifier = identifierList.get(0).getValue();
+            Fileformat ff = myImportOpac.search("12", identifier, coc, prefs);
+            PollDocStruct.checkDifferences(ff.getDigitalDocument().getLogicalDocStruct(), ds, configSkipFields, diff);
+            mergeMetadataRecords(configSkipFields, ds, ff.getDigitalDocument().getLogicalDocStruct());
+        }
+        List<DocStruct> children = ds.getAllChildren();
+        if (children != null && !children.isEmpty()) {
+            for (DocStruct child : children) {
+                getMetadataForChild(configSkipFields, prefs, myImportOpac, coc, diff, type, child);
+            }
+        }
+    }
+
     /**
      * Do the export of the process without any images.
      */
@@ -256,7 +299,7 @@ public class CataloguePoll {
             }
             export.setExportFulltext(false);
             export.setExportImages(false);
-            boolean success = export.startExport(p);
+            export.startExport(p);
             log.info("Export finished inside of catalogue poller for process with ID " + p.getId());
             Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, "Process successfully exported by catalogue poller");
         } catch (NoSuchMethodError | Exception e) {
