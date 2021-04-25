@@ -1,20 +1,18 @@
 package de.intranda.goobi.plugins.cataloguePoller;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
 public class ConfigInfo {
-
     private String title;
     private String filter;
-    private String configCatalogue;
-    private String configCatalogueId;
-    private String configMergeRecords;
-    private String configSkipFields;
-
+    private String catalogue;
+    private String catalogueIdentifier;
+    private boolean mergeRecords;
+    private String skipFields;
+    private boolean analyseSubElements;
+    private String startTime;
+    private String delay;
+    private boolean exportUpdatedRecords;
     private String lastRun;
-
-
 }

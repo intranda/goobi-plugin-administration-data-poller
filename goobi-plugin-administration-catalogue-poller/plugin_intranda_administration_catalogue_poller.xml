@@ -2,10 +2,9 @@
 <config_plugin>
 
 	<!-- multiple different rules can be defined for individual use cases -->
-	<rule title="SampleProject" startTime="22:00:00" delay="24"> 
+	<rule title="SampleProject" startTime="22:00:00" delay="24">
 
-		<!-- filter which items to run through (can be more then one, otherwise use *) please notice that blanks inside of the 
-			filter query need to be surrounded by quotation marks -->
+		<!-- filter which items to run through (can be more then one, otherwise use *) please notice that blanks inside of the filter query need to be surrounded by quotation marks -->
 		<filter>project:SampleProject</filter>
 		<filter>"project:Manuscript items"</filter>
 
@@ -15,72 +14,70 @@
 		<!-- which identifier to use for the catalogue request (use standard variable replacer compatible value here) -->
 		<catalogueIdentifier>$(meta.CatalogIDDigital)</catalogueIdentifier>
 
-		<!-- define if existing structure subelements shall be kept (true), otherwise a complete new mets file is created and overwrites 
-			the existing one (false) -->
+		<!-- define if existing structure subelements shall be kept (true), otherwise a complete new mets file is created and overwrites the existing one (false) -->
 		<mergeRecords>true</mergeRecords>
-        <!-- define if children are analysed as well. If a sub element contains an identifier, the metadata will get imported as well -->
-        <analyseSubElements>true</analyseSubElements>
+
+		<!-- define if children are analysed as well. If a sub element contains an identifier, the metadata will get imported as well -->
+		<analyseSubElements>true</analyseSubElements>
+
 		<!-- execute an automatic export of updated records; this is only executed if mergeRecords is set to true -->
 		<exportUpdatedRecords>false</exportUpdatedRecords>
 
-		<!-- if records shall be merged: which existing fields shall not be replace with new values? (use the metadatatypes from 
-			ruleset) -->
+		<!-- if records shall be merged: which existing fields shall not be replace with new values? (use the metadatatypes from ruleset) -->
 		<skipField>viewerinstance</skipField>
 		<skipField>singleDigCollection</skipField>
 		<skipField>pathimagefiles</skipField>
 		<skipField>_urn</skipField>
 		<skipField>_representative</skipField>
 
-        <lastRun>1537117476547</lastRun>
+		<lastRun>1537117476547</lastRun>
 
 	</rule>
 
 
 	<rule title="Archive project" startTime="21:00:00" delay="48">
-		<!-- filter which items to run through (can be more then one, otherwise use *) please notice that blanks inside of the 
-			filter query need to be surrounded by quotation marks -->
+		<!-- filter which items to run through (can be more then one, otherwise use *) please notice that blanks inside of the filter query need to be surrounded by quotation marks -->
 		<filter>project:Archive</filter>
 		<!-- which catalogue to use (GBV, Wiener, CBL Adlib ...) -->
 		<catalogue>GBV</catalogue>
 		<!-- which identifier to use for the catalogue request (use standard variable replacer compatible value here) -->
 		<catalogueIdentifier>$(meta.CatalogIDDigital)</catalogueIdentifier>
-		<!-- define if existing structure subelements shall be kept (true), otherwise a complete new mets file is created and overwrites 
-			the existing one (false) -->
+		<!-- define if existing structure subelements shall be kept (true), otherwise a complete new mets file is created and overwrites the existing one (false) -->
 		<mergeRecords>true</mergeRecords>
+		<!-- define if children are analysed as well. If a sub element contains an identifier, the metadata will get imported as well -->
+		<analyseSubElements>true</analyseSubElements>
 		<!-- execute an automatic export of updated records; this is only executed if mergeRecords is set to true -->
 		<exportUpdatedRecords>false</exportUpdatedRecords>
-		<!-- if records shall be merged: which existing fields shall not be replace with new values? (use the metadatatypes from 
-			ruleset) -->
+		<!-- if records shall be merged: which existing fields shall not be replace with new values? (use the metadatatypes from ruleset) -->
 		<skipField>TitleDocMain</skipField>
 		<skipField>CatalogueIDDigital</skipField>
 		<skipField>DocLanguage</skipField>
 		<skipField>_urn</skipField>
 		<skipField>_representative</skipField>
-        
-        <lastRun>1537117476547</lastRun>        
+
+		<lastRun>1537117476547</lastRun>
 	</rule>
 
 	<rule title="Manuscript project" startTime="23:00:00" delay="24">
-		<!-- filter which items to run through (can be more then one, otherwise use *) please notice that blanks inside of the 
-			filter query need to be surrounded by quotation marks -->
+		<!-- filter which items to run through (can be more then one, otherwise use *) please notice that blanks inside of the filter query need to be surrounded by quotation marks -->
 		<filter>"project:Manuscript items"</filter>
 		<!-- which catalogue to use (GBV, Wiener, CBL Adlib ...) -->
 		<catalogue>GBV</catalogue>
 		<!-- which identifier to use for the catalogue request (use standard variable replacer compatible value here) -->
 		<catalogueIdentifier>$(meta.CatalogIDDigital)</catalogueIdentifier>
-		<!-- define if existing structure subelements shall be kept (true), otherwise a complete new mets file is created and overwrites 
-			the existing one (false) -->
+		<!-- define if existing structure subelements shall be kept (true), otherwise a complete new mets file is created and overwrites the existing one (false) -->
 		<mergeRecords>true</mergeRecords>
+		<!-- define if children are analysed as well. If a sub element contains an identifier, the metadata will get imported as well -->
+		<analyseSubElements>true</analyseSubElements>
 		<!-- execute an automatic export of updated records; this is only executed if mergeRecords is set to true -->
 		<exportUpdatedRecords>false</exportUpdatedRecords>
-		<!-- if records shall be merged: which existing fields shall not be replace with new values? (use the metadatatypes from 
-			ruleset) -->
+		<!-- if records shall be merged: which existing fields shall not be replace with new values? (use the metadatatypes from ruleset) -->
 		<skipField>TitleDocMain</skipField>
 		<skipField>CatalogueIDDigital</skipField>
 		<skipField>DocLanguage</skipField>
-        
-        <lastRun>1537117476547</lastRun>
-        
+
+		<lastRun>1537117476547</lastRun>
+
 	</rule>
 
 </config_plugin>

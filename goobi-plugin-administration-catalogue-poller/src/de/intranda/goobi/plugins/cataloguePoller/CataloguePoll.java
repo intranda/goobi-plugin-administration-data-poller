@@ -445,18 +445,22 @@ public class CataloguePoll {
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(rule.getLong("lastRun", 0));
 
-            ConfigInfo ci = new ConfigInfo(rule.getString("@title"), rule.getString("filter"), rule.getString("catalogue"),
-                    rule.getString("catalogueIdentifier"), String.valueOf(rule.getBoolean("mergeRecords")), String.valueOf(rule.getList("skipField")),
-                    formatter.format(calendar.getTime()));
+            ConfigInfo ci = new ConfigInfo();
+            ci.setTitle(rule.getString("@title"));
+            ci.setFilter(rule.getString("filter"));
+            ci.setCatalogue(rule.getString("catalogue"));
+            ci.setCatalogueIdentifier(rule.getString("catalogueIdentifier"));
+            ci.setMergeRecords(rule.getBoolean("mergeRecords")); 
+            ci.setSkipFields(String.valueOf(rule.getList("skipField")));
+            
+            ci.setExportUpdatedRecords(rule.getBoolean("exportUpdatedRecords"));
+            ci.setAnalyseSubElements(rule.getBoolean("analyseSubElements"));
+            ci.setStartTime(rule.getString("@startTime"));
+            ci.setDelay(rule.getString("@delay"));
+            
+            ci.setLastRun(formatter.format(calendar.getTime()));
+            
             list.add(ci);
-            //            HashMap<String, String> map = new HashMap<>();
-            //            map.put("title", rule.getString("@title"));
-            //            map.put("filter", rule.getString("filter"));
-            //            map.put("configCatalogue", rule.getString("catalogue"));
-            //            map.put("configCatalogueId", rule.getString("catalogueIdentifier"));
-            //            map.put("configMergeRecords", String.valueOf(rule.getBoolean("mergeRecords")));
-            //            map.put("configSkipFields", String.valueOf(rule.getList("skipField")));
-            //            list.add(map);
         }
         return list;
     }
