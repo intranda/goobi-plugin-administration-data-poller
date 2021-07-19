@@ -203,6 +203,8 @@ public class CataloguePoll {
                     if (dsl != null) {
                         MetadataType type = prefs.getMetadataTypeByName(configCatalogueId.replace("$", "")
                                 .replace("meta.", "")
+                                .replace("topstruct.", "")
+                                .replace("firstchild.", "")
                                 .replace("(", "")
                                 .replace("{", "")
                                 .replace("}", "")
@@ -450,16 +452,16 @@ public class CataloguePoll {
             ci.setFilter(rule.getString("filter"));
             ci.setCatalogue(rule.getString("catalogue"));
             ci.setCatalogueIdentifier(rule.getString("catalogueIdentifier"));
-            ci.setMergeRecords(rule.getBoolean("mergeRecords")); 
+            ci.setMergeRecords(rule.getBoolean("mergeRecords"));
             ci.setSkipFields(String.valueOf(rule.getList("skipField")));
-            
+
             ci.setExportUpdatedRecords(rule.getBoolean("exportUpdatedRecords"));
             ci.setAnalyseSubElements(rule.getBoolean("analyseSubElements"));
             ci.setStartTime(rule.getString("@startTime"));
             ci.setDelay(rule.getString("@delay"));
-            
+
             ci.setLastRun(formatter.format(calendar.getTime()));
-            
+
             list.add(ci);
         }
         return list;
