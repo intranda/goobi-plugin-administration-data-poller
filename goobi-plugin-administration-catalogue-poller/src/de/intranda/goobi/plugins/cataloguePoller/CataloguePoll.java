@@ -92,8 +92,10 @@ public class CataloguePoll {
         // now filter the list of all processes that should be affected and
         // fun through it
         String query = FilterHelper.criteriaBuilder(filter, false, null, null, null, true, false);
-        List<Process> processes = ProcessManager.getProcesses("prozesse.titel", query);
-        for (Process process : processes) {
+
+        List<Integer> processIds = ProcessManager.getIDList(query);
+        for (Integer id : processIds) {
+            Process process = ProcessManager.getProcessById(id);
             updateMetsFileForProcess(process, configCatalogue, configCatalogueId, configMergeRecords, configSkipFields, exportUpdatedRecords,
                     configAnalyseSubElements);
         }
