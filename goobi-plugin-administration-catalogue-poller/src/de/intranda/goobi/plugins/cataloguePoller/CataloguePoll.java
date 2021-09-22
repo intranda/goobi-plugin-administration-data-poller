@@ -1,5 +1,7 @@
 package de.intranda.goobi.plugins.cataloguePoller;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
@@ -15,6 +17,7 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.apache.commons.lang.StringUtils;
 import org.goobi.beans.Process;
+import org.goobi.production.cli.helper.StringPair;
 import org.goobi.production.enums.LogType;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.flow.statistics.hibernate.FilterHelper;
@@ -32,7 +35,7 @@ import de.sub.goobi.persistence.managers.ProcessManager;
 import de.unigoettingen.sub.search.opac.ConfigOpac;
 import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
 import lombok.Data;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import ugh.dl.Corporate;
 import ugh.dl.DigitalDocument;
 import ugh.dl.DocStruct;
@@ -48,7 +51,7 @@ import ugh.exceptions.MetadataTypeNotAllowedException;
 import ugh.exceptions.PreferencesException;
 
 @Data
-@Log4j
+@Log4j2
 public class CataloguePoll {
     private XMLConfiguration config;
     private List<PullDiff> differences;
@@ -82,7 +85,15 @@ public class CataloguePoll {
         String title = rule.getString("@title");
         String filter = rule.getString("filter");
         String configCatalogue = rule.getString("catalogue");
-        String configCatalogueId = rule.getString("catalogueIdentifier");
+
+        List<StringPair> searchfields = new ArrayList<>();
+        List<HierarchicalConfiguration> fields = rule.configurationsAt("catalogueField");
+        for (HierarchicalConfiguration field : fields) {
+            String fieldname = field.getString("@fieldName");
+            String metadataName = field.getString("@fieldValue");
+            searchfields.add(new StringPair(fieldname, metadataName));
+        }
+
         boolean configMergeRecords = rule.getBoolean("mergeRecords");
         boolean configAnalyseSubElements = rule.getBoolean("analyseSubElements");
         boolean exportUpdatedRecords = rule.getBoolean("exportUpdatedRecords", false);
@@ -96,7 +107,7 @@ public class CataloguePoll {
         List<Integer> processIds = ProcessManager.getIDList(query);
         for (Integer id : processIds) {
             Process process = ProcessManager.getProcessById(id);
-            updateMetsFileForProcess(process, configCatalogue, configCatalogueId, configMergeRecords, configSkipFields, exportUpdatedRecords,
+            updateMetsFileForProcess(process, configCatalogue, searchfields, configMergeRecords, configSkipFields, exportUpdatedRecords,
                     configAnalyseSubElements);
         }
 
@@ -121,9 +132,9 @@ public class CataloguePoll {
      * @param configSkipFields define a list of fields that shall now be updated during merging (e.g. CatalogueIDDigital, DocLanguage ...)
      * @return
      */
-    public boolean updateMetsFileForProcess(Process p, String configCatalogue, String configCatalogueId, boolean configMergeRecords,
+    public boolean updateMetsFileForProcess(Process p, String configCatalogue, List<StringPair> searchfields, boolean configMergeRecords,
             List<String> configSkipFields, boolean exportUpdatedRecords, boolean configAnalyseSubElements) {
-        log.debug("Starting catalogue request using catalogue: " + configCatalogue + " with identifier field " + configCatalogueId);
+        log.debug("Starting catalogue request using catalogue: " + configCatalogue );
 
         // first read the original METS file for the process
         Fileformat ffOld = null;
@@ -157,24 +168,86 @@ public class CataloguePoll {
         // create a VariableReplacer to transform the identifier field from the
         // configuration into a real value
         VariableReplacer replacer = new VariableReplacer(dd, prefs, p, null);
-        String catalogueId = replacer.replace(configCatalogueId);
-        log.debug("Using this value for the catalogue request: " + catalogueId);
+        List<StringPair> valueList = new ArrayList<>(searchfields.size());
+        for (StringPair entry : searchfields) {
+            String value = replacer.replace(entry.getTwo());
+            if (StringUtils.isNotBlank(value)) {
+                valueList.add(new StringPair(entry.getOne(), value));
+                log.debug("Using field {} and value {} for the catalogue request", entry.getOne(), value);
+            }
+        }
+
 
         // request the wished catalogue with the correct identifier
         Fileformat ffNew = null;
         IOpacPlugin myImportOpac = null;
         ConfigOpacCatalogue coc = null;
-        try {
-            coc = ConfigOpac.getInstance().getCatalogueByName(configCatalogue);
-            myImportOpac = (IOpacPlugin) PluginLoader.getPluginByTitle(PluginType.Opac, coc.getOpacType());
-            ffNew = myImportOpac.search("12", catalogueId, coc, prefs);
-        } catch (Exception e) {
-            log.error("Exception while requesting the catalogue", e);
-            Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG,
-                    "Exception while requesting the catalogue inside of catalogue poller plugin: " + e.getMessage());
+
+        for (ConfigOpacCatalogue configOpacCatalogue : ConfigOpac.getInstance().getAllCatalogues("")) {
+            if (configOpacCatalogue.getTitle().equals(configCatalogue)) {
+                myImportOpac = configOpacCatalogue.getOpacPlugin();
+                coc = configOpacCatalogue;
+            }
+        }
+        if (coc == null) {
+            // TODO error message
             return false;
+
         }
 
+        if (myImportOpac.getTitle().equals("intranda_opac_json")) {
+
+            try {
+                Class<? extends Object> opacClass = myImportOpac.getClass();
+                Method getConfigForOpac = opacClass.getMethod("getConfigForOpac");
+                Object jsonOpacConfig = getConfigForOpac.invoke(myImportOpac);
+
+                Class<? extends Object> jsonOpacConfigClass = jsonOpacConfig.getClass();
+
+                Method getFieldList = jsonOpacConfigClass.getMethod("getFieldList");
+
+                Object fieldList = getFieldList.invoke(jsonOpacConfig);
+                List<Object> fields =  (List<Object>) fieldList;
+                for (StringPair sp : valueList) {
+                    for (Object searchField : fields) {
+                        Class<? extends Object> searchFieldClass = searchField.getClass();
+
+                        Method getId = searchFieldClass.getMethod("getId");
+
+                        Method setText = searchFieldClass.getMethod("setText", String.class);
+                        Method setSelectedField = searchFieldClass.getMethod("setSelectedField", String.class);
+
+                        Object id = getId.invoke(searchField);
+                        if (((String) id).equals(sp.getOne())) {
+                            String value = sp.getTwo();
+                            if (StringUtils.isNotBlank(value)) {
+                                setText.invoke(searchField, value);
+                                setSelectedField.invoke(searchField, sp.getOne());
+                            }
+                        }
+                    }
+
+                }
+                Method search = opacClass.getMethod("search", String.class, String.class, ConfigOpacCatalogue.class, Prefs.class);
+
+                ffNew = (Fileformat)  search.invoke(myImportOpac, "","",coc, prefs);
+
+            } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                return false;
+            }
+        } else {
+
+            try {
+                coc = ConfigOpac.getInstance().getCatalogueByName(configCatalogue);
+                myImportOpac = (IOpacPlugin) PluginLoader.getPluginByTitle(PluginType.Opac, coc.getOpacType());
+                ffNew = myImportOpac.search(valueList.get(0).getOne(), valueList.get(0).getTwo(), coc, prefs);
+            } catch (Exception e) {
+                log.error("Exception while requesting the catalogue", e);
+                Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG,
+                        "Exception while requesting the catalogue inside of catalogue poller plugin: " + e.getMessage());
+                return false;
+            }
+        }
         // if structure subelements shall be kept, merge old and new fileformat,
         // otherwise just write the new one
         try {
@@ -203,7 +276,7 @@ public class CataloguePoll {
                 if (configAnalyseSubElements) {
                     List<DocStruct> dsl = topstructOld.getAllChildren();
                     if (dsl != null) {
-                        MetadataType type = prefs.getMetadataTypeByName(configCatalogueId.replace("$", "")
+                        MetadataType type = prefs.getMetadataTypeByName(searchfields.get(0).getTwo().replace("$", "")
                                 .replace("meta.", "")
                                 .replace("topstruct.", "")
                                 .replace("firstchild.", "")
@@ -453,7 +526,17 @@ public class CataloguePoll {
             ci.setTitle(rule.getString("@title"));
             ci.setFilter(rule.getString("filter"));
             ci.setCatalogue(rule.getString("catalogue"));
-            ci.setCatalogueIdentifier(rule.getString("catalogueIdentifier"));
+
+            List<StringPair> searchfields = new ArrayList<>();
+            List<HierarchicalConfiguration> fields = rule.configurationsAt("catalogueField");
+            for (HierarchicalConfiguration field : fields) {
+                String fieldname = field.getString("@fieldName");
+                String metadataName = field.getString("@fieldValue");
+                searchfields.add(new StringPair(fieldname, metadataName));
+            }
+
+            ci.setSearchFields(searchfields);
+
             ci.setMergeRecords(rule.getBoolean("mergeRecords"));
             ci.setSkipFields(String.valueOf(rule.getList("skipField")));
 
