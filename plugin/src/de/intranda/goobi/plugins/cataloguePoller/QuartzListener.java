@@ -87,17 +87,19 @@ public class QuartzListener implements ServletContextListener {
                     startTime.add(java.util.Calendar.DAY_OF_MONTH, 1);
                 }
 
-                // create new job
-                JobDetail jobDetail = new JobDetail("Catalogue Poller " + ruleName, "Goobi Admin Plugin", QuartzJob.class);
-                JobDataMap map = new JobDataMap();
-                map.put("rule", ruleName);
-                jobDetail.setJobDataMap(map);
-                Trigger trigger = TriggerUtils.makeHourlyTrigger(delay);
-                trigger.setName("Catalogue Poller");
-                trigger.setStartTime(startTime.getTime());
-
-                // register job and trigger at scheduler
-                sched.scheduleJob(jobDetail, trigger);
+                // create new job only if job doesnt already exist
+                if(sched.getTrigger("Catalogue Poller", "DEFAULT") == null) {
+	                JobDetail jobDetail = new JobDetail("Catalogue Poller " + ruleName, "Goobi Admin Plugin", QuartzJob.class);
+	                JobDataMap map = new JobDataMap();
+	                map.put("rule", ruleName);
+	                jobDetail.setJobDataMap(map);
+	                Trigger trigger = TriggerUtils.makeHourlyTrigger(delay);
+	                trigger.setName("Catalogue Poller");
+	                trigger.setStartTime(startTime.getTime());
+	                // register job and trigger at scheduler
+                	sched.scheduleJob(jobDetail, trigger);
+                }
+                	
             }
 
         } catch (SchedulerException e) {
