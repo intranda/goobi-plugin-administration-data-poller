@@ -104,7 +104,7 @@ public class CataloguePoll {
         // fun through it
         String query = FilterHelper.criteriaBuilder(filter, false, null, null, null, true, false);
 
-        List<Integer> processIds = ProcessManager.getIDList(query);
+        List<Integer> processIds = ProcessManager.getIdsForFilter(query);
         for (Integer id : processIds) {
             Process process = ProcessManager.getProcessById(id);
             updateMetsFileForProcess(process, configCatalogue, searchfields, configMergeRecords, configSkipFields, exportUpdatedRecords,
