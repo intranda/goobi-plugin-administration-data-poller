@@ -38,102 +38,99 @@
                         </div>
 
                         <div class="box-content">
-                       
-                            <h:form styleClass="pull-right">
-                                <h:commandLink
-                                    styleClass="btn margin-right-10"
-                                    action="#{AdministrationForm.administrationPlugin.cp.executeAll}"
-                                    title="Run now">
-                                    <i class="fa fa-play margin-right-5" />
-                                    <h:outputText value="#{msgs.plugin_admin_cataloguePoller_runNow}" />
-                                </h:commandLink>
-                            </h:form>
-                            <br />
-                            <br />
-                            <ui:repeat
-                                var="configInfo"
-                                value="#{AdministrationForm.administrationPlugin.cp.configInfo}">
-                                <hr />
-                                <h4>#{configInfo.title}</h4>
-
-                                <table
-                                    class="table table-hover dataTable table-bordered responsive"
-                                    style="margin-top: 10px;">
-                                    <thead>
-                                        <tr>
-                                            <th>
-                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleFilter}" />
-                                            </th>
-                                            <th style="width:100px">
-                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleCatalogue}" />
-                                            </th>
-                                            <th style="width:150px">
-                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleCatalogueId}" />
-                                            </th>
-                                            <th style="width:250px">
-                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleSkipFields}" />
-                                            </th>
-                                            <th style="width:150px">
-                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleAnalyseSubElements}" />
-                                            </th>
-                                            <th style="width:150px">
-                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleMergeRecords}" />
-                                            </th>
-                                            <th style="width:150px">
-                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleExportUpdatedRecords}" />
-                                            </th>
-                                            <th style="width:150px">
-                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_startingTime}"/>
-                                            </th>
-                                            <th style="width:150px">
-                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleDelay}" />
-                                            </th>
-                                            <th style="width:150px">
-                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_lastRun}"/>
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>#{configInfo.filter}</td>
-                                            <td>#{configInfo.catalogue}</td>
-                                            <td>#{configInfo.searchFields}</td>
-                                            <td>#{configInfo.skipFields}</td>
-                                            <td>
-                                                <h:panelGroup class="badge badge-intranda-red" rendered="#{!configInfo.analyseSubElements}">
-                                                    <i class="fa fa-circle-o"></i> #{msgs.inactive}	
-                                                </h:panelGroup>
-                                                <h:panelGroup class="badge badge-intranda-green" rendered="#{configInfo.analyseSubElements}">
-                                                    <i class="fa fa-check-circle"></i> #{msgs.active}
-                                                </h:panelGroup>
-                                            </td>
-                                            <td>
-                                                <h:panelGroup class="badge badge-intranda-red" rendered="#{!configInfo.mergeRecords}">
-                                                    <i class="fa fa-circle-o"></i> #{msgs.inactive}	
-                                                </h:panelGroup>
-                                                <h:panelGroup class="badge badge-intranda-green" rendered="#{configInfo.mergeRecords}">
-                                                    <i class="fa fa-check-circle"></i> #{msgs.active}
-                                                </h:panelGroup>
-                                            </td>
-                                            <td>
-                                                <h:panelGroup class="badge badge-intranda-red" rendered="#{!configInfo.exportUpdatedRecords}">
-                                                    <i class="fa fa-circle-o"></i> #{msgs.inactive}	
-                                                </h:panelGroup>
-                                                <h:panelGroup class="badge badge-intranda-green" rendered="#{configInfo.exportUpdatedRecords}">
-                                                    <i class="fa fa-check-circle"></i> #{msgs.active}
-                                                </h:panelGroup>
-                                            </td>
-                                            <td>#{configInfo.startTime}</td>
-                                            <td>#{configInfo.delay}</td>
-                                            <td>#{configInfo.lastRun}"</td>
-                                        </tr>
-                                    </tbody>
-
-
-                                </table>
-
-                            </ui:repeat>
-
+                            <h:form>
+	                            <ui:repeat
+	                                var="configInfo"
+	                                value="#{AdministrationForm.administrationPlugin.cp.configInfo}">
+	                                <hr />
+	                                <h4>#{configInfo.title}</h4>
+	
+	                                <table
+	                                    class="table table-hover dataTable table-bordered responsive"
+	                                    style="margin-top: 10px;">
+	                                    <thead>
+	                                        <tr>
+	                                            <th>
+	                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleFilter}" />
+	                                            </th>
+	                                            <th style="width:100px">
+	                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleCatalogue}" />
+	                                            </th>
+	                                            <th style="width:150px">
+	                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleCatalogueId}" />
+	                                            </th>
+	                                            <th style="width:250px">
+	                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleSkipFields}" />
+	                                            </th>
+	                                            <th style="width:150px">
+	                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleAnalyseSubElements}" />
+	                                            </th>
+	                                            <th style="width:150px">
+	                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleMergeRecords}" />
+	                                            </th>
+	                                            <th style="width:150px">
+	                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleExportUpdatedRecords}" />
+	                                            </th>
+	                                            <th style="width:150px">
+	                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_startingTime}"/>
+	                                            </th>
+	                                            <th style="width:150px">
+	                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleDelay}" />
+	                                            </th>
+	                                            <th style="width:150px">
+	                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_lastRun}"/>
+	                                            </th>
+	                                            <th style="width:150px">
+	                                                <h:outputText value="#{msgs.plugin_admin_cataloguePoller_actions}"/>
+	                                            </th>
+	                                        </tr>
+	                                    </thead>
+	                                    <tbody>
+	                                        <tr>
+	                                            <td>#{configInfo.filter}</td>
+	                                            <td>#{configInfo.catalogue}</td>
+	                                            <td>#{configInfo.searchFields}</td>
+	                                            <td>#{configInfo.skipFields}</td>
+	                                            <td>
+	                                                <h:panelGroup class="badge badge-intranda-red" rendered="#{!configInfo.analyseSubElements}">
+	                                                    <i class="fa fa-circle-o"></i> #{msgs.inactive}	
+	                                                </h:panelGroup>
+	                                                <h:panelGroup class="badge badge-intranda-green" rendered="#{configInfo.analyseSubElements}">
+	                                                    <i class="fa fa-check-circle"></i> #{msgs.active}
+	                                                </h:panelGroup>
+	                                            </td>
+	                                            <td>
+	                                                <h:panelGroup class="badge badge-intranda-red" rendered="#{!configInfo.mergeRecords}">
+	                                                    <i class="fa fa-circle-o"></i> #{msgs.inactive}	
+	                                                </h:panelGroup>
+	                                                <h:panelGroup class="badge badge-intranda-green" rendered="#{configInfo.mergeRecords}">
+	                                                    <i class="fa fa-check-circle"></i> #{msgs.active}
+	                                                </h:panelGroup>
+	                                            </td>
+	                                            <td>
+	                                                <h:panelGroup class="badge badge-intranda-red" rendered="#{!configInfo.exportUpdatedRecords}">
+	                                                    <i class="fa fa-circle-o"></i> #{msgs.inactive}	
+	                                                </h:panelGroup>
+	                                                <h:panelGroup class="badge badge-intranda-green" rendered="#{configInfo.exportUpdatedRecords}">
+	                                                    <i class="fa fa-check-circle"></i> #{msgs.active}
+	                                                </h:panelGroup>
+	                                            </td>
+	                                            <td>#{configInfo.startTime}</td>
+	                                            <td>#{configInfo.delay}</td>
+	                                            <td>#{configInfo.lastRun}"</td>
+	                                            <td>
+	                                            	 <h:commandLink
+	                                    				styleClass="btn margin-right-10"
+	                                    				action="#{AdministrationForm.administrationPlugin.cp.execute(configInfo.title)}"
+	                                    				title="Run now">
+	                                    				<i class="fa fa-play" />
+	                       					         </h:commandLink>
+	                                            </td>
+	                                        </tr>
+	                                    </tbody>
+	                                </table>
+	                            </ui:repeat>
+							</h:form>
                         </div>
 
                         <h:panelGroup rendered="#{AdministrationForm.administrationPlugin.cp.differences!=null and AdministrationForm.administrationPlugin.cp.differences.size() ne 0}">
