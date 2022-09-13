@@ -125,6 +125,12 @@
 	                                    				title="Run now">
 	                                    				<i class="fa fa-play" />
 	                       					         </h:commandLink>
+	                       					         <h:commandLink
+	                                    				styleClass="btn margin-right-10"
+	                                    				action="#{AdministrationForm.administrationPlugin.cp.executeTest(configInfo.title)}"
+	                                    				title="Run test now">
+	                                    				<i class="fa fa-play-circle" />
+	                       					         </h:commandLink>
 	                                            </td>
 	                                        </tr>
 	                                    </tbody>
@@ -136,7 +142,10 @@
                         <h:panelGroup rendered="#{AdministrationForm.administrationPlugin.cp.differences!=null and AdministrationForm.administrationPlugin.cp.differences.size() ne 0}">
                             <div class="box-content">
                                 <h4>
-                                    <h:outputText value="#{msgs.plugin_admin_cataloguePoller_results}" />
+                                    <h:outputText value="#{msgs.plugin_admin_cataloguePoller_results_test}" 
+                                    rendered="#{AdministrationForm.administrationPlugin.cp.testRun}" />
+                                    <h:outputText value="#{msgs.plugin_admin_cataloguePoller_results}" 
+                                    rendered="#{not AdministrationForm.administrationPlugin.cp.testRun}" />
                                 </h4>
                                 <ui:repeat
                                     var="pd"
