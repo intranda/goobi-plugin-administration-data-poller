@@ -34,7 +34,7 @@
 
 	<rule title="Archive project" startTime="21:00:00" delay="48">
 		<filter>project:Archive</filter>
-		<catalogue>GBV</catalogue>
+		<catalogue>K10Plus</catalogue>
 		<catalogueField fieldName="12" fieldValue="$(meta.CatalogIDDigital)" />
 		<mergeRecords>true</mergeRecords>
 		<analyseSubElements>true</analyseSubElements>
@@ -48,7 +48,7 @@
 
 	<rule title="Manuscript project" startTime="23:00:00" delay="24">
 		<filter>"project:Manuscript items"</filter>
-		<catalogue>GBV</catalogue>
+		<catalogue>K10Plus</catalogue>
 		<catalogueField fieldName="12" fieldValue="$(meta.CatalogIDDigital)" />
 		<mergeRecords>true</mergeRecords>
 		<analyseSubElements>true</analyseSubElements>
