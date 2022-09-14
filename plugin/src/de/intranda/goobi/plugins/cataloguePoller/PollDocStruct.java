@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import de.intranda.goobi.plugins.CataloguePollerPlugin;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.log4j.Log4j;
@@ -175,11 +174,13 @@ public class PollDocStruct {
                     }
                     differences.getMessages().add(pmtNew.getTitle() + ": Number of old values (" + pmtOld.getValues().size()
                             + ") is different from new values (" + pmtNew.getValues().size() + ") <br/>[Old values: " + helperOldValues + " => New values: " + helperNewValues + "]");
-                } else {
+                    differences.getXlsData().add(new XlsData(pmtNew.getTitle(), helperOldValues, helperNewValues));
+                } else {  
                     // number of metadata fields is the same
                     for (String value : pmtNew.getValues()) {
                         if (!pmtOld.getValues().contains(value)) {
                             differences.getMessages().add(pmtNew.getTitle() + ": New metadata value '" + value + "' found.");
+                            differences.getXlsData().add(new XlsData(pmtNew.getTitle(), "", value));
                         } else {
                             // remove all fields from old list
                             pmtOld.getValues().remove(value);
@@ -190,6 +191,7 @@ public class PollDocStruct {
                     if (pmtOld.getValues().size() > 0) {
                         for (String value : pmtOld.getValues()) {
                             differences.getMessages().add(pmtOld.getTitle() + ": Old value '" + value + "' was not in the new record anymore.");
+                            differences.getXlsData().add(new XlsData(pmtNew.getTitle(), value, ""));
                         }
                     }
                 }
@@ -250,12 +252,14 @@ public class PollDocStruct {
                     }
                     differences.getMessages().add(pptNew.getRole() + ": Number of old persons (" + pptOld.getPersons().size()
                             + ") is different from new persons (" + pptNew.getPersons().size() + ") <br/>[Old persons: " + helperOldPersons + " => New persons: " + helperNewPersons + "]");
+                    differences.getXlsData().add(new XlsData(pptNew.getRole(),helperOldPersons, helperNewPersons));
                 } else {
                     // number of person fields is the same
                     for (PullPerson pp : pptNew.getPersons()) {
                         if (!pptOld.getPersons().contains(pp)) {
                             differences.getMessages().add(pptNew.getRole() + ": New person '" + pp.getLastName() + ", " + pp.getFirstName() + " ("
                                     + pp.getAuthorityUrl() + ": " + pp.getAuthorityValue() + ")' found.");
+                            differences.getXlsData().add(new XlsData(pptNew.getRole(), "", pp.getLastName()+", "+pp.getFirstName()));
                         } else {
                             // remove all fields from old list
                             pptOld.getPersons().remove(pp);
@@ -267,6 +271,7 @@ public class PollDocStruct {
                         for (PullPerson pp : pptOld.getPersons()) {
                             differences.getMessages().add(pptOld.getRole() + ": Old value '" + pp.getLastName() + ", " + pp.getFirstName() + " (" + pp
                                     .getAuthorityUrl() + ": " + pp.getAuthorityValue() + ")' was not in the new record anymore.");
+                            differences.getXlsData().add(new XlsData(pptOld.getRole(), "", pp.getLastName()+", "+pp.getFirstName()));
                         }
                     }
                 }
@@ -302,10 +307,12 @@ public class PollDocStruct {
                     
                     differences.getMessages().add(newGroup.getGroupType() + ": Number of metadata in old groups (" + oldGroup.getMetadataHashs().size()
                             + ") is different from new groups (" + newGroup.getMetadataHashs().size() + ") <br/>[Old values: " + helperOldGroups + " => New values: " + helperNewGroups + "]");
+                    differences.getXlsData().add(new XlsData(newGroup.getGroupType(),helperOldGroups,helperNewGroups));
                 } else {
                     for (String metadata : newGroup.getMetadataHashs()) {
                         if (!oldGroup.getMetadataHashs().contains(metadata)) {
                             differences.getMessages().add(newGroup.getGroupType() + ": New group '" + metadata + "' found.");
+                            differences.getXlsData().add(new XlsData(newGroup.getGroupType(),"",metadata));
                         } else {
                             oldGroup.getMetadataHashs().remove(metadata);
                         }
@@ -316,6 +323,7 @@ public class PollDocStruct {
                     if (oldGroup.getMetadataHashs().size() > 0) {
                         for (String pp : oldGroup.getMetadataHashs()) {
                             differences.getMessages().add(oldGroup.getGroupType() + ": Old value '" + pp + "' was not in the new record anymore.");
+                            differences.getXlsData().add(new XlsData(oldGroup.getGroupType(),pp,""));
                         }
                     }
                 }
@@ -380,6 +388,7 @@ public class PollDocStruct {
         private Integer processId;
         private String processTitle;
         private List<String> messages = new ArrayList<>();
+        private List<XlsData> xlsData = new ArrayList<>();
     }
 
     @Data
@@ -395,4 +404,5 @@ public class PollDocStruct {
         public void addMetadataToGroup(String metadata) {
             metadataHashs.add(metadata);
         }
-    }}
+    }
+}

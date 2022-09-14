@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.configuration.ConfigurationException;
@@ -120,10 +121,13 @@ public class CataloguePoll {
             updateMetsFileForProcess(process, configCatalogue, searchfields, configMergeRecords, configSkipFields, exportUpdatedRecords,
                     configAnalyseSubElements, testRun);
         }
-
+        Path tempFolder = Paths.get(ConfigurationHelper.getInstance().getTemporaryFolder());
+        long lastRunMillis = System.currentTimeMillis();
+        XlsWriter writer = new XlsWriter(tempFolder);
+        writer.writeWorkbook(differences, lastRunMillis, ruleName, testRun);
         // write last updated time into the configuration file
         try {
-            rule.setProperty("lastRun", System.currentTimeMillis());
+            rule.setProperty("lastRun", lastRunMillis);
             Path configurationFile =
                     Paths.get(ConfigurationHelper.getInstance().getConfigurationFolder(), "plugin_intranda_administration_catalogue_poller.xml");
             config.save(configurationFile.toString());
