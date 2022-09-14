@@ -131,6 +131,13 @@
 	                                    				title="Run test now">
 	                                    				<i class="fa fa-play-circle" />
 	                       					         </h:commandLink>
+	                       					          <h:commandLink
+	                                    				styleClass="btn margin-right-10"
+	                                    				rendered="#{AdministrationForm.administrationPlugin.cp.reportExists(configInfo.title)}"
+	                                    				action="#{AdministrationForm.administrationPlugin.cp.download(configInfo.title)}"
+	                                    				title="Run test now">
+	                                    				<i class="fa fa-download" />
+	                       					         </h:commandLink>
 	                                            </td>
 	                                        </tr>
 	                                    </tbody>

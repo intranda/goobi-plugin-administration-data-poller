@@ -1,5 +1,6 @@
 package de.intranda.goobi.plugins.cataloguePoller;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
@@ -9,7 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.configuration.ConfigurationException;
@@ -25,6 +26,7 @@ import org.goobi.production.flow.statistics.hibernate.FilterHelper;
 import org.goobi.production.plugin.PluginLoader;
 import org.goobi.production.plugin.interfaces.IExportPlugin;
 import org.goobi.production.plugin.interfaces.IOpacPlugin;
+import org.omnifaces.util.Faces;
 
 import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
 import de.sub.goobi.config.ConfigPlugins;
@@ -57,6 +59,7 @@ public class CataloguePoll {
     private XMLConfiguration config;
     private List<PullDiff> differences;
     private boolean testRun;
+    private HashMap<String, Path> xlsxReports = new HashMap<String, Path>();
 
     private static final DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy hh:mm:ss");
 
@@ -80,6 +83,21 @@ public class CataloguePoll {
 
     public void execute(String ruleName) {
         executePoll(ruleName, false);
+    }
+   
+    public void download(String ruleName) {
+        Path report = xlsxReports.get(ruleName);
+        if (report != null) {
+            try {
+                Faces.sendFile(report.toFile(), true);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    public boolean reportExists(String ruleName) {
+        return xlsxReports.containsKey(ruleName);
     }
 
     /**
@@ -124,7 +142,10 @@ public class CataloguePoll {
         Path tempFolder = Paths.get(ConfigurationHelper.getInstance().getTemporaryFolder());
         long lastRunMillis = System.currentTimeMillis();
         XlsWriter writer = new XlsWriter(tempFolder);
-        writer.writeWorkbook(differences, lastRunMillis, ruleName, testRun);
+        Path report = writer.writeWorkbook(differences, lastRunMillis, ruleName, testRun);
+        if (report!=null) {
+            xlsxReports.put(ruleName, report);
+        }
         // write last updated time into the configuration file
         try {
             rule.setProperty("lastRun", lastRunMillis);
