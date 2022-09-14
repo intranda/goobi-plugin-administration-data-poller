@@ -78,7 +78,7 @@ public class XlsWriter {
             e.printStackTrace();
             return null;
         }
-        return path;
+        return targetPath;
     }
 
     private void writeCellsToRow(Row row, String... cellContent) {
