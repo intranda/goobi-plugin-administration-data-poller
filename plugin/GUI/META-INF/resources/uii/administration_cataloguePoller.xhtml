@@ -119,23 +119,23 @@
 	                                            <td>#{configInfo.delay}</td>
 	                                            <td>#{configInfo.lastRun}"</td>
 	                                            <td>
+	                                           		<h:commandLink
+	                                    				styleClass="btn margin-right-10"
+	                                    				action="#{AdministrationForm.administrationPlugin.cp.executeTest(configInfo.title)}"
+	                                    				title="Run test now">
+	                                    				<i class="fa fa-flask" />
+	                       					         </h:commandLink>
 	                                            	 <h:commandLink
 	                                    				styleClass="btn margin-right-10"
 	                                    				action="#{AdministrationForm.administrationPlugin.cp.execute(configInfo.title)}"
 	                                    				title="Run now">
 	                                    				<i class="fa fa-play" />
 	                       					         </h:commandLink>
-	                       					         <h:commandLink
-	                                    				styleClass="btn margin-right-10"
-	                                    				action="#{AdministrationForm.administrationPlugin.cp.executeTest(configInfo.title)}"
-	                                    				title="Run test now">
-	                                    				<i class="fa fa-play-circle" />
-	                       					         </h:commandLink>
 	                       					          <h:commandLink
 	                                    				styleClass="btn margin-right-10"
 	                                    				rendered="#{AdministrationForm.administrationPlugin.cp.reportExists(configInfo.title)}"
 	                                    				action="#{AdministrationForm.administrationPlugin.cp.download(configInfo.title)}"
-	                                    				title="Run test now">
+	                                    				title="Download">
 	                                    				<i class="fa fa-download" />
 	                       					         </h:commandLink>
 	                                            </td>
