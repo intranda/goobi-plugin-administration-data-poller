@@ -32,7 +32,10 @@ import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.export.dms.ExportDms;
+import de.sub.goobi.helper.FilesystemHelper;
 import de.sub.goobi.helper.Helper;
+import de.sub.goobi.helper.StorageProvider;
+import de.sub.goobi.helper.StorageProviderInterface;
 import de.sub.goobi.helper.VariableReplacer;
 import de.sub.goobi.persistence.managers.ProcessManager;
 import de.unigoettingen.sub.search.opac.ConfigOpac;
@@ -60,7 +63,8 @@ public class CataloguePoll {
     private List<PullDiff> differences;
     private boolean testRun;
     private HashMap<String, Path> xlsxReports = new HashMap<String, Path>();
-
+    private List<ConfigInfo> ci;
+    
     private static final DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy hh:mm:ss");
 
     public CataloguePoll() {
@@ -97,6 +101,11 @@ public class CataloguePoll {
     }
     
     public boolean reportExists(String ruleName) {
+        if (this.xlsxReports.isEmpty()) {
+          this.xlsxReports = XlsFileManager.manageTempFiles(ConfigurationHelper.getInstance().getTemporaryFolder(),ci);
+          System.out.println("Test: "+ ruleName);
+        }
+        System.out.println("Test Called at least...: "+ ruleName );
         return xlsxReports.containsKey(ruleName);
     }
 
@@ -589,6 +598,7 @@ public class CataloguePoll {
 
             list.add(ci);
         }
+        this.ci = list;
         return list;
     }
 

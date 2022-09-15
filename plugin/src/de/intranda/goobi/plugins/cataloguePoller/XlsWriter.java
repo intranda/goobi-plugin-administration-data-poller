@@ -1,6 +1,5 @@
 package de.intranda.goobi.plugins.cataloguePoller;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -12,14 +11,14 @@ import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
-
+import lombok.extern.log4j.Log4j;
+@Log4j
 public class XlsWriter {
 
     private Path path;
@@ -73,10 +72,15 @@ public class XlsWriter {
         //write file to file system
         try (OutputStream outputFile = new FileOutputStream(targetPath.toString())) {
             wb.write(outputFile);
-            wb.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("CatloguePollerPlugin: Error writing File to Disk! No xlsx-report was created!",e);
             return null;
+        }finally {
+            try {
+                wb.close();
+            } catch (IOException e) {
+                log.error("CatloguePollerPlugin: Error closing XSSF workbook!", e);
+            }
         }
         return targetPath;
     }
