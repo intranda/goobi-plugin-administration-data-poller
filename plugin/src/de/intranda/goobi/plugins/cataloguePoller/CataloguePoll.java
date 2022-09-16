@@ -105,9 +105,7 @@ public class CataloguePoll {
     public boolean reportExists(String ruleName) {
         if (this.xlsxReports.isEmpty()) {
           this.xlsxReports = XlsFileManager.manageTempFiles(ConfigurationHelper.getInstance().getTemporaryFolder(),ci);
-          System.out.println("Test: "+ ruleName);
         }
-        System.out.println("Test Called at least...: "+ ruleName );
         return xlsxReports.containsKey(ruleName);
     }
 
