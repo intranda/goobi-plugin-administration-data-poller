@@ -21,8 +21,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
-import de.intranda.goobi.plugins.cataloguePoller.XlsData;
-import de.intranda.goobi.plugins.cataloguePoller.XlsWriter;
+import de.intranda.goobi.plugins.cataloguePoller.xls.XlsData;
+import de.intranda.goobi.plugins.cataloguePoller.xls.XlsWriter;
 
 
 public class XlsWriterTest {

@@ -29,6 +29,8 @@ import org.goobi.production.plugin.interfaces.IOpacPlugin;
 import org.omnifaces.util.Faces;
 
 import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
+import de.intranda.goobi.plugins.cataloguePoller.xls.XlsFileManager;
+import de.intranda.goobi.plugins.cataloguePoller.xls.XlsWriter;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.export.dms.ExportDms;
