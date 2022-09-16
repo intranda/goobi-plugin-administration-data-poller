@@ -23,67 +23,54 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
-import de.intranda.goobi.plugins.CataloguePollerPlugin;
 import de.intranda.goobi.plugins.cataloguePoller.ConfigInfo;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.StorageProviderInterface;
 import lombok.extern.log4j.Log4j;
 
 /**
- * Manages the xlsx-reports in the specified folder 
- * @author mikel
- *
+ * Manages the xlsx-reports in the specified folder
  */
 @Log4j
 public class XlsFileManager {
 
     private static StorageProviderInterface SPI = StorageProvider.getInstance();
 
-    private static boolean regexFileFilter(Path path, String regex) {
-
-        try {
-            return !Files.isDirectory(path) && !Files.isHidden(path) && path.getFileName().toString().matches(regex);
-
-        } catch (IOException e) {
-            log.error("CatloguePollerPlugin: Couldn't open the file: " + path ,e);
-            return false;
-        }
-    }
-
     private static List<Path> getXlsFiles(Path folder, String ruleName) {
         return SPI.listFiles(folder.toString(), path -> {
-            return regexFileFilter(path, "^" + ruleName.toLowerCase().trim().replace(" ", "_") + "[-\\d]*\\.xlsx$");
+            return !Files.isDirectory(path)
+                    && path.getFileName().toString().matches(ruleName.toLowerCase().trim().replace(" ", "_") + "^" + "[-\\d]*\\.xlsx$");
         });
     }
 
     /**
      * returns a HashMap with the latest xlsx-reports and deletes old reports
+     * 
      * @param tempFolder the folder where the xlsxFiles are located
-     * @param configInfos List with ConfigInfo 
+     * @param configInfos List with ConfigInfo
      * @return latest xlsx-reports in tempfolder
      */
-    public static HashMap<String,Path> manageTempFiles(String tempFolder, List<ConfigInfo> configInfos) {
-        HashMap<String, Path> xlsReports = new HashMap<String, Path>(); 
+    public static HashMap<String, Path> manageTempFiles(String tempFolder, List<ConfigInfo> configInfos) {
+        HashMap<String, Path> xlsReports = new HashMap<>();
         for (ConfigInfo configInfo : configInfos) {
             String ruleName = configInfo.getTitle();
             List<Path> xlsFiles = getXlsFiles(Paths.get(tempFolder), ruleName);
             Collections.sort(xlsFiles);
-            if (xlsFiles != null && xlsFiles.size() > 0) {
-                xlsReports.put(ruleName,xlsFiles.get(xlsFiles.size()-1));
-                if (xlsFiles.size() > 1) {
-                    for (int i=0;i<xlsFiles.size()-1;i++) {
-                        try {
-                            SPI.deleteFile(xlsFiles.get(i));
-                        } catch (IOException e) {
-                            log.error("CatloguePollerPlugin: Couldn't delete the file: " + xlsFiles.get(i) ,e);
-                        }
+            if (xlsFiles != null && !xlsFiles.isEmpty()) {
+                // put the last element (youngest file) into the HashMap
+                xlsReports.put(ruleName, xlsFiles.remove(xlsFiles.size() - 1));
+                // delete the rest
+                for (Path xlsFile : xlsFiles) {
+                    try {
+                        SPI.deleteFile(xlsFile);
+                    } catch (IOException e) {
+                        log.error("CatloguePollerPlugin: Couldn't delete the file: " + xlsFile, e);
                     }
                 }
-            }       
+            }
         }
         return xlsReports;
     }
