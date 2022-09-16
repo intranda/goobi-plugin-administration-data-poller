@@ -7,7 +7,8 @@
     xmlns:x="http://myfaces.apache.org/tomahawk"
     xmlns:intranda="http://xmlns.jcp.org/jsf/composite/composites"
     xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
-    xmlns:p="http://primefaces.org/ui">
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:jsf="http://xmlns.jcp.org/jsf">
 
     <composite:interface>
     </composite:interface>
@@ -119,25 +120,28 @@
 	                                            <td>#{configInfo.delay}</td>
 	                                            <td>#{configInfo.lastRun}"</td>
 	                                            <td>
-	                                           		<h:commandLink
-	                                    				styleClass="btn margin-right-10"
-	                                    				action="#{AdministrationForm.administrationPlugin.cp.executeTest(configInfo.title)}"
-	                                    				title="Run test now">
-	                                    				<i class="fa fa-flask" />
-	                       					         </h:commandLink>
-	                                            	 <h:commandLink
-	                                    				styleClass="btn margin-right-10"
-	                                    				action="#{AdministrationForm.administrationPlugin.cp.execute(configInfo.title)}"
-	                                    				title="Run now">
-	                                    				<i class="fa fa-play" />
-	                       					         </h:commandLink>
-	                       					          <h:commandLink
-	                                    				styleClass="btn margin-right-10"
-	                                    				rendered="#{AdministrationForm.administrationPlugin.cp.reportExists(configInfo.title)}"
-	                                    				action="#{AdministrationForm.administrationPlugin.cp.download(configInfo.title)}"
-	                                    				title="Download">
-	                                    				<i class="fa fa-download" />
-	                       					         </h:commandLink>
+	                                           		<button class="btn margin-right-5" jsf:rel="tooltip"
+														jsf:action="#{AdministrationForm.administrationPlugin.cp.executeTest(configInfo.title)}"
+														title="#{msgs.plugin_admin_cataloguePoller_runTest}">
+														<i class="fa fa-flask"></i>
+														<f:passThroughAttribute name="data-toggle" value="tooltip" />
+														<f:passThroughAttribute name="aria-label" value="#{msgs.plugin_admin_cataloguePoller_runTest}" />
+													</button>
+	                                          		<button class="btn margin-right-5" jsf:rel="tooltip"
+														jsf:action="#{AdministrationForm.administrationPlugin.cp.execute(configInfo.title)}"
+														title="#{msgs.plugin_admin_cataloguePoller_run}">
+														<i class="fa fa-play"></i>
+														<f:passThroughAttribute name="data-toggle" value="tooltip" />
+														<f:passThroughAttribute name="aria-label" value="#{msgs.plugin_admin_cataloguePoller_run}" />
+													</button>
+		                            				<button class="btn margin-right-5" jsf:rel="tooltip"
+														jsf:action="#{AdministrationForm.administrationPlugin.cp.download(configInfo.title)}"
+														title="#{msgs.plugin_admin_cataloguePoller_download}"
+														jsf:rendered="#{AdministrationForm.administrationPlugin.cp.reportExists(configInfo.title)}">
+														<i class="fa fa-download"></i>
+														<f:passThroughAttribute name="data-toggle" value="tooltip" />
+														<f:passThroughAttribute name="aria-label" value="#{msgs.plugin_admin_cataloguePoller_download}" />
+													</button>
 	                                            </td>
 	                                        </tr>
 	                                    </tbody>
