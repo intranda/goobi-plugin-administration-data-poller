@@ -67,14 +67,14 @@ public class XlsWriter {
         //create header 
       
         Row header = sheet.createRow(RowCounter++);
-        writeCellsToRow(header,ruleName,(testRun) ? "Test run": "Report" );
+        writeCellsToRow(header,ruleName,(testRun) ? "test run": "report" );
         Cell cell = header.createCell(header.getLastCellNum());
         CellStyle cellStyle = wb.createCellStyle();
         cellStyle.setDataFormat((short)14);
         cell.setCellStyle(cellStyle);
         cell.setCellValue(calendar.getTime());
         
-        writeCellsToRow(sheet.createRow(RowCounter++), "Id", "title", "field", "old value", "new Value");
+        writeCellsToRow(sheet.createRow(RowCounter++), "id", "title", "field", "old value", "new value");
         
         //write content
         for (PullDiff difference : differences) {
