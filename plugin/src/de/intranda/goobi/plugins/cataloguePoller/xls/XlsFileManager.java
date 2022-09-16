@@ -27,10 +27,18 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
+import de.intranda.goobi.plugins.CataloguePollerPlugin;
 import de.intranda.goobi.plugins.cataloguePoller.ConfigInfo;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.StorageProviderInterface;
+import lombok.extern.log4j.Log4j;
 
+/**
+ * Manages the xlsx-reports in the specified folder 
+ * @author mikel
+ *
+ */
+@Log4j
 public class XlsFileManager {
 
     private static StorageProviderInterface SPI = StorageProvider.getInstance();
@@ -41,17 +49,23 @@ public class XlsFileManager {
             return !Files.isDirectory(path) && !Files.isHidden(path) && path.getFileName().toString().matches(regex);
 
         } catch (IOException e) {
-            // if we can't open it we will not add it to the List
+            log.error("CatloguePollerPlugin: Couldn't open the file: " + path ,e);
             return false;
         }
     }
 
-    public static List<Path> getXlsFiles(Path folder, String ruleName) {
+    private static List<Path> getXlsFiles(Path folder, String ruleName) {
         return SPI.listFiles(folder.toString(), path -> {
             return regexFileFilter(path, "^" + ruleName.toLowerCase().trim().replace(" ", "_") + "[-\\d]*\\.xlsx$");
         });
     }
 
+    /**
+     * returns a HashMap with the latest xlsx-reports and deletes old reports
+     * @param tempFolder the folder where the xlsxFiles are located
+     * @param configInfos List with ConfigInfo 
+     * @return latest xlsx-reports in tempfolder
+     */
     public static HashMap<String,Path> manageTempFiles(String tempFolder, List<ConfigInfo> configInfos) {
         HashMap<String, Path> xlsReports = new HashMap<String, Path>(); 
         for (ConfigInfo configInfo : configInfos) {
@@ -65,13 +79,11 @@ public class XlsFileManager {
                         try {
                             SPI.deleteFile(xlsFiles.get(i));
                         } catch (IOException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
+                            log.error("CatloguePollerPlugin: Couldn't delete the file: " + xlsFiles.get(i) ,e);
                         }
                     }
                 }
-            }
-            
+            }       
         }
         return xlsReports;
     }
