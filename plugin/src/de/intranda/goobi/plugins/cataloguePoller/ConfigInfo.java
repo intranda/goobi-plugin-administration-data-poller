@@ -13,7 +13,8 @@ public class ConfigInfo {
     private String catalogue;
     private List<StringPair> searchFields;
     private boolean mergeRecords;
-    private String skipFields;
+    private String filterList;
+    private String fieldListMode;
     private boolean analyseSubElements;
     private String startTime;
     private String delay;

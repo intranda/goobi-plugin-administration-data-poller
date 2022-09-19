@@ -61,7 +61,10 @@
                                                         <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleCatalogueId}" />
                                                     </th>
                                                     <th style="width:250px">
-                                                        <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleSkipFields}" />
+                                                        <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleSkipFields}"
+                                                                        rendered="#{'blacklist' eq configInfo.fieldListMode}" />
+                                                        <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleWhitelist}" 
+                                                                        rendered="#{'whitelist' eq configInfo.fieldListMode}"/>
                                                     </th>
                                                     <th style="width:150px">
                                                         <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleAnalyseSubElements}" />
@@ -91,7 +94,7 @@
                                                     <td>#{configInfo.filter}</td>
                                                     <td>#{configInfo.catalogue}</td>
                                                     <td>#{configInfo.searchFields}</td>
-                                                    <td>#{configInfo.skipFields}</td>
+                                                    <td>#{configInfo.filterList}</td>
                                                     <td>
                                                         <h:panelGroup class="badge badge-intranda-red" rendered="#{!configInfo.analyseSubElements}">
                                                             <i class="fa fa-circle-o"></i> #{msgs.inactive}	
