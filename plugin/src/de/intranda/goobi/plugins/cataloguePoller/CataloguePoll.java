@@ -1,5 +1,6 @@
 package de.intranda.goobi.plugins.cataloguePoller;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
@@ -9,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.configuration.ConfigurationException;
@@ -24,12 +26,18 @@ import org.goobi.production.flow.statistics.hibernate.FilterHelper;
 import org.goobi.production.plugin.PluginLoader;
 import org.goobi.production.plugin.interfaces.IExportPlugin;
 import org.goobi.production.plugin.interfaces.IOpacPlugin;
+import org.omnifaces.util.Faces;
 
 import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
+import de.intranda.goobi.plugins.cataloguePoller.xls.XlsFileManager;
+import de.intranda.goobi.plugins.cataloguePoller.xls.XlsWriter;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.export.dms.ExportDms;
+import de.sub.goobi.helper.FilesystemHelper;
 import de.sub.goobi.helper.Helper;
+import de.sub.goobi.helper.StorageProvider;
+import de.sub.goobi.helper.StorageProviderInterface;
 import de.sub.goobi.helper.VariableReplacer;
 import de.sub.goobi.persistence.managers.ProcessManager;
 import de.unigoettingen.sub.search.opac.ConfigOpac;
@@ -55,7 +63,10 @@ import ugh.exceptions.PreferencesException;
 public class CataloguePoll {
     private XMLConfiguration config;
     private List<PullDiff> differences;
-
+    private boolean testRun;
+    private HashMap<String, Path> xlsxReports = new HashMap<String, Path>();
+    private List<ConfigInfo> ci;
+    
     private static final DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy hh:mm:ss");
 
     public CataloguePoll() {
@@ -72,10 +83,37 @@ public class CataloguePoll {
         }
     }
 
+    public void executeTest(String ruleName) {
+        executePoll(ruleName, true);
+    }
+
+    public void execute(String ruleName) {
+        executePoll(ruleName, false);
+    }
+   
+    public void download(String ruleName) {
+        Path report = xlsxReports.get(ruleName);
+        if (report != null) {
+            try {
+                Faces.sendFile(report.toFile(), true);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    public boolean reportExists(String ruleName) {
+        if (this.xlsxReports.isEmpty()) {
+          this.xlsxReports = XlsFileManager.manageTempFiles(ConfigurationHelper.getInstance().getTemporaryFolder(),ci);
+        }
+        return xlsxReports.containsKey(ruleName);
+    }
+
     /**
      * do the pull of catalogue data to update the records for all rules
      */
-    public void execute(String ruleName) {
+    public void executePoll(String ruleName, boolean testRun) {
+        this.testRun = testRun;
         log.debug(" Starting to update the METS files fo all processes defined in the rule ");
         differences = new ArrayList<>();
 
@@ -108,12 +146,18 @@ public class CataloguePoll {
         for (Integer id : processIds) {
             Process process = ProcessManager.getProcessById(id);
             updateMetsFileForProcess(process, configCatalogue, searchfields, configMergeRecords, configSkipFields, exportUpdatedRecords,
-                    configAnalyseSubElements);
+                    configAnalyseSubElements, testRun);
         }
-
+        Path tempFolder = Paths.get(ConfigurationHelper.getInstance().getTemporaryFolder());
+        long lastRunMillis = System.currentTimeMillis();
+        XlsWriter writer = new XlsWriter(tempFolder);
+        Path report = writer.writeWorkbook(differences, lastRunMillis, ruleName, testRun);
+        if (report!=null) {
+            xlsxReports.put(ruleName, report);
+        }
         // write last updated time into the configuration file
         try {
-            rule.setProperty("lastRun", System.currentTimeMillis());
+            rule.setProperty("lastRun", lastRunMillis);
             Path configurationFile =
                     Paths.get(ConfigurationHelper.getInstance().getConfigurationFolder(), "plugin_intranda_administration_catalogue_poller.xml");
             config.save(configurationFile.toString());
@@ -133,8 +177,8 @@ public class CataloguePoll {
      * @return
      */
     public boolean updateMetsFileForProcess(Process p, String configCatalogue, List<StringPair> searchfields, boolean configMergeRecords,
-            List<String> configSkipFields, boolean exportUpdatedRecords, boolean configAnalyseSubElements) {
-        log.debug("Starting catalogue request using catalogue: " + configCatalogue );
+            List<String> configSkipFields, boolean exportUpdatedRecords, boolean configAnalyseSubElements, boolean testRun) {
+        log.debug("Starting catalogue request using catalogue: " + configCatalogue);
 
         // first read the original METS file for the process
         Fileformat ffOld = null;
@@ -177,7 +221,6 @@ public class CataloguePoll {
             }
         }
 
-
         // request the wished catalogue with the correct identifier
         Fileformat ffNew = null;
         IOpacPlugin myImportOpac = null;
@@ -207,7 +250,7 @@ public class CataloguePoll {
                 Method getFieldList = jsonOpacConfigClass.getMethod("getFieldList");
 
                 Object fieldList = getFieldList.invoke(jsonOpacConfig);
-                List<Object> fields =  (List<Object>) fieldList;
+                List<Object> fields = (List<Object>) fieldList;
                 for (StringPair sp : valueList) {
                     for (Object searchField : fields) {
                         Class<? extends Object> searchFieldClass = searchField.getClass();
@@ -230,7 +273,7 @@ public class CataloguePoll {
                 }
                 Method search = opacClass.getMethod("search", String.class, String.class, ConfigOpacCatalogue.class, Prefs.class);
 
-                ffNew = (Fileformat)  search.invoke(myImportOpac, "","",coc, prefs);
+                ffNew = (Fileformat) search.invoke(myImportOpac, "", "", coc, prefs);
 
             } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 return false;
@@ -276,7 +319,9 @@ public class CataloguePoll {
                 if (configAnalyseSubElements) {
                     List<DocStruct> dsl = topstructOld.getAllChildren();
                     if (dsl != null) {
-                        MetadataType type = prefs.getMetadataTypeByName(searchfields.get(0).getTwo().replace("$", "")
+                        MetadataType type = prefs.getMetadataTypeByName(searchfields.get(0)
+                                .getTwo()
+                                .replace("$", "")
                                 .replace("meta.", "")
                                 .replace("topstruct.", "")
                                 .replace("firstchild.", "")
@@ -290,7 +335,7 @@ public class CataloguePoll {
                     }
                 }
 
-                if (diff.getMessages() != null && !diff.getMessages().isEmpty()) {
+                if (diff.getMessages() != null && !diff.getMessages().isEmpty() && !testRun) {
 
                     // then run through all new metadata and check if these should
                     // replace the old ones
@@ -305,6 +350,7 @@ public class CataloguePoll {
 
                     // then write the updated old file format
                     // ffOld.write(p.getMetadataFilePath());
+
                     p.writeMetadataFile(ffOld);
 
                     String processlog = "Mets file updated by catalogue poller plugin successfully" + "<br/>";
@@ -319,13 +365,16 @@ public class CataloguePoll {
                     if (exportUpdatedRecords) {
                         exportProcess(p);
                     }
+
                 }
 
             } else {
                 // just write the new one and don't merge any data
                 // ffNew.write(p.getMetadataFilePath());
-                p.writeMetadataFile(ffNew);
-                Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, "New Mets file successfully created by catalogue poller plugin");
+                if (!testRun) {
+                    p.writeMetadataFile(ffNew);
+                    Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG, "New Mets file successfully created by catalogue poller plugin");
+                }
             }
         } catch (Exception e) {
             log.error("Exception while writing the updated METS file into the file system", e);
@@ -549,6 +598,7 @@ public class CataloguePoll {
 
             list.add(ci);
         }
+        this.ci = list;
         return list;
     }
 
