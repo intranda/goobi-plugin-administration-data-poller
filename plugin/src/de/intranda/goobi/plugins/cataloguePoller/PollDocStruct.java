@@ -142,7 +142,7 @@ public class PollDocStruct {
      * @param topstructOld
      * @return
      */
-    public static void checkDifferences(DocStruct topstructNew, DocStruct topstructOld, List<String> configSkipFields, PullDiff differences) {
+    public static void checkDifferences(DocStruct topstructNew, DocStruct topstructOld, List<String> fieldFilterList, PullDiff differences, boolean isBlockList) {
 
         PollDocStruct pdsOld = new PollDocStruct(topstructOld);
         PollDocStruct pdsNew = new PollDocStruct(topstructNew);
@@ -159,7 +159,10 @@ public class PollDocStruct {
         
         for (String oneType : allTypes) {
 //            log.debug("check metadata type: " + oneType);
-            if (!configSkipFields.contains(oneType)) {
+            boolean handleMetadata = fieldFilterList.contains(oneType);
+            // if the list is a blackList the behaviour shall be inversed
+            handleMetadata = (isBlockList)? !handleMetadata: handleMetadata;
+            if (handleMetadata) {
                 PullMetadataType pmtNew = pdsNew.getPullMetadataTypeByTitle(oneType);
                 PullMetadataType pmtOld = pdsOld.getPullMetadataTypeByTitle(oneType);
                 if (pmtNew.getValues().size() != pmtOld.getValues().size()) {
@@ -210,7 +213,10 @@ public class PollDocStruct {
         
         // run through all persons
         for (String ppt : allPersonTypes) {
-            if (!configSkipFields.contains(ppt)) {
+            boolean handlePerson = fieldFilterList.contains(ppt);
+            // if the list is a blackList the behaviour shall be inversed
+            handlePerson = (isBlockList)? !handlePerson: handlePerson;
+            if (handlePerson) {
                 PullPersonType pptNew = pdsNew.getPullPersonTypeByRole(ppt);
                 PullPersonType pptOld = pdsOld.getPullPersonTypeByRole(ppt);
                 if (pptNew.getPersons().size() != pptOld.getPersons().size()) {
@@ -290,7 +296,10 @@ public class PollDocStruct {
         
         // check new groups
         for (String type : allGroupTypes) {
-            if (!configSkipFields.contains(type)) {
+            boolean handleGroup = fieldFilterList.contains(type);
+            // if the list is a blackList the behaviour shall be inversed
+            handleGroup = (isBlockList)? !handleGroup: handleGroup;
+            if (handleGroup) {
                 // find old groups of the type
                 PullGroup newGroup = pdsNew.getPullGroupByType(type);
                 PullGroup oldGroup = pdsOld.getPullGroupByType(type);
