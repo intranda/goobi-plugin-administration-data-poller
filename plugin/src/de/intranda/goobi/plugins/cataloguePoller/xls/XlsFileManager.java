@@ -42,7 +42,7 @@ public class XlsFileManager {
     private static List<Path> getXlsFiles(Path folder, String ruleName) {
         return SPI.listFiles(folder.toString(), path -> {
             return !Files.isDirectory(path)
-                    && path.getFileName().toString().matches(ruleName.toLowerCase().trim().replace(" ", "_") + "^" + "[-\\d]*\\.xlsx$");
+                    && path.getFileName().toString().matches("^" + ruleName.toLowerCase().trim().replace(" ", "_") + "[-\\d]*\\.xlsx$");
         });
     }
 
