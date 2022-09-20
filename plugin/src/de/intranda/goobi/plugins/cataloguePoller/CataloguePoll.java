@@ -133,34 +133,41 @@ public class CataloguePoll {
         boolean configAnalyseSubElements = rule.getBoolean("analyseSubElements");
         boolean exportUpdatedRecords = rule.getBoolean("exportUpdatedRecords", false);
 
-        String configListType = rule.getString("fieldList/@mode");
+        String configListType = rule.getString("fieldList/@mode", null);
         boolean isBlockList = false;
-
-        if (configListType == null) {
-            Helper.setFehlerMeldung("The mode Attribut of the fieldList element ist not specified! Pleas update the configuration file!");
-            log.error("The mode Attribut of the fieldList element ist not specified! Pleas update the configuration file!");
-            return;
-        }
-        switch (configListType) {
-            case "blacklist":
-                isBlockList = true;
-                break;
-            case "whitelist":
-                isBlockList = false;
-                break;
-            default:
-                Helper.setFehlerMeldung("The value of the attribute mode: " + configListType + " is invalid!");
-                log.error("CatloguePollerPlugin: The value of the attribute mode: " + configListType
-                        + " is invalid! Pleas update the configuration file!");
-                return;
-        }
 
         List<String> fieldFilterList = Arrays.asList(rule.getStringArray("fieldList/field"));
 
-        if (fieldFilterList.isEmpty() && !isBlockList) {
-            Helper.setFehlerMeldung("The filterlist is a whitelist but has no elements!");
-            log.error("CatloguePollerPlugin: The filterlist is a whitelist but has no elements!");
-            return;
+        if (!fieldFilterList.isEmpty()) {
+            if (configListType == null) {
+                Helper.setFehlerMeldung("The mode Attribut of the fieldList element ist not specified! Please update the configuration file!");
+                log.error("The mode Attribut of the fieldList element ist not specified! Pleas update the configuration file!");
+                return;
+            }
+
+            switch (configListType) {
+                case "blacklist":
+                    isBlockList = true;
+                    break;
+                case "whitelist":
+                    isBlockList = false;
+                    break;
+                default:
+                    Helper.setFehlerMeldung("The value of the attribute mode: " + configListType + " is invalid!");
+                    log.error("CatloguePollerPlugin: The value of the attribute mode: " + configListType
+                            + " is invalid! Pleas update the configuration file!");
+                    return;
+            }
+        } else {
+            if (configListType == "whitelist") {
+                Helper.setFehlerMeldung("The filterlist is a whitelist but has no elements!");
+                log.error("CatloguePollerPlugin: The filterlist is a whitelist but has no elements!");
+                return;
+            }
+            // if no list is specified run as if a black list with no Elements was given
+            if (configListType == null || configListType == "blacklist") {
+                isBlockList = true;
+            }
         }
 
         log.debug("Rule '" + title + "' with filter '" + filter + "'");
