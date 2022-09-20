@@ -132,7 +132,6 @@ public class CataloguePoll {
         boolean configMergeRecords = rule.getBoolean("mergeRecords");
         boolean configAnalyseSubElements = rule.getBoolean("analyseSubElements");
         boolean exportUpdatedRecords = rule.getBoolean("exportUpdatedRecords", false);
-
         String configListType = rule.getString("fieldList/@mode", null);
         boolean isBlockList = false;
 
@@ -140,7 +139,7 @@ public class CataloguePoll {
 
         if (!fieldFilterList.isEmpty()) {
             if (configListType == null) {
-                Helper.setFehlerMeldung("The mode Attribut of the fieldList element ist not specified! Please update the configuration file!");
+                Helper.setFehlerMeldung("plugin_admin_cataloguePoller_configErrorModeMissing");
                 log.error("The mode Attribut of the fieldList element ist not specified! Pleas update the configuration file!");
                 return;
             }
@@ -153,14 +152,14 @@ public class CataloguePoll {
                     isBlockList = false;
                     break;
                 default:
-                    Helper.setFehlerMeldung("The value of the attribute mode: " + configListType + " is invalid!");
+                    Helper.setFehlerMeldung("plugin_admin_cataloguePoller_configErrorModeInvalid");
                     log.error("CatloguePollerPlugin: The value of the attribute mode: " + configListType
                             + " is invalid! Pleas update the configuration file!");
                     return;
             }
         } else {
             if (configListType == "whitelist") {
-                Helper.setFehlerMeldung("The filterlist is a whitelist but has no elements!");
+                Helper.setFehlerMeldung("plugin_admin_cataloguePoller_configErrorEmptyWhiteList");
                 log.error("CatloguePollerPlugin: The filterlist is a whitelist but has no elements!");
                 return;
             }
