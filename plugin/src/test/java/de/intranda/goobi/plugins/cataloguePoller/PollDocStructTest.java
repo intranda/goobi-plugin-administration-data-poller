@@ -11,7 +11,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct;
 import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
 import ugh.dl.DigitalDocument;
 import ugh.dl.DocStruct;
@@ -27,7 +26,7 @@ public class PollDocStructTest {
     public static DigitalDocument document;
     public static DocStruct dsOld;
     public static DocStruct dsNew;
-    public static Path ruleSet = Paths.get("target/test-classes/ruleset.xml");
+    public static Path ruleSet;
     public static Prefs prefs;
     private static String resourcesFolder;
 
@@ -37,7 +36,8 @@ public class PollDocStructTest {
         if (!Files.exists(Paths.get(resourcesFolder))) {
             resourcesFolder = "target/test-classes/"; // to run mvn test from cli or in jenkins
         }
-        String log4jFile = resourcesFolder +"log4j2.xml"; // for junit tests in eclipse
+        ruleSet = Paths.get(resourcesFolder + "ruleset.xml");
+        String log4jFile = resourcesFolder + "log4j2.xml"; // for junit tests in eclipse
         System.setProperty("log4j.configurationFile", log4jFile);
     }
 
