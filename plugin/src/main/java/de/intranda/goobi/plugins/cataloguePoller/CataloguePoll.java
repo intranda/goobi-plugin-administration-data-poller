@@ -64,7 +64,7 @@ public class CataloguePoll {
     private HashMap<String, Path> xlsxReports = new HashMap<>();
     private List<ConfigInfo> ci;
 
-    private static final DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy hh:mm:ss");
+    private static final DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
     public CataloguePoll() {
         config = ConfigPlugins.getPluginConfig("intranda_administration_catalogue_poller");
