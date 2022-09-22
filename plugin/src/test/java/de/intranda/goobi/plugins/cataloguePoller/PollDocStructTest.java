@@ -1,11 +1,13 @@
 package de.intranda.goobi.plugins.cataloguePoller;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -27,9 +29,20 @@ public class PollDocStructTest {
     public static DocStruct dsNew;
     public static Path ruleSet = Paths.get("target/test-classes/ruleset.xml");
     public static Prefs prefs;
+    private static String resourcesFolder;
 
     @BeforeClass
-    public static void setup() throws MetadataTypeNotAllowedException {
+    public static void setUpClass() throws Exception {
+        resourcesFolder = "src/test/resources/"; // for junit tests in eclipse
+        if (!Files.exists(Paths.get(resourcesFolder))) {
+            resourcesFolder = "target/test-classes/"; // to run mvn test from cli or in jenkins
+        }
+        String log4jFile = resourcesFolder +"log4j2.xml"; // for junit tests in eclipse
+        System.setProperty("log4j.configurationFile", log4jFile);
+    }
+
+    @Before
+    public void setUp() throws MetadataTypeNotAllowedException {
         document = new DigitalDocument();
         prefs = new Prefs();
         try {
