@@ -19,6 +19,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
+
 
 import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
 import de.intranda.goobi.plugins.cataloguePoller.xls.XlsData;
@@ -26,24 +29,24 @@ import de.intranda.goobi.plugins.cataloguePoller.xls.XlsWriter;
 
 
 public class XlsWriterTest {
-    private Path outputFolder = Paths.get("test/output");
     private XlsWriter xlsWriter;
+
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+
     @Before
-    public void setup() {
+    public void setUp() {
         try {
-            if (Files.exists(outputFolder)) {
-                PathUtils.delete(outputFolder);
-            }
-            Files.createDirectory(outputFolder);
-            this.xlsWriter = new XlsWriter(outputFolder);
+            Path destination = folder.newFolder("output").toPath(); 
+            Files.createDirectories(destination);
+            this.xlsWriter = new XlsWriter(destination);
         } catch (IOException e) {
-            fail("Cannot prepare output folder " + outputFolder);
+            fail("Cannot prepare output folder");
         }
     }
     @Test
     public void testWriteWorkbook() {
         //Prepare Test
-        
         long date =1663242175977L;
         String ruleName = "Archive Project";
         String fileName = "archive_project-2022-09-15-13-42-55.xlsx";
@@ -63,15 +66,15 @@ public class XlsWriterTest {
         Assert.assertTrue("No File was created!",Files.exists(result));
     }
     
-    @After
-    public void cleanup() {
-        try {
-            if (Files.exists(outputFolder)) {
-                PathUtils.delete(outputFolder);
-            }
-        } catch (IOException e) {
-            fail("Cannot delete output folder " + outputFolder);
-        }
-    }
+//    @After
+//    public void cleanup() {
+//        try {
+//            if (Files.exists(outputFolder)) {
+//                PathUtils.delete(outputFolder);
+//            }
+//        } catch (IOException e) {
+//            fail("Cannot delete output folder " + outputFolder);
+//        }
+//    }
 
 }

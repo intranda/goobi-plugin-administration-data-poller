@@ -6,6 +6,7 @@
   <properties>
     <jar.name>plugin_intranda_administration_catalogue-poller-GUI</jar.name>
     <dest.folder>/opt/digiverso/goobi/plugins/GUI/</dest.folder>
+    <maven.compiler.release>11</maven.compiler.release>
   </properties>
   <parent>
     <groupId>de.intranda.goobi.plugins.administration</groupId>
@@ -14,36 +15,22 @@
   </parent>
   <repositories>
     <repository>
-      <id>intranda</id>
-      <url>https://nexus.intranda.com/repository/intranda</url>
+      <id>intrandai-public</id>
+      <url>https://nexus.intranda.com/repository/maven-public</url>
     </repository>
   </repositories>
   <build>
     <finalName>${jar.name}</finalName>
-    <sourceDirectory>${project.basedir}/../src</sourceDirectory>
+    <sourceDirectory>${project.basedir}/../src/main/java/</sourceDirectory>
     <resources>
       <resource>
         <directory>../GUI</directory>
-      </resource>
-      <resource>
-        <directory>../src</directory>
-        <excludes>
-          <exclude>**/*.java</exclude>
-        </excludes>
       </resource>
     </resources>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.7.0</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-          <!-- TODO comment this in, when quartz job runs without dependencies of other classes -->
-          <!--                    <includes> -->
-          <!--                         <include>**/Quartz*.java</include> -->
-          <!--                      </includes> -->
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

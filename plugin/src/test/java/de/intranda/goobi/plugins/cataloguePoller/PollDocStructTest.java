@@ -25,7 +25,7 @@ public class PollDocStructTest {
     public static DigitalDocument document;
     public static DocStruct dsOld;
     public static DocStruct dsNew;
-    public static Path ruleSet = Paths.get("test/resources/ruleset.xml");
+    public static Path ruleSet = Paths.get("target/test-classes/ruleset.xml");
     public static Prefs prefs;
 
     @BeforeClass
