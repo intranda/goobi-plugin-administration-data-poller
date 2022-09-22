@@ -15,16 +15,16 @@
   </parent>
   <repositories>
     <repository>
-      <id>intrandai-public</id>
+      <id>intranda-public</id>
       <url>https://nexus.intranda.com/repository/maven-public</url>
     </repository>
   </repositories>
   <build>
     <finalName>${jar.name}</finalName>
-    <sourceDirectory>${project.basedir}/../src/main/java/</sourceDirectory>
+    <sourceDirectory>${project.basedir}/../src/main/webapp/</sourceDirectory>
     <resources>
       <resource>
-        <directory>../GUI</directory>
+          <directory>../src/main/webapp/</directory>
       </resource>
     </resources>
     <plugins>
