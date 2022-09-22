@@ -47,5 +47,11 @@
       <version>4.13.2</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>de.intranda.ugh</groupId>
+      <artifactId>ugh-core</artifactId>
+      <version>5.0.13</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 </project>
