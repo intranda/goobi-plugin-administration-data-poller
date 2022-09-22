@@ -41,7 +41,7 @@ import lombok.extern.log4j.Log4j2;
 public class XlsWriter {
 
     private Path path;
-    private static final DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+    private final DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
 
     public XlsWriter(Path targetFolder) {
         this.path = targetFolder;
@@ -64,10 +64,10 @@ public class XlsWriter {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(lastRunMillis);
 
-        int RowCounter = 0;
-        //create header 
+        int rowCounter = 0;
+        //create header
 
-        Row header = sheet.createRow(RowCounter++);
+        Row header = sheet.createRow(rowCounter++);
         writeCellsToRow(header, ruleName, (testRun) ? "test run" : "report");
         Cell cell = header.createCell(header.getLastCellNum());
         CellStyle cellStyle = wb.createCellStyle();
@@ -75,12 +75,12 @@ public class XlsWriter {
         cell.setCellStyle(cellStyle);
         cell.setCellValue(calendar.getTime());
 
-        writeCellsToRow(sheet.createRow(RowCounter++), "id", "title", "field", "old value", "new value");
+        writeCellsToRow(sheet.createRow(rowCounter++), "id", "title", "field", "old value", "new value");
 
         //write content
         for (PullDiff difference : differences) {
             for (XlsData data : difference.getXlsData()) {
-                writeCellsToRow(sheet.createRow(RowCounter++), difference.getProcessId().toString(), difference.getProcessTitle(), data.getField(),
+                writeCellsToRow(sheet.createRow(rowCounter++), difference.getProcessId().toString(), difference.getProcessTitle(), data.getField(),
                         data.getOldValues(), data.getNewValues());
             }
         }
