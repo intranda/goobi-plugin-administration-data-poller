@@ -23,12 +23,19 @@
 		<!-- execute an automatic export of updated records; this is only executed if mergeRecords is set to true -->
 		<exportUpdatedRecords>false</exportUpdatedRecords>
 
-		<!-- if records shall be merged: which existing fields shall not be replace with new values? (use the metadatatypes from ruleset) -->
-		<skipField>viewerinstance</skipField>
-		<skipField>singleDigCollection</skipField>
-		<skipField>pathimagefiles</skipField>
-		<skipField>_urn</skipField>
-		<skipField>_representative</skipField>
+       <!-- fieldList: Must have a mode attribute which can contain either blacklist or whitelist as a value.
+            blacklist: All fields are updated except the defined ones. This is a potential dangerous setting!
+            whitelist: Only the definied fields are updated. All others are skipped. 
+            field: Use the internal metadata names from the ruleset as field definition
+        -->
+         <fieldList mode="blacklist">
+            <field>viewerinstance</field>
+            <field>singleDigCollection</field>
+            <field>pathimagefiles</field>
+            <field>_urn</field>
+            <field>_representative</field>
+         </fieldList>
+        
 
 	</rule>
 
@@ -39,11 +46,12 @@
 		<mergeRecords>true</mergeRecords>
 		<analyseSubElements>true</analyseSubElements>
 		<exportUpdatedRecords>false</exportUpdatedRecords>
-		<skipField>TitleDocMain</skipField>
-		<skipField>CatalogueIDDigital</skipField>
-		<skipField>DocLanguage</skipField>
-		<skipField>_urn</skipField>
-		<skipField>_representative</skipField>
+        <fieldList mode="whitelist">
+		  <field>Author</field>
+		  <field>PublicationYear</field>
+		  <field>Subject</field>
+		  <field>CreatorsAllOrigin</field>
+        </fieldList>
 	</rule>
 
 	<rule title="Manuscript project" startTime="23:00:00" delay="24">
@@ -53,9 +61,11 @@
 		<mergeRecords>true</mergeRecords>
 		<analyseSubElements>true</analyseSubElements>
 		<exportUpdatedRecords>false</exportUpdatedRecords>
-		<skipField>TitleDocMain</skipField>
-		<skipField>CatalogueIDDigital</skipField>
-		<skipField>DocLanguage</skipField>
+        <fieldList mode="blacklist">
+		  <field>TitleDocMain</field>
+		  <field>CatalogueIDDigital</field>
+		  <field>DocLanguage</field>
+        </fieldList>fieldList mode="blacklist">
 	</rule>
 
 	<!-- internal timestamp for the plugin to know when it was last executed -->

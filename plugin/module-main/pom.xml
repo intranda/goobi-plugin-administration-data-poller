@@ -6,6 +6,7 @@
   <properties>
     <jar.name>plugin_intranda_administration_catalogue-poller</jar.name>
     <dest.folder>/opt/digiverso/goobi/plugins/administration/</dest.folder>
+    <maven.compiler.release>11</maven.compiler.release>
   </properties>
   <parent>
     <groupId>de.intranda.goobi.plugins.administration</groupId>
@@ -14,29 +15,25 @@
   </parent>
   <repositories>
     <repository>
-      <id>intranda</id>
-      <url>https://nexus.intranda.com/repository/intranda</url>
+      <id>intranda-public</id>
+      <url>https://nexus.intranda.com/repository/maven-public</url>
     </repository>
   </repositories>
   <build>
     <finalName>${jar.name}</finalName>
-    <sourceDirectory>${project.basedir}/../src</sourceDirectory>
-    <testSourceDirectory>${project.basedir}/../test/src</testSourceDirectory>
-    <resources>
-      <resource>
-        <directory>../src</directory>
-        <excludes>
-          <exclude>**/*.java</exclude>
-        </excludes>
-      </resource>
-    </resources>
+    <sourceDirectory>${project.basedir}/../src/main/java/</sourceDirectory>
+
+    <testSourceDirectory>${project.basedir}/../src/test/java/</testSourceDirectory>
+    <testResources>
+        <testResource>
+            <directory>${project.basedir}/../src/test/resources</directory>
+        </testResource>
+    </testResources>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.7.0</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
           <excludes>
             <exclude>**/Quartz*.java</exclude>
           </excludes>
@@ -47,7 +44,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.12.4</version>
         <configuration>
-          <skipTests>true</skipTests>
+          <skipTests>false</skipTests>
         </configuration>
       </plugin>
       <plugin>

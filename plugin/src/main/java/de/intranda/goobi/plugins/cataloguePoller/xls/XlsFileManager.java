@@ -29,12 +29,12 @@ import java.util.List;
 import de.intranda.goobi.plugins.cataloguePoller.ConfigInfo;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.StorageProviderInterface;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * Manages the xlsx-reports in the specified folder
  */
-@Log4j
+@Log4j2
 public class XlsFileManager {
 
     private static StorageProviderInterface SPI = StorageProvider.getInstance();
@@ -42,7 +42,7 @@ public class XlsFileManager {
     private static List<Path> getXlsFiles(Path folder, String ruleName) {
         return SPI.listFiles(folder.toString(), path -> {
             return !Files.isDirectory(path)
-                    && path.getFileName().toString().matches(ruleName.toLowerCase().trim().replace(" ", "_") + "^" + "[-\\d]*\\.xlsx$");
+                    && path.getFileName().toString().matches("^" + ruleName.toLowerCase().trim().replace(" ", "_") + "[-\\d]*\\.xlsx$");
         });
     }
 
