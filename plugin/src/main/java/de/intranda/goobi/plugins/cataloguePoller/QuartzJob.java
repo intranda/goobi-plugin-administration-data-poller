@@ -4,9 +4,9 @@ import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 
 import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 
-@Log4j
+@Log4j2
 public class QuartzJob implements Job {
 
     // This class is part of the GUI package, if access to other plugin jar is

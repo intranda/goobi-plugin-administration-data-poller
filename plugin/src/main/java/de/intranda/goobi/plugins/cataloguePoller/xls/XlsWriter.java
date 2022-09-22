@@ -35,9 +35,9 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 
-@Log4j
+@Log4j2
 public class XlsWriter {
 
     private Path path;

@@ -10,12 +10,12 @@ import org.quartz.impl.StdSchedulerFactory;
 
 import de.intranda.goobi.plugins.cataloguePoller.CataloguePoll;
 import lombok.Data;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 @PluginImplementation
 @Data
-@Log4j
+@Log4j2
 public class CataloguePollerPlugin implements IAdministrationPlugin, IPlugin {
 
     private static final String PLUGIN_NAME = "intranda_administration_catalogue_poller";
