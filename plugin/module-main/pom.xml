@@ -22,6 +22,7 @@
   <build>
     <finalName>${jar.name}</finalName>
     <sourceDirectory>${project.basedir}/../src/main/java/</sourceDirectory>
+
     <testSourceDirectory>${project.basedir}/../src/test/java/</testSourceDirectory>
     <testResources>
         <testResource>
@@ -32,6 +33,11 @@
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.7.0</version>
+        <configuration>
+          <excludes>
+            <exclude>**/Quartz*.java</exclude>
+          </excludes>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
