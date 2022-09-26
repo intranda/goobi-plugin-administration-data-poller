@@ -5,13 +5,17 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.shiro.util.Assert;
 import org.easymock.EasyMock;
 import org.goobi.beans.Process;
 import org.goobi.beans.Project;
+import org.goobi.beans.Ruleset;
+import org.goobi.production.cli.helper.StringPair;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -68,7 +72,6 @@ public class CataloguePollTest {
         metadataDirectory = folder.newFolder("metadata").toPath();
         processDirectory = metadataDirectory.resolve("1");
         Files.createDirectories(processDirectory);
-
         // copy meta.xml
         Path metaSource = Paths.get(resourcesFolder + "meta.xml");
         Path metaTarget = processDirectory.resolve("meta.xml");
@@ -95,9 +98,20 @@ public class CataloguePollTest {
         EasyMock.expect(configurationHelper.getMetadataFolder()).andReturn(metadataDirectory.toString() + File.separator).anyTimes();
         EasyMock.expect(configurationHelper.getRulesetFolder()).andReturn(resourcesFolder).anyTimes();
         EasyMock.expect(configurationHelper.getProcessImagesMainDirectoryName()).andReturn("dissmeind_618299084_media").anyTimes();
+        EasyMock.expect(configurationHelper.getProcessImagesMasterDirectoryName()).andReturn("dissmeind_618299084_master").anyTimes();
+        EasyMock.expect(configurationHelper.getProcessOcrTxtDirectoryName()).andReturn("dissmeind_618299084_ocrtxt").anyTimes();
+        EasyMock.expect(configurationHelper.getProcessImagesSourceDirectoryName()).andReturn("dissmeind_618299084_source").anyTimes();
+        EasyMock.expect(configurationHelper.getProcessImportDirectoryName()).andReturn("dissmeind_618299084_import").anyTimes();
+        EasyMock.expect(configurationHelper.getGoobiFolder()).andReturn("").anyTimes();
+        EasyMock.expect(configurationHelper.getScriptsFolder()).andReturn("").anyTimes();
+        EasyMock.expect(configurationHelper.getConfigurationFolder()).andReturn("").anyTimes();
+        EasyMock.expect(configurationHelper.isCreateSourceFolder()).andReturn(false).anyTimes();
         EasyMock.expect(configurationHelper.isUseMasterDirectory()).andReturn(true).anyTimes();
+        EasyMock.expect(configurationHelper.isCreateMasterDirectory()).andReturn(false).anyTimes();
         EasyMock.expect(configurationHelper.getNumberOfMetaBackups()).andReturn(0).anyTimes();
+        EasyMock.expect(configurationHelper.getGoobiUrl()).andReturn("http://127.0.0.1:80/").anyTimes();
         EasyMock.replay(configurationHelper);
+        PowerMock.replay(ConfigurationHelper.class);
 
         PowerMock.mockStatic(MetadatenHelper.class);
         EasyMock.expect(MetadatenHelper.getMetaFileType(EasyMock.anyString())).andReturn("mets").anyTimes();
@@ -113,35 +127,33 @@ public class CataloguePollTest {
     public void updateMetsFileForProcessTest() {
         CataloguePoll catPoll = new CataloguePoll();
         Process p = getProcess();
-        //        List<StringPair> catalogueList = new ArrayList<>();
-        //        StringPair sp = new StringPair("12", "618299084");
-        //        catalogueList.add(sp);
-        //        List<String> filter = new ArrayList<>();
-        //        filter.add("PublicationYear");
-        //        filter.add("Author");
-        //        catPoll.updateMetsFileForProcess(p, "K10Plus", catalogueList, true, filter, false, true, true, true);
+        List<StringPair> catalogueList = new ArrayList<>();
+        StringPair sp = new StringPair("12", "618299084");
+        catalogueList.add(sp);
+        List<String> filter = new ArrayList<>();
+        filter.add("PublicationYear");
+        filter.add("Author");
+        catPoll.updateMetsFileForProcess(p, "K10Plus", catalogueList, true, filter, false, true, true, false);
         Assert.isTrue(true);
+        throw new IllegalArgumentException("look in the tempfolder");
+
     }
 
     public Process getProcess() {
         Project project = new Project();
         project.setTitel("Archive_Project");
+        project.setId(11);
         Process process = new Process();
-        //        process.setTitel("dissmeind_618299084");
-        //        process.setProjekt(project);
-        //        process.setId(1);
-        //        List<Step> steps = new ArrayList<>();
-        //        Step s1 = new Step();
-        //        s1.setReihenfolge(1);
-        //        s1.setProzess(process);
-        //        s1.setTitel("test step");
-        //        s1.setBearbeitungsstatusEnum(StepStatus.OPEN);
-        //        User user = new User();
-        //        user.setVorname("Firstname");
-        //        user.setNachname("Lastname");
-        //        s1.setBearbeitungsbenutzer(user);
-        //        steps.add(s1);
-        //        process.setSchritte(steps);
+        process.setTitel("dissmeind_618299084");
+        process.setProjekt(project);
+        process.setId(1);
+
+        Ruleset ruleset = new Ruleset();
+        ruleset.setId(11111);
+        ruleset.setOrderMetadataByRuleset(true);
+        ruleset.setTitel("ruleset.xml");
+        ruleset.setDatei("ruleset.xml");
+        process.setRegelsatz(ruleset);
         try {
             createProcessDirectory();
         } catch (IOException e) {
@@ -154,7 +166,7 @@ public class CataloguePollTest {
         Path imageDirectory = processDirectory.resolve("images");
         Files.createDirectory(imageDirectory);
         // master folder
-        Files.createDirectory(imageDirectory.resolve(imageDirectory.resolve("dissmeind_618299084_master")));
+        Files.createDirectory(imageDirectory.resolve("dissmeind_618299084_master"));
         // media folder
         Files.createDirectory(imageDirectory.resolve("dissmeind_618299084_media"));
     }
