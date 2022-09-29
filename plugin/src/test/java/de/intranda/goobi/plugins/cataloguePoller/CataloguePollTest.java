@@ -104,7 +104,7 @@ public class CataloguePollTest {
         EasyMock.expect(configurationHelper.getProcessImportDirectoryName()).andReturn("dissmeind_618299084_import").anyTimes();
         EasyMock.expect(configurationHelper.getGoobiFolder()).andReturn("").anyTimes();
         EasyMock.expect(configurationHelper.getScriptsFolder()).andReturn("").anyTimes();
-        EasyMock.expect(configurationHelper.getConfigurationFolder()).andReturn("").anyTimes();
+        EasyMock.expect(configurationHelper.getConfigurationFolder()).andReturn("/opt/digiverso/goobi/config/").anyTimes();
         EasyMock.expect(configurationHelper.isCreateSourceFolder()).andReturn(false).anyTimes();
         EasyMock.expect(configurationHelper.isUseMasterDirectory()).andReturn(true).anyTimes();
         EasyMock.expect(configurationHelper.isCreateMasterDirectory()).andReturn(false).anyTimes();
