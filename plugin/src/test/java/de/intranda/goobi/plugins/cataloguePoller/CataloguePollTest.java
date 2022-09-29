@@ -1,21 +1,23 @@
 package de.intranda.goobi.plugins.cataloguePoller;
 
-import java.io.File;
+import static org.junit.Assert.assertFalse;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.shiro.util.Assert;
 import org.easymock.EasyMock;
 import org.goobi.beans.Process;
 import org.goobi.beans.Project;
 import org.goobi.beans.Ruleset;
 import org.goobi.production.cli.helper.StringPair;
+import org.goobi.production.enums.LogType;
+import org.goobi.production.enums.PluginType;
+import org.goobi.production.plugin.PluginLoader;
+import org.goobi.production.plugin.interfaces.IOpacPlugin;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -29,18 +31,18 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
-import de.sub.goobi.metadaten.MetadatenHelper;
-import de.sub.goobi.persistence.managers.MetadataManager;
-import de.sub.goobi.persistence.managers.ProcessManager;
+import de.sub.goobi.helper.Helper;
+import de.unigoettingen.sub.search.opac.ConfigOpac;
+import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
 import ugh.dl.DigitalDocument;
 import ugh.dl.DocStruct;
 import ugh.dl.Fileformat;
 import ugh.dl.Prefs;
-import ugh.fileformats.mets.MetsMods;
+import ugh.fileformats.opac.PicaPlus;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "jdk.internal.reflect.*", "javax.management.*" })
-@PrepareForTest({ ConfigPlugins.class, ConfigurationHelper.class, MetadatenHelper.class, ProcessManager.class, MetadataManager.class })
+@PrepareForTest({ ConfigPlugins.class, ConfigOpac.class, Helper.class, PluginLoader.class })
 public class CataloguePollTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -49,10 +51,11 @@ public class CataloguePollTest {
     public static DocStruct dsNew;
     public static Path ruleSet;
     private Path processDirectory;
-    private Path metadataDirectory;
-    private Process process;
-    private Prefs prefs;
     private static String resourcesFolder;
+
+    private static Path defaultGoobiConfig;
+
+    private Process process;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -60,82 +63,106 @@ public class CataloguePollTest {
         if (!Files.exists(Paths.get(resourcesFolder))) {
             resourcesFolder = "target/test-classes/"; // to run mvn test from cli or in jenkins
         }
-        ruleSet = Paths.get(resourcesFolder + "ruleset.xml");
+        ruleSet = Paths.get(resourcesFolder, "ruleset.xml");
         String log4jFile = resourcesFolder + "log4j2.xml"; // for junit tests in eclipse
         System.setProperty("log4j.configurationFile", log4jFile);
+
+        Path template = Paths.get(CataloguePollTest.class.getClassLoader().getResource(".").getFile());
+        defaultGoobiConfig = Paths.get(template.getParent().getParent().toString() + "/src/test/resources/config/goobi_config.properties"); // for junit tests in eclipse
+        if (!Files.exists(defaultGoobiConfig)) {
+            defaultGoobiConfig = Paths.get("target/test-classes/config/goobi_config.properties"); // to run mvn test from cli or in jenkins
+        }
     }
 
     @Before
     public void setUp() throws Exception {
 
+        Path goobiMainFolder = folder.newFolder("goobi").toPath();
+        Path configFolder = Paths.get(goobiMainFolder.toString(), "config");
+        Files.createDirectories(configFolder);
+
+        // configure config folder
+        Path configFile = Paths.get(configFolder.toString(), "goobi_config.properties");
+        Path opacFile = Paths.get(configFolder.toString(), "goobi_opac.xml");
+        Files.copy(defaultGoobiConfig, configFile);
+        Files.copy(Paths.get(defaultGoobiConfig.getParent().toString(), "goobi_opac.xml"), opacFile);
+
+        ConfigurationHelper.CONFIG_FILE_NAME = configFile.toString();
+
+        ConfigurationHelper.resetConfigurationFile();
+        ConfigurationHelper.getInstance().setParameter("goobiFolder", goobiMainFolder.toString() + "/");
+
         // create  folders
-        metadataDirectory = folder.newFolder("metadata").toPath();
-        processDirectory = metadataDirectory.resolve("1");
+        processDirectory = Paths.get(goobiMainFolder.toString(), "metadata", "1");
         Files.createDirectories(processDirectory);
+        Path rulesetDirectory = Paths.get(goobiMainFolder.toString(), "rulesets");
+        Files.createDirectories(rulesetDirectory);
+        Files.copy(Paths.get(defaultGoobiConfig.getParent().getParent().toString(), "ruleset.xml"),
+                Paths.get(rulesetDirectory.toString(), "ruleset.xml"));
+
         // copy meta.xml
-        Path metaSource = Paths.get(resourcesFolder + "meta.xml");
+        Path metaSource = Paths.get(resourcesFolder, "meta.xml");
         Path metaTarget = processDirectory.resolve("meta.xml");
         Files.copy(metaSource, metaTarget);
 
-        // return empty configuration
-        PowerMock.mockStatic(ConfigPlugins.class);
-        EasyMock.expect(ConfigPlugins.getPluginConfig(EasyMock.anyString())).andReturn(new XMLConfiguration()).anyTimes();
-        PowerMock.replay(ConfigPlugins.class);
+        process = getProcess();
 
-        prefs = new Prefs();
-        prefs.loadPrefs(resourcesFolder + "ruleset.xml");
-        Fileformat ff = new MetsMods(prefs);
-        ff.read(metaTarget.toString());
+        PowerMock.mockStatic(Helper.class);
 
-        PowerMock.mockStatic(ConfigurationHelper.class);
-        ConfigurationHelper configurationHelper = EasyMock.createMock(ConfigurationHelper.class);
-        EasyMock.expect(ConfigurationHelper.getInstance()).andReturn(configurationHelper).anyTimes();
-        EasyMock.expect(configurationHelper.getMetsEditorLockingTime()).andReturn(1800000l).anyTimes();
-        EasyMock.expect(configurationHelper.isAllowWhitespacesInFolder()).andReturn(false).anyTimes();
-        EasyMock.expect(configurationHelper.useS3()).andReturn(false).anyTimes();
-        EasyMock.expect(configurationHelper.isUseProxy()).andReturn(false).anyTimes();
-        EasyMock.expect(configurationHelper.getGoobiContentServerTimeOut()).andReturn(60000).anyTimes();
-        EasyMock.expect(configurationHelper.getMetadataFolder()).andReturn(metadataDirectory.toString() + File.separator).anyTimes();
-        EasyMock.expect(configurationHelper.getRulesetFolder()).andReturn(resourcesFolder).anyTimes();
-        EasyMock.expect(configurationHelper.getProcessImagesMainDirectoryName()).andReturn("dissmeind_618299084_media").anyTimes();
-        EasyMock.expect(configurationHelper.getProcessImagesMasterDirectoryName()).andReturn("dissmeind_618299084_master").anyTimes();
-        EasyMock.expect(configurationHelper.getProcessOcrTxtDirectoryName()).andReturn("dissmeind_618299084_ocrtxt").anyTimes();
-        EasyMock.expect(configurationHelper.getProcessImagesSourceDirectoryName()).andReturn("dissmeind_618299084_source").anyTimes();
-        EasyMock.expect(configurationHelper.getProcessImportDirectoryName()).andReturn("dissmeind_618299084_import").anyTimes();
-        EasyMock.expect(configurationHelper.getGoobiFolder()).andReturn("").anyTimes();
-        EasyMock.expect(configurationHelper.getScriptsFolder()).andReturn("").anyTimes();
-        EasyMock.expect(configurationHelper.getConfigurationFolder()).andReturn("/opt/digiverso/goobi/config/").anyTimes();
-        EasyMock.expect(configurationHelper.isCreateSourceFolder()).andReturn(false).anyTimes();
-        EasyMock.expect(configurationHelper.isUseMasterDirectory()).andReturn(true).anyTimes();
-        EasyMock.expect(configurationHelper.isCreateMasterDirectory()).andReturn(false).anyTimes();
-        EasyMock.expect(configurationHelper.getNumberOfMetaBackups()).andReturn(0).anyTimes();
-        EasyMock.expect(configurationHelper.getGoobiUrl()).andReturn("http://127.0.0.1:80/").anyTimes();
-        EasyMock.replay(configurationHelper);
-        PowerMock.replay(ConfigurationHelper.class);
+        EasyMock.expect(Helper.getTranslation(EasyMock.anyString())).andReturn("").anyTimes();
+        Helper.addMessageToProcessLog(EasyMock.anyInt(), EasyMock.anyObject(LogType.class), EasyMock.anyString());
 
-        PowerMock.mockStatic(MetadatenHelper.class);
-        EasyMock.expect(MetadatenHelper.getMetaFileType(EasyMock.anyString())).andReturn("mets").anyTimes();
-        EasyMock.expect(MetadatenHelper.getFileformatByName(EasyMock.anyString(), EasyMock.anyObject())).andReturn(ff).anyTimes();
-        EasyMock.expect(MetadatenHelper.getMetadataOfFileformat(EasyMock.anyObject(), EasyMock.anyBoolean()))
-                .andReturn(Collections.emptyMap())
-                .anyTimes();
-        PowerMock.replay(MetadatenHelper.class);
+        PowerMock.mockStatic(ConfigOpac.class);
+        ConfigOpac co = EasyMock.createMock(ConfigOpac.class);
+        IOpacPlugin plugin = EasyMock.createMock(IOpacPlugin.class);
+        ConfigOpacCatalogue coc = EasyMock.createMock(ConfigOpacCatalogue.class);
 
+        Fileformat opacResponse = null;
+        Prefs prefs = process.getRegelsatz().getPreferences();
+        opacResponse = new PicaPlus(prefs);
+        opacResponse.read(Paths.get(resourcesFolder, "00469418X.xml").toString() );
+
+        List<ConfigOpacCatalogue> cocList = new ArrayList<>();
+        cocList.add(coc);
+        EasyMock.expect(ConfigOpac.getInstance()).andReturn(co).anyTimes();
+        EasyMock.expect(co.getAllCatalogues(EasyMock.anyString())).andReturn(cocList).anyTimes();
+        EasyMock.expect(co.getCatalogueByName(EasyMock.anyString())).andReturn(coc).anyTimes();
+        EasyMock.expect(coc.getOpacPlugin()).andReturn(plugin).anyTimes();
+        EasyMock.expect(coc.getOpacType()).andReturn("Pica").anyTimes();
+
+
+        EasyMock.expect(coc.getTitle()).andReturn("K10Plus").anyTimes();
+        EasyMock.expect(plugin.getTitle()).andReturn("Pica").anyTimes();
+
+        EasyMock.expect(plugin.search(EasyMock.anyString(), EasyMock.anyString(), EasyMock.anyObject(), EasyMock.anyObject())).andReturn(opacResponse).anyTimes();
+
+
+        PowerMock.mockStatic(PluginLoader.class);
+
+        EasyMock.expect(     PluginLoader.getPluginByTitle(PluginType.Opac, "Pica")).andReturn(plugin).anyTimes();
+
+
+
+        EasyMock.replay(co);
+        EasyMock.replay(coc);
+        EasyMock.replay(plugin);
+
+        PowerMock.replay(PluginLoader.class);
+        PowerMock.replay(Helper.class);
+        PowerMock.replay(ConfigOpac.class);
     }
 
     @Test
     public void updateMetsFileForProcessTest() {
         CataloguePoll catPoll = new CataloguePoll();
-        Process p = getProcess();
+
         List<StringPair> catalogueList = new ArrayList<>();
         StringPair sp = new StringPair("12", "618299084");
         catalogueList.add(sp);
         List<String> filter = new ArrayList<>();
         filter.add("PublicationYear");
         filter.add("Author");
-        catPoll.updateMetsFileForProcess(p, "K10Plus", catalogueList, true, filter, false, true, true, false);
-        Assert.isTrue(true);
-        throw new IllegalArgumentException("look in the tempfolder");
+        assertFalse(catPoll.updateMetsFileForProcess(process, "K10Plus", catalogueList, true, filter, false, true, true, false));
 
     }
 
