@@ -1,6 +1,6 @@
 package de.intranda.goobi.plugins.cataloguePoller;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.easymock.EasyMock;
 import org.goobi.beans.Process;
@@ -29,9 +30,12 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.helper.Helper;
+import de.sub.goobi.helper.StorageProvider;
+import de.sub.goobi.persistence.managers.MetadataManager;
 import de.unigoettingen.sub.search.opac.ConfigOpac;
 import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
 import ugh.dl.DigitalDocument;
@@ -42,7 +46,7 @@ import ugh.fileformats.opac.PicaPlus;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "jdk.internal.reflect.*", "javax.management.*" })
-@PrepareForTest({ ConfigPlugins.class, ConfigOpac.class, Helper.class, PluginLoader.class })
+@PrepareForTest({ ConfigPlugins.class, ConfigOpac.class, Helper.class, PluginLoader.class, MetadataManager.class })
 public class CataloguePollTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -52,6 +56,8 @@ public class CataloguePollTest {
     public static Path ruleSet;
     private Path processDirectory;
     private static String resourcesFolder;
+    private static Path metaSource;
+    private static Path metaTarget;
 
     private static Path defaultGoobiConfig;
 
@@ -101,8 +107,8 @@ public class CataloguePollTest {
                 Paths.get(rulesetDirectory.toString(), "ruleset.xml"));
 
         // copy meta.xml
-        Path metaSource = Paths.get(resourcesFolder, "meta.xml");
-        Path metaTarget = processDirectory.resolve("meta.xml");
+        metaSource = Paths.get(resourcesFolder, "meta.xml");
+        metaTarget = processDirectory.resolve("meta.xml");
         Files.copy(metaSource, metaTarget);
 
         process = getProcess();
@@ -120,7 +126,7 @@ public class CataloguePollTest {
         Fileformat opacResponse = null;
         Prefs prefs = process.getRegelsatz().getPreferences();
         opacResponse = new PicaPlus(prefs);
-        opacResponse.read(Paths.get(resourcesFolder, "00469418X.xml").toString() );
+        opacResponse.read(Paths.get(resourcesFolder, "opac_618299084.xml").toString());
 
         List<ConfigOpacCatalogue> cocList = new ArrayList<>();
         cocList.add(coc);
@@ -130,18 +136,19 @@ public class CataloguePollTest {
         EasyMock.expect(coc.getOpacPlugin()).andReturn(plugin).anyTimes();
         EasyMock.expect(coc.getOpacType()).andReturn("Pica").anyTimes();
 
-
         EasyMock.expect(coc.getTitle()).andReturn("K10Plus").anyTimes();
         EasyMock.expect(plugin.getTitle()).andReturn("Pica").anyTimes();
 
-        EasyMock.expect(plugin.search(EasyMock.anyString(), EasyMock.anyString(), EasyMock.anyObject(), EasyMock.anyObject())).andReturn(opacResponse).anyTimes();
-
+        EasyMock.expect(plugin.search(EasyMock.anyString(), EasyMock.anyString(), EasyMock.anyObject(), EasyMock.anyObject()))
+                .andReturn(opacResponse)
+                .anyTimes();
 
         PowerMock.mockStatic(PluginLoader.class);
-
-        EasyMock.expect(     PluginLoader.getPluginByTitle(PluginType.Opac, "Pica")).andReturn(plugin).anyTimes();
-
-
+        EasyMock.expect(PluginLoader.getPluginByTitle(PluginType.Opac, "Pica")).andReturn(plugin).anyTimes();
+        PowerMock.mockStatic(MetadataManager.class);
+        //ProcessManager.saveProcess(EasyMock.anyObject(Process.class));
+        MetadataManager.updateMetadata(EasyMock.anyInt(), EasyMock.anyObject(Map.class));
+        MetadataManager.updateJSONMetadata(EasyMock.anyInt(), EasyMock.anyObject(Map.class));
 
         EasyMock.replay(co);
         EasyMock.replay(coc);
@@ -150,20 +157,23 @@ public class CataloguePollTest {
         PowerMock.replay(PluginLoader.class);
         PowerMock.replay(Helper.class);
         PowerMock.replay(ConfigOpac.class);
+        PowerMock.replay(MetadataManager.class);
     }
 
     @Test
-    public void updateMetsFileForProcessTest() {
+    public void updateMetsFileForProcessTest() throws IOException {
         CataloguePoll catPoll = new CataloguePoll();
-
+        catPoll.setDifferences(new ArrayList<PullDiff>());
         List<StringPair> catalogueList = new ArrayList<>();
         StringPair sp = new StringPair("12", "618299084");
         catalogueList.add(sp);
         List<String> filter = new ArrayList<>();
         filter.add("PublicationYear");
-        filter.add("Author");
-        assertFalse(catPoll.updateMetsFileForProcess(process, "K10Plus", catalogueList, true, filter, false, true, true, false));
-
+        long beforeCall = StorageProvider.getInstance().getLastModifiedDate(metaTarget);
+        // run updateMetsFileForProcess in test mode
+        catPoll.updateMetsFileForProcess(process, "K10Plus", catalogueList, true, filter, false, true, true, false);
+        long afterCall = StorageProvider.getInstance().getLastModifiedDate(metaTarget);
+        assertEquals("The meta.xml-file was changed!", beforeCall, afterCall);
     }
 
     public Process getProcess() {
