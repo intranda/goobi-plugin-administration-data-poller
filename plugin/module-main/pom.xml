@@ -45,6 +45,9 @@
         <version>2.12.4</version>
         <configuration>
           <skipTests>false</skipTests>
+          <excludes>
+            <exclude>**/org/goobi/api/mq/ticket/*.java</exclude>
+          </excludes>          
         </configuration>
       </plugin>
       <plugin>

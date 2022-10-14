@@ -38,13 +38,13 @@ import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.goobi.api.mq.QueueType;
 import org.goobi.api.mq.TaskTicket;
 import org.goobi.api.mq.TicketGenerator;
+import org.goobi.api.mq.ticket.ConfigInfo;
+import org.goobi.api.mq.ticket.XlsFileManager;
+import org.goobi.api.mq.ticket.PollDocStruct.PullDiff;
 import org.goobi.production.cli.helper.StringPair;
 import org.goobi.production.flow.statistics.hibernate.FilterHelper;
 import org.omnifaces.util.Faces;
 
-import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
-import de.intranda.goobi.plugins.cataloguePoller.xls.XlsFileManager;
-import de.intranda.goobi.plugins.cataloguePoller.xls.XlsWriter;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.helper.Helper;
@@ -212,14 +212,7 @@ public class CataloguePoll {
                 log.error(e);
             }
         }
-        //TODO move this to ticket
-        Path tempFolder = Paths.get(ConfigurationHelper.getInstance().getTemporaryFolder());
         long lastRunMillis = System.currentTimeMillis();
-        XlsWriter writer = new XlsWriter(tempFolder);
-        Path report = writer.writeWorkbook(differences, lastRunMillis, ruleName, testRun);
-        if (report != null) {
-            xlsxReports.put(ruleName, report);
-        }
         // write last updated time into the configuration file
         try {
             rule.setProperty("lastRun", lastRunMillis);
@@ -237,6 +230,7 @@ public class CataloguePoll {
      * @return
      */
     public List<ConfigInfo> getConfigInfo() {
+
         List<ConfigInfo> list = new ArrayList<>();
         // run through all rules
         List<HierarchicalConfiguration> rulelist = config.configurationsAt("rule");

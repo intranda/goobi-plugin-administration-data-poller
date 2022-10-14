@@ -29,13 +29,14 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import org.goobi.api.mq.ticket.XlsData;
+import org.goobi.api.mq.ticket.XlsWriter;
+import org.goobi.api.mq.ticket.PollDocStruct.PullDiff;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
 
 public class XlsWriterTest {
     private XlsWriter xlsWriter;

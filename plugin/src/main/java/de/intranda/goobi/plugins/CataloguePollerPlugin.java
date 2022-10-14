@@ -21,10 +21,6 @@ package de.intranda.goobi.plugins;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.plugin.interfaces.IAdministrationPlugin;
 import org.goobi.production.plugin.interfaces.IPlugin;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.SchedulerFactory;
-import org.quartz.impl.StdSchedulerFactory;
 
 import de.intranda.goobi.plugins.cataloguePoller.CataloguePoll;
 import lombok.Data;
@@ -62,20 +58,20 @@ public class CataloguePollerPlugin implements IAdministrationPlugin, IPlugin {
         return GUI;
     }
 
-    public void updateStatusInformation() {
-        try {
-            // get all job groups
-            SchedulerFactory schedFact = new StdSchedulerFactory();
-            Scheduler sched = schedFact.getScheduler();
-            for (String groupName : sched.getJobGroupNames()) {
-                // get all jobs within the group
-                for (Object name : sched.getJobNames(groupName)) {
-                    log.debug("Scheduler job: " + groupName + " - " + name);
-                }
-            }
-        } catch (SchedulerException e) {
-            log.error("Error while reading job information", e);
-        }
-    }
+    //    public void updateStatusInformation() {
+    //        try {
+    //            // get all job groups
+    //            SchedulerFactory schedFact = new StdSchedulerFactory();
+    //            Scheduler sched = schedFact.getScheduler();
+    //            for (String groupName : sched.getJobGroupNames()) {
+    //                // get all jobs within the group
+    //                for (Object name : sched.getJobNames(groupName)) {
+    //                    log.debug("Scheduler job: " + groupName + " - " + name);
+    //                }
+    //            }
+    //        } catch (SchedulerException e) {
+    //            log.error("Error while reading job information", e);
+    //        }
+    //    }
 
 }

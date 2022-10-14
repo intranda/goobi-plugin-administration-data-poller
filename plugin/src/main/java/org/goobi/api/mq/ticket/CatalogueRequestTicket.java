@@ -9,6 +9,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.goobi.api.mq.TaskTicket;
 import org.goobi.api.mq.TicketHandler;
+import org.goobi.api.mq.ticket.PollDocStruct.PullDiff;
 import org.goobi.beans.Process;
 import org.goobi.production.cli.helper.StringPair;
 import org.goobi.production.enums.LogType;
@@ -18,8 +19,6 @@ import org.goobi.production.plugin.PluginLoader;
 import org.goobi.production.plugin.interfaces.IExportPlugin;
 import org.goobi.production.plugin.interfaces.IOpacPlugin;
 
-import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct;
-import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
 import de.sub.goobi.export.dms.ExportDms;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.VariableReplacer;
@@ -65,7 +64,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         String searchFieldsAsString = ticket.getProperties().get("searchfields");
         List<StringPair> searchfields = new ArrayList<>();
 
-        String[] fields = searchFieldsAsString.split("|");
+        String[] fields = searchFieldsAsString.split("\\|");
 
         for (String f : fields) {
             StringPair sp = new StringPair();
@@ -75,15 +74,25 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
             searchfields.add(sp);
         }
         String fieldFilter = ticket.getProperties().get("fieldFilter");
-        List<String> fieldFilterList = new ArrayList<>();
+        List<String> fieldFilterList = Arrays.asList(fieldFilter.split("|"));
 
-        fieldFilterList=   Arrays.asList( fieldFilter.split("|"));
-
-        updateMetsFileForProcess(process, catalogueName, searchfields, mergeRecords, fieldFilterList, exportUpdatedRecords, analyseSubElements,
-                testRun, blockList);
+        if (!    updateMetsFileForProcess(process, catalogueName, searchfields, mergeRecords, fieldFilterList, exportUpdatedRecords, analyseSubElements,
+                testRun, blockList)) {
+            return PluginReturnValue.ERROR;
+        }
 
         // TODO write csv file
-        return null;
+
+        //        Path tempFolder = Paths.get(ConfigurationHelper.getInstance().getTemporaryFolder());
+        //        long lastRunMillis = System.currentTimeMillis();
+        //        XlsWriter writer = new XlsWriter(tempFolder);
+        //        Path report = writer.writeWorkbook(differences, lastRunMillis, ruleName, testRun);
+        //        if (report != null) {
+        //            xlsxReports.put(ruleName, report);
+        //        }
+
+
+        return PluginReturnValue.ERROR;
     }
 
     @Override
@@ -103,7 +112,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
      */
     public boolean updateMetsFileForProcess(Process p, String configCatalogue, List<StringPair> searchfields, boolean configMergeRecords,
             List<String> fieldFilterList, boolean exportUpdatedRecords, boolean configAnalyseSubElements, boolean testRun, boolean isBlockList) {
-        log.debug("Starting catalogue request using catalogue: " + configCatalogue);
+        log.debug("Starting catalogue request using catalogue: {}" , configCatalogue);
 
         // first read the original METS file for the process
         Fileformat ffOld = null;
@@ -211,7 +220,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                 ffNew = myImportOpac.search(valueList.get(0).getOne(), valueList.get(0).getTwo(), coc, prefs);
             } catch (Exception e) {
                 log.error("Exception while requesting the catalogue", e);
-                Helper.addMessageToProcessLog(p.getId(), LogType.DEBUG,
+                Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG,
                         "Exception while requesting the catalogue inside of catalogue poller plugin: " + e.getMessage());
                 return false;
             }

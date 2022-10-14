@@ -16,7 +16,7 @@
  * Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  */
-package de.intranda.goobi.plugins.cataloguePoller.xls;
+package org.goobi.api.mq.ticket;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -33,8 +33,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.goobi.api.mq.ticket.PollDocStruct.PullDiff;
 
-import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
