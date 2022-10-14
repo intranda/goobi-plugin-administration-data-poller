@@ -16,7 +16,7 @@
  * Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  */
-package org.goobi.api.mq.ticket;
+package de.intranda.goobi.plugins.cataloguePoller.xls;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import de.intranda.goobi.plugins.cataloguePoller.ConfigInfo;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.StorageProviderInterface;
 import lombok.extern.log4j.Log4j2;

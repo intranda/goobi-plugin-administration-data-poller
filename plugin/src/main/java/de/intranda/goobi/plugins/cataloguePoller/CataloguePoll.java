@@ -38,13 +38,12 @@ import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.goobi.api.mq.QueueType;
 import org.goobi.api.mq.TaskTicket;
 import org.goobi.api.mq.TicketGenerator;
-import org.goobi.api.mq.ticket.ConfigInfo;
-import org.goobi.api.mq.ticket.XlsFileManager;
-import org.goobi.api.mq.ticket.PollDocStruct.PullDiff;
 import org.goobi.production.cli.helper.StringPair;
 import org.goobi.production.flow.statistics.hibernate.FilterHelper;
 import org.omnifaces.util.Faces;
 
+import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
+import de.intranda.goobi.plugins.cataloguePoller.xls.XlsFileManager;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.helper.Helper;
@@ -62,6 +61,8 @@ public class CataloguePoll {
     private List<ConfigInfo> ci;
 
     private static final DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+
+    //TODO rewrite result file: save a file for each record; when requested collect all files from a run into a result file
 
     public CataloguePoll() {
         config = ConfigPlugins.getPluginConfig("intranda_administration_catalogue_poller");
@@ -109,7 +110,6 @@ public class CataloguePoll {
     public void executePoll(String ruleName, boolean testRun) {
         this.testRun = testRun;
         log.debug(" Starting to update the METS files fo all processes defined in the rule ");
-        differences = new ArrayList<>();
 
         // run through all rules
         HierarchicalConfiguration rule = config.configurationAt("rule[@title='" + ruleName + "']");

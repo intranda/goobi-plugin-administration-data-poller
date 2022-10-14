@@ -9,7 +9,6 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.goobi.api.mq.TaskTicket;
 import org.goobi.api.mq.TicketHandler;
-import org.goobi.api.mq.ticket.PollDocStruct.PullDiff;
 import org.goobi.beans.Process;
 import org.goobi.production.cli.helper.StringPair;
 import org.goobi.production.enums.LogType;
@@ -19,6 +18,8 @@ import org.goobi.production.plugin.PluginLoader;
 import org.goobi.production.plugin.interfaces.IExportPlugin;
 import org.goobi.production.plugin.interfaces.IOpacPlugin;
 
+import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct;
+import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
 import de.sub.goobi.export.dms.ExportDms;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.VariableReplacer;

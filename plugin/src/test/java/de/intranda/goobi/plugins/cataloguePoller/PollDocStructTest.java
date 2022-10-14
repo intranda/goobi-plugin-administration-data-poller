@@ -24,13 +24,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.goobi.api.mq.ticket.PollDocStruct;
-import org.goobi.api.mq.ticket.PollDocStruct.PullDiff;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
 import ugh.dl.DigitalDocument;
 import ugh.dl.DocStruct;
 import ugh.dl.DocStructType;

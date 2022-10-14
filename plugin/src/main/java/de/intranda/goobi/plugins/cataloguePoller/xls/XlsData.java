@@ -16,7 +16,7 @@
  * Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  */
-package org.goobi.api.mq.ticket;
+package de.intranda.goobi.plugins.cataloguePoller.xls;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

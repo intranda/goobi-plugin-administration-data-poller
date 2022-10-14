@@ -31,20 +31,12 @@
         <excludes>
           <exclude>**/*.java</exclude>
         </excludes>
-        <includes>
-          <include>**/org/goobi/api/mq/ticket/*.class</include>
-        </includes>        
       </resource>
     </resources>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.7.0</version>
-         <configuration>
-			<excludes>
-            <exclude>**/de/intranda/goobi/**/*.java</exclude>
-          </excludes>
-         </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
