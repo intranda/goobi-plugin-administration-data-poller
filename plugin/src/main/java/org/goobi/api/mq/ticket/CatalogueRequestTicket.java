@@ -19,7 +19,7 @@ import org.goobi.production.plugin.interfaces.IExportPlugin;
 import org.goobi.production.plugin.interfaces.IOpacPlugin;
 
 import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct;
-import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
+import de.intranda.goobi.plugins.cataloguePoller.PullDiff;
 import de.sub.goobi.export.dms.ExportDms;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.VariableReplacer;
@@ -43,7 +43,7 @@ import ugh.exceptions.MetadataTypeNotAllowedException;
 @Log4j2
 public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> {
 
-    private List<PullDiff> differences;
+    private PullDiff diff;
 
     @Override
     public PluginReturnValue call(TaskTicket ticket) {
@@ -53,15 +53,14 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         Process process = ProcessManager.getProcessById(processId);
 
         // get configured rules from ticket
-
-        boolean mergeRecords = Boolean.getBoolean(ticket.getProperties().get("mergeRecords"));
-        boolean analyseSubElements = Boolean.getBoolean(ticket.getProperties().get("analyseSubElements"));
-        boolean exportUpdatedRecords = Boolean.getBoolean(ticket.getProperties().get("exportUpdatedRecords"));
-        boolean testRun = Boolean.getBoolean(ticket.getProperties().get("testRun"));
-        boolean blockList = Boolean.getBoolean(ticket.getProperties().get("blockList"));
-
+        boolean mergeRecords = Boolean.parseBoolean(ticket.getProperties().get("mergeRecords"));
+        boolean analyseSubElements = Boolean.parseBoolean(ticket.getProperties().get("analyseSubElements"));
+        boolean exportUpdatedRecords = Boolean.parseBoolean(ticket.getProperties().get("exportUpdatedRecords"));
+        boolean testRun = Boolean.parseBoolean(ticket.getProperties().get("testRun"));
+        boolean blockList = Boolean.parseBoolean(ticket.getProperties().get("blockList"));
+        String lastRunMillis = ticket.getProperties().get("lastRunMillis");
+        String xmlTempFolder = ticket.getProperties().get("xmlTempFolder");
         String catalogueName = ticket.getProperties().get("catalogueName");
-
         String searchFieldsAsString = ticket.getProperties().get("searchfields");
         List<StringPair> searchfields = new ArrayList<>();
 
@@ -75,14 +74,19 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
             searchfields.add(sp);
         }
         String fieldFilter = ticket.getProperties().get("fieldFilter");
-        List<String> fieldFilterList = Arrays.asList(fieldFilter.split("|"));
-
-        if (!    updateMetsFileForProcess(process, catalogueName, searchfields, mergeRecords, fieldFilterList, exportUpdatedRecords, analyseSubElements,
+        List<String> fieldFilterList = Arrays.asList(fieldFilter.split("\\|"));
+        if (!updateMetsFileForProcess(process, catalogueName, searchfields, mergeRecords, fieldFilterList, exportUpdatedRecords, analyseSubElements,
                 testRun, blockList)) {
             return PluginReturnValue.ERROR;
         }
 
-        // TODO write csv file
+        if (diff != null) {
+            PullDiff.marshalPullDiff(diff, xmlTempFolder, lastRunMillis);
+            return PluginReturnValue.FINISH;
+        } else {
+            log.debug("CatloguePollerPlugin: No PullDiff object was created for the process with id {}!", processId);
+            return PluginReturnValue.ERROR;
+        }
 
         //        Path tempFolder = Paths.get(ConfigurationHelper.getInstance().getTemporaryFolder());
         //        long lastRunMillis = System.currentTimeMillis();
@@ -92,8 +96,6 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         //            xlsxReports.put(ruleName, report);
         //        }
 
-
-        return PluginReturnValue.ERROR;
     }
 
     @Override
@@ -113,7 +115,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
      */
     public boolean updateMetsFileForProcess(Process p, String configCatalogue, List<StringPair> searchfields, boolean configMergeRecords,
             List<String> fieldFilterList, boolean exportUpdatedRecords, boolean configAnalyseSubElements, boolean testRun, boolean isBlockList) {
-        log.debug("Starting catalogue request using catalogue: {}" , configCatalogue);
+        log.debug("Starting catalogue request using catalogue: {}", configCatalogue);
 
         // first read the original METS file for the process
         Fileformat ffOld = null;
@@ -238,7 +240,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                     anchorNew = topstructNew;
                     topstructNew = topstructNew.getAllChildren().get(0);
                 }
-                PullDiff diff = new PullDiff();
+                diff = new PullDiff();
                 PollDocStruct.checkDifferences(topstructNew, topstructOld, fieldFilterList, diff, isBlockList);
                 if (anchorNew != null && anchorOld != null) {
                     PollDocStruct.checkDifferences(anchorNew, anchorOld, fieldFilterList, diff, isBlockList);
@@ -249,7 +251,6 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
 
                 diff.setProcessId(p.getId());
                 diff.setProcessTitle(p.getTitel());
-                differences.add(diff);
 
                 if (configAnalyseSubElements) {
                     List<DocStruct> dsl = topstructOld.getAllChildren();
@@ -302,10 +303,10 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                 }
 
             } else // just write the new one and don't merge any data
-                if (!testRun) {
-                    p.writeMetadataFile(ffNew);
-                    Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG, "New Mets file successfully created by catalogue poller plugin");
-                }
+            if (!testRun) {
+                p.writeMetadataFile(ffNew);
+                Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG, "New Mets file successfully created by catalogue poller plugin");
+            }
         } catch (Exception e) {
             log.error("Exception while writing the updated METS file into the file system", e);
             Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG,

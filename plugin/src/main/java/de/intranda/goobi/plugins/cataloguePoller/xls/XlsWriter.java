@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -34,7 +35,8 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
+import de.intranda.goobi.plugins.cataloguePoller.PullDiff;
+import de.sub.goobi.helper.StorageProvider;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
@@ -45,6 +47,27 @@ public class XlsWriter {
 
     public XlsWriter(Path targetFolder) {
         this.path = targetFolder;
+    }
+
+    public Path writeWorkbook(Path XmlFolder) {
+        Path reportInfoPath = FileManager.getReportInfoFile(XmlFolder);
+        ReportInfo info = ReportInfo.unmarshalPullDiff(reportInfoPath);
+        List<Path> differencesXML = FileManager.getXmlFiles(XmlFolder);
+        List<PullDiff> differences = new ArrayList<>();
+        if (info != null) {
+            for (Path xmlFile : differencesXML) {
+                differences.add(PullDiff.unmarshalPullDiff(xmlFile));
+            }
+            Path xlsFile = writeWorkbook(differences, info.getLastRunMillis(), info.getRuleName(), info.isTestRun());
+            if (xlsFile != null && differences.size() == info.getProcessCount()) {
+                if (!StorageProvider.getInstance().deleteDir(XmlFolder)) {
+                    log.debug("CatloguePollerPlugin: Couldn't delete the folder: " + XmlFolder);
+                }
+            }
+        } else {
+            log.error("Couldn't find reportInfo.xml file in {}! No xlsx-Report was created!", XmlFolder.toString());
+        }
+        return null;
     }
 
     /**
@@ -85,9 +108,9 @@ public class XlsWriter {
             }
         }
 
-        String fileName = ruleName.toLowerCase().trim().replace(" ", "_");
-        fileName += "-" + dateFormatter.format(calendar.getTime()) + ".xlsx";
-        Path targetPath = this.path.resolve(fileName);
+        StringBuilder fileName = new StringBuilder().append(ruleName.toLowerCase().trim().replace(" ", "_"));
+        fileName.append("-").append(dateFormatter.format(calendar.getTime())).append(".xlsx");
+        Path targetPath = this.path.resolve(fileName.toString());
 
         //write file to file system
         try (OutputStream outputFile = new FileOutputStream(targetPath.toString())) {

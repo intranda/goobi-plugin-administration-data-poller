@@ -42,8 +42,8 @@ import org.goobi.production.cli.helper.StringPair;
 import org.goobi.production.flow.statistics.hibernate.FilterHelper;
 import org.omnifaces.util.Faces;
 
-import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
-import de.intranda.goobi.plugins.cataloguePoller.xls.XlsFileManager;
+import de.intranda.goobi.plugins.cataloguePoller.xls.FileManager;
+import de.intranda.goobi.plugins.cataloguePoller.xls.ReportInfo;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.helper.Helper;
@@ -61,8 +61,6 @@ public class CataloguePoll {
     private List<ConfigInfo> ci;
 
     private static final DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-
-    //TODO rewrite result file: save a file for each record; when requested collect all files from a run into a result file
 
     public CataloguePoll() {
         config = ConfigPlugins.getPluginConfig("intranda_administration_catalogue_poller");
@@ -99,7 +97,7 @@ public class CataloguePoll {
 
     public boolean reportExists(String ruleName) {
         if (this.xlsxReports.isEmpty()) {
-            this.xlsxReports = XlsFileManager.manageTempFiles(ConfigurationHelper.getInstance().getTemporaryFolder(), ci);
+            this.xlsxReports = FileManager.manageTempFiles(Paths.get(ConfigurationHelper.getInstance().getTemporaryFolder()), ci);
         }
         return xlsxReports.containsKey(ruleName);
     }
@@ -155,13 +153,13 @@ public class CataloguePoll {
                     return;
             }
         } else {
-            if (configListType.equals("whitelist")) {
+            if ("whitelist".equals(configListType)) {
                 Helper.setFehlerMeldung("plugin_admin_cataloguePoller_configErrorEmptyWhiteList");
                 log.error("CatloguePollerPlugin: The filterlist is a whitelist but has no elements!");
                 return;
             }
             // if no list is specified run as if a black list with no Elements was given
-            if (configListType.equals("blacklist")) {
+            if ("blacklist".equals(configListType)) {
                 isBlockList = true;
             }
         }
@@ -173,6 +171,21 @@ public class CataloguePoll {
         String query = FilterHelper.criteriaBuilder(filter, false, null, null, null, true, false);
 
         List<Integer> processIds = ProcessManager.getIdsForFilter(query);
+        long lastRunMillis = System.currentTimeMillis();
+        String tempFolder = ConfigurationHelper.getInstance().getTemporaryFolder();
+        StringBuilder xmlTempFolder = new StringBuilder();
+        xmlTempFolder.append("catPoll")
+                .append("_")
+                .append(ruleName.toLowerCase().trim().replace(" ", "_"))
+                .append("_")
+                .append(lastRunMillis)
+                .append("_")
+                .append(processIds.size());
+        Path xmlTempFolderPath = FileManager.createXmlFolder(tempFolder, xmlTempFolder.toString());
+        //create reportInfoXml
+        ReportInfo info = new ReportInfo(testRun, ruleName, lastRunMillis, processIds.size());
+        ReportInfo.marshalReportInfo(info, xmlTempFolderPath);
+
         for (Integer id : processIds) {
             // create a new ticket
             TaskTicket ticket = TicketGenerator.generateSimpleTicket("CatalogueRequest");
@@ -185,6 +198,8 @@ public class CataloguePoll {
             ticket.getProperties().put("catalogueName", configCatalogue);
             ticket.getProperties().put("testRun", String.valueOf(testRun));
             ticket.getProperties().put("blockList", String.valueOf(isBlockList));
+            ticket.getProperties().put("lastRunMillis", String.valueOf(lastRunMillis));
+            ticket.getProperties().put("xmlTempFolder", xmlTempFolderPath.toString());
 
             StringBuilder sb = new StringBuilder();
             for (StringPair field : searchfields) {
@@ -212,7 +227,7 @@ public class CataloguePoll {
                 log.error(e);
             }
         }
-        long lastRunMillis = System.currentTimeMillis();
+
         // write last updated time into the configuration file
         try {
             rule.setProperty("lastRun", lastRunMillis);
