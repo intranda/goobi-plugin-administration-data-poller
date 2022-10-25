@@ -19,8 +19,8 @@
       <url>https://nexus.intranda.com/repository/maven-releases</url>
     </repository>
     <snapshotRepository>
-        <id>intranda-snapshots</id>
-        <url>https://nexus.intranda.com/repository/maven-snapshots</url>
+      <id>intranda-snapshots</id>
+      <url>https://nexus.intranda.com/repository/maven-snapshots</url>
     </snapshotRepository>
   </distributionManagement>
   <repositories>
