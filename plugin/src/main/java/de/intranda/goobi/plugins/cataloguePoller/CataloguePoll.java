@@ -28,6 +28,8 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.jms.JMSException;
 
@@ -38,11 +40,13 @@ import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.goobi.api.mq.QueueType;
 import org.goobi.api.mq.TaskTicket;
 import org.goobi.api.mq.TicketGenerator;
+import org.goobi.managedbeans.MessageQueueBean;
 import org.goobi.production.cli.helper.StringPair;
 import org.goobi.production.flow.statistics.hibernate.FilterHelper;
 import org.omnifaces.util.Faces;
 
 import de.intranda.goobi.plugins.cataloguePoller.xls.FileManager;
+import de.intranda.goobi.plugins.cataloguePoller.xls.FolderInfo;
 import de.intranda.goobi.plugins.cataloguePoller.xls.ReportInfo;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
@@ -59,12 +63,25 @@ public class CataloguePoll {
     private boolean testRun;
     private HashMap<String, Path> xlsxReports = new HashMap<>();
     private List<ConfigInfo> ci;
+    private boolean queueIsUp = false;
+    private boolean ticketsActive = false;
+    private boolean allowRun = false;
 
     private static final DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
     public CataloguePoll() {
         config = ConfigPlugins.getPluginConfig("intranda_administration_catalogue_poller");
         config.setExpressionEngine(new XPathExpressionEngine());
+        MessageQueueBean queueBean = Helper.getBeanByClass(MessageQueueBean.class);
+        if (queueBean.isMessageBrokerStart()) {
+            this.queueIsUp = true;
+            Map<String, Integer> activeTicketType = queueBean.getSlowQueueContent();
+            if (activeTicketType.containsKey("CatalogueRequest")) {
+                this.ticketsActive = true;
+            }
+        }
+        this.allowRun = this.queueIsUp && !this.ticketsActive;
+        //TODO maybe add an ErrorMessage (Helper.setFehlerMeldung)
     }
 
     public void executeAll() {
@@ -97,7 +114,16 @@ public class CataloguePoll {
 
     public boolean reportExists(String ruleName) {
         if (this.xlsxReports.isEmpty()) {
-            this.xlsxReports = FileManager.manageTempFiles(Paths.get(ConfigurationHelper.getInstance().getTemporaryFolder()), ci);
+            HashMap<String, FolderInfo> infos = FileManager.manageTempFiles(Paths.get(ConfigurationHelper.getInstance().getTemporaryFolder()), ci);
+            Set<String> keys = infos.keySet();
+            for (String key : keys) {
+                FolderInfo info = infos.get(key);
+                this.xlsxReports.put(key, info.getXlsFile());
+                List<PullDiff> diffs = info.getDifferences();
+                if (!diffs.isEmpty()) {
+                    this.differences = diffs;
+                }
+            }
         }
         return xlsxReports.containsKey(ruleName);
     }
@@ -106,6 +132,14 @@ public class CataloguePoll {
      * do the pull of catalogue data to update the records for all rules
      */
     public void executePoll(String ruleName, boolean testRun) {
+        if (!this.allowRun) {
+            log.debug(
+                    "CatloguePollerPlugin: Error starting Poll either the message queue wasn't activated or another catalogue poll job was in progress! ");
+            return;
+        } else {
+            // set allowRun to false after starting a new poll
+            this.allowRun = false;
+        }
         this.testRun = testRun;
         log.debug(" Starting to update the METS files fo all processes defined in the rule ");
 
@@ -185,6 +219,8 @@ public class CataloguePoll {
         //create reportInfoXml
         ReportInfo info = new ReportInfo(testRun, ruleName, lastRunMillis, processIds.size());
         ReportInfo.marshalReportInfo(info, xmlTempFolderPath);
+
+        MessageQueueBean queueBean = Helper.getBeanByClass(MessageQueueBean.class);
 
         for (Integer id : processIds) {
             // create a new ticket

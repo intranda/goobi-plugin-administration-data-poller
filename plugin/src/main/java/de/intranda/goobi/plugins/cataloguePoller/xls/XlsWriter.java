@@ -49,9 +49,9 @@ public class XlsWriter {
         this.path = targetFolder;
     }
 
-    public Path writeWorkbook(Path XmlFolder) {
+    public FolderInfo writeWorkbook(Path XmlFolder) {
         Path reportInfoPath = FileManager.getReportInfoFile(XmlFolder);
-        ReportInfo info = ReportInfo.unmarshalPullDiff(reportInfoPath);
+        ReportInfo info = ReportInfo.unmarshalReportInfo(reportInfoPath);
         List<Path> differencesXML = FileManager.getXmlFiles(XmlFolder);
         List<PullDiff> differences = new ArrayList<>();
         if (info != null) {
@@ -64,10 +64,11 @@ public class XlsWriter {
                     log.debug("CatloguePollerPlugin: Couldn't delete the folder: " + XmlFolder);
                 }
             }
+            return new FolderInfo(xlsFile, differences, info);
         } else {
             log.error("Couldn't find reportInfo.xml file in {}! No xlsx-Report was created!", XmlFolder.toString());
+            return null;
         }
-        return null;
     }
 
     /**

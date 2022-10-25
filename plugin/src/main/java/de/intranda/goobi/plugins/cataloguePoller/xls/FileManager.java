@@ -46,8 +46,8 @@ public class FileManager {
      * @param configInfos List with ConfigInfo
      * @return latest xlsx-reports in tempfolder
      */
-    public static HashMap<String, Path> manageTempFiles(Path tempFolder, List<ConfigInfo> configInfos) {
-        HashMap<String, Path> xlsReports = new HashMap<>();
+    public static HashMap<String, FolderInfo> manageTempFiles(Path tempFolder, List<ConfigInfo> configInfos) {
+        HashMap<String, FolderInfo> reports = new HashMap<>();
         for (ConfigInfo configInfo : configInfos) {
             String ruleName = configInfo.getTitle();
             List<Path> xmlFolders = getXmlFolders(tempFolder, ruleName);
@@ -56,7 +56,8 @@ public class FileManager {
                 // create xlsx report
                 XlsWriter writer = new XlsWriter(tempFolder);
                 // put the last element (youngest file) into the HashMap
-                xlsReports.put(ruleName, writer.writeWorkbook(xmlFolders.remove(xmlFolders.size() - 1)));
+                FolderInfo info = writer.writeWorkbook(xmlFolders.remove(xmlFolders.size() - 1));
+                reports.put(ruleName, info);
                 // delete the rest
                 for (Path xmlFolder : xmlFolders) {
                     if (!SPI.deleteDir(xmlFolder)) {
@@ -69,7 +70,7 @@ public class FileManager {
                 Collections.sort(xlsFiles);
                 if (xlsFiles != null && !xlsFiles.isEmpty()) {
                     // put the last element (youngest file) into the HashMap
-                    xlsReports.put(ruleName, xlsFiles.remove(xlsFiles.size() - 1));
+                    reports.put(ruleName, new FolderInfo(xlsFiles.remove(xlsFiles.size() - 1)));
                     // delete the rest
                     for (Path xlsFile : xlsFiles) {
                         try {
@@ -81,7 +82,7 @@ public class FileManager {
                 }
             }
         }
-        return xlsReports;
+        return reports;
     }
 
     public static Path getReportInfoFile(Path xmlFolder) {
