@@ -49,7 +49,7 @@ public class ReportInfo {
         }
     }
 
-    public static ReportInfo unmarshalPullDiff(Path ReportInfoXml) {
+    public static ReportInfo unmarshalReportInfo(Path ReportInfoXml) {
         ReportInfo info;
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(ReportInfo.class);
