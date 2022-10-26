@@ -57,7 +57,9 @@ public class FileManager {
                 XlsWriter writer = new XlsWriter(tempFolder);
                 // put the last element (youngest file) into the HashMap
                 FolderInfo info = writer.writeWorkbook(xmlFolders.remove(xmlFolders.size() - 1));
-                reports.put(ruleName, info);
+                if (info != null) {
+                    reports.put(ruleName, info);
+                }
                 // delete the rest
                 for (Path xmlFolder : xmlFolders) {
                     if (!SPI.deleteDir(xmlFolder)) {
