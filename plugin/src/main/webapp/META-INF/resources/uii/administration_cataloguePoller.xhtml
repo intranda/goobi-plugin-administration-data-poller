@@ -125,6 +125,7 @@
                                                     <td>
 	                                               <button class="btn margin-right-5" jsf:rel="tooltip"
                                                         jsf:action="#{AdministrationForm.administrationPlugin.cp.executeTest(configInfo.title)}"
+                                                        jsf:disabled="#{not AdministrationForm.administrationPlugin.cp.allowRun}"
                                                         title="#{msgs.plugin_admin_cataloguePoller_runTest}">
                                                         <i class="fa fa-flask"></i>
                                                         <f:passThroughAttribute name="data-toggle" value="tooltip" />
@@ -132,6 +133,7 @@
                                                    </button>
                                                     <button class="btn margin-right-5" jsf:rel="tooltip"
                                                         jsf:action="#{AdministrationForm.administrationPlugin.cp.execute(configInfo.title)}"
+                                                         jsf:disabled="#{not AdministrationForm.administrationPlugin.cp.allowRun}"
                                                         title="#{msgs.plugin_admin_cataloguePoller_runNow}">
                                                         <i class="fa fa-play"></i>
                                                         <f:passThroughAttribute name="data-toggle" value="tooltip" />
@@ -157,9 +159,11 @@
                             <div class="box-content">
                                 <h4>
                                     <h:outputText value="#{msgs.plugin_admin_cataloguePoller_resultsTest}" 
-                                    rendered="#{AdministrationForm.administrationPlugin.cp.testRun}" />
+                                    rendered="#{AdministrationForm.administrationPlugin.cp.ticketStateTestRun}" />
                                     <h:outputText value="#{msgs.plugin_admin_cataloguePoller_results}" 
-                                    rendered="#{not AdministrationForm.administrationPlugin.cp.testRun}" />
+                                    rendered="#{not AdministrationForm.administrationPlugin.cp.ticketStateTestRun}" />
+                                    <h:outputText value=" #{msgs.plugin_admin_cataloguePoller_resultsUnfinished}" 
+                                    rendered="#{AdministrationForm.administrationPlugin.cp.ticketStateUnfinished}" />
                                 </h4>
                                 <ui:repeat
                                     var="pd"

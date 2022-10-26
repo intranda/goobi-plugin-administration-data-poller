@@ -60,16 +60,17 @@ import lombok.extern.log4j.Log4j2;
 public class CataloguePoll {
     private XMLConfiguration config;
     private List<PullDiff> differences;
-    private boolean testRun;
+    private boolean ticketStateTestRun;
     private HashMap<String, Path> xlsxReports = new HashMap<>();
     private List<ConfigInfo> ci;
-    private boolean queueIsUp = false;
     private boolean ticketsActive = false;
     private boolean allowRun = false;
-
+    private boolean ticketStateUnfinished = true;
+    private boolean queueIsUp = false;
     private static final DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
     public CataloguePoll() {
+
         config = ConfigPlugins.getPluginConfig("intranda_administration_catalogue_poller");
         config.setExpressionEngine(new XPathExpressionEngine());
         MessageQueueBean queueBean = Helper.getBeanByClass(MessageQueueBean.class);
@@ -79,8 +80,11 @@ public class CataloguePoll {
             if (activeTicketType.containsKey("CatalogueRequest")) {
                 this.ticketsActive = true;
             }
+        } else {
+            Helper.setFehlerMeldung("The Message Queue is not activated");
         }
         this.allowRun = this.queueIsUp && !this.ticketsActive;
+
         //TODO maybe add an ErrorMessage (Helper.setFehlerMeldung)
     }
 
@@ -120,9 +124,15 @@ public class CataloguePoll {
                 FolderInfo info = infos.get(key);
                 this.xlsxReports.put(key, info.getXlsFile());
                 List<PullDiff> diffs = info.getDifferences();
+                ReportInfo rInfo = info.getInfo();
                 if (!diffs.isEmpty()) {
                     this.differences = diffs;
+                    if (rInfo != null) {
+                        this.ticketStateUnfinished = (differences.size() < rInfo.getProcessCount());
+                        this.ticketStateTestRun = rInfo.isTestRun();
+                    }
                 }
+
             }
         }
         return xlsxReports.containsKey(ruleName);
@@ -140,7 +150,6 @@ public class CataloguePoll {
             // set allowRun to false after starting a new poll
             this.allowRun = false;
         }
-        this.testRun = testRun;
         log.debug(" Starting to update the METS files fo all processes defined in the rule ");
 
         // run through all rules
