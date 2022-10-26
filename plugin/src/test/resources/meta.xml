@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mets:mets OBJID="" xsi:schemaLocation="http://www.loc.gov/standards/premis/ http://www.loc.gov/standards/premis/v2/premis-v2-0.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-7.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/standards/mix/ http://www.loc.gov/standards/mix/mix.xsd" xmlns:mets="http://www.loc.gov/METS/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mods="http://www.loc.gov/mods/v3" xmlns:goobi="http://meta.goobi.org/v1.5.1/">
+   <mets:metsHdr CREATEDATE="2022-09-26T07:45:22Z">
+      <mets:agent OTHERTYPE="SOFTWARE" ROLE="CREATOR" TYPE="OTHER">
+         <mets:name>Goobi - 87732 - 2022-09-03 22:44:19+0000</mets:name>
+         <mets:note>Goobi</mets:note>
+      </mets:agent>
+   </mets:metsHdr>
+   <mets:dmdSec ID="DMDLOG_0000">
+      <mets:mdWrap MDTYPE="MODS">
+         <mets:xmlData>
+            <mods:mods>
+               <mods:extension>
+                  <goobi:goobi>
+                     <goobi:metadata name="TitleDocMain">Dissertatio medica inauguralis de infestis viventibus intra viventia</goobi:metadata>
+                     <goobi:metadata name="TitleDocMainShort">Dissertatio medica inauguralis de infestis viventibus intra viventia</goobi:metadata>
+                     <goobi:metadata name="TSL_ATS">dissmeind</goobi:metadata>
+                     <goobi:metadata name="CatalogIDSource">618299084</goobi:metadata>
+                     <goobi:metadata name="CatalogIDDigital">618299084</goobi:metadata>
+                     <goobi:metadata name="_dateDigitization">2020</goobi:metadata>
+                     <goobi:metadata name="_electronicEdition">[Electronic ed.]</goobi:metadata>
+                     <goobi:metadata name="_electronicPublisher">Goobi</goobi:metadata>
+                     <goobi:metadata name="_placeOfElectronicOrigin">Göttingen</goobi:metadata>
+                     <goobi:metadata name="_digitalOrigin">reformatted digital</goobi:metadata>
+                     <goobi:metadata name="singleDigCollection">Biology</goobi:metadata>
+                  </goobi:goobi>
+               </mods:extension>
+            </mods:mods>
+         </mets:xmlData>
+      </mets:mdWrap>
+   </mets:dmdSec>
+   <mets:dmdSec ID="DMDPHYS_0000">
+      <mets:mdWrap MDTYPE="MODS">
+         <mets:xmlData>
+            <mods:mods>
+               <mods:extension>
+                  <goobi:goobi>
+                     <goobi:metadata name="pathimagefiles">file:///opt/digiverso/goobi/metadata/1/images/dissmeind_618299084_master</goobi:metadata>
+                  </goobi:goobi>
+               </mods:extension>
+            </mods:mods>
+         </mets:xmlData>
+      </mets:mdWrap>
+   </mets:dmdSec>
+   <mets:structMap TYPE="LOGICAL">
+      <mets:div DMDID="DMDLOG_0000" ID="LOG_0000" TYPE="Monograph"/>
+   </mets:structMap>
+   <mets:structMap TYPE="PHYSICAL">
+      <mets:div DMDID="DMDPHYS_0000" ID="PHYS_0000" TYPE="BoundBook"/>
+   </mets:structMap>
+</mets:mets>
