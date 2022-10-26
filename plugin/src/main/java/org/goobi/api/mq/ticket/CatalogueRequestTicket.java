@@ -87,15 +87,6 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
             log.debug("CatloguePollerPlugin: No PullDiff object was created for the process with id {}!", processId);
             return PluginReturnValue.ERROR;
         }
-
-        //        Path tempFolder = Paths.get(ConfigurationHelper.getInstance().getTemporaryFolder());
-        //        long lastRunMillis = System.currentTimeMillis();
-        //        XlsWriter writer = new XlsWriter(tempFolder);
-        //        Path report = writer.writeWorkbook(differences, lastRunMillis, ruleName, testRun);
-        //        if (report != null) {
-        //            xlsxReports.put(ruleName, report);
-        //        }
-
     }
 
     @Override
