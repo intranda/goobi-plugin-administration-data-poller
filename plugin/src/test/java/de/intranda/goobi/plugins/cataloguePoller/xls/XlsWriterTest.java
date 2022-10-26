@@ -74,7 +74,7 @@ public class XlsWriterTest {
         pd.setXlsData(xlsDataList);
         diff.add(pd);
 
-        Path result = xlsWriter.writeWorkbook(diff, date, ruleName, true);
+        Path result = xlsWriter.writeWorkbook(diff, date, ruleName, true, false);
 
         //Tests
         Assert.assertEquals("Wrong composition of file name!", fileName, result.getFileName().toString());

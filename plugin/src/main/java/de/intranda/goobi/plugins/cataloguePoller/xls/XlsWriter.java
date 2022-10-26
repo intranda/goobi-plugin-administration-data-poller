@@ -58,7 +58,8 @@ public class XlsWriter {
             for (Path xmlFile : differencesXML) {
                 differences.add(PullDiff.unmarshalPullDiff(xmlFile));
             }
-            Path xlsFile = writeWorkbook(differences, info.getLastRunMillis(), info.getRuleName(), info.isTestRun());
+            boolean unfinished = differences.size() < info.getProcessCount();
+            Path xlsFile = writeWorkbook(differences, info.getLastRunMillis(), info.getRuleName(), info.isTestRun(), unfinished);
             if (xlsFile != null && differences.size() == info.getProcessCount()) {
                 if (!StorageProvider.getInstance().deleteDir(XmlFolder)) {
                     log.debug("CatloguePollerPlugin: Couldn't delete the folder: " + XmlFolder);
@@ -80,7 +81,7 @@ public class XlsWriter {
      * @param was this run a testRun run or not
      * @return Path that points to the generated xlsx-File
      */
-    public Path writeWorkbook(List<PullDiff> differences, long lastRunMillis, String ruleName, boolean testRun) {
+    public Path writeWorkbook(List<PullDiff> differences, long lastRunMillis, String ruleName, boolean testRun, boolean unfinished) {
         Workbook wb = new XSSFWorkbook();
         Sheet sheet = wb.createSheet("Report Catalogue Poller");
         String timeStamp = "";
@@ -92,7 +93,7 @@ public class XlsWriter {
         //create header
 
         Row header = sheet.createRow(rowCounter++);
-        writeCellsToRow(header, ruleName, (testRun) ? "test run" : "report");
+        writeCellsToRow(header, ruleName, (testRun) ? "test run" : "report", (unfinished) ? "interim result" : "");
         Cell cell = header.createCell(header.getLastCellNum());
         CellStyle cellStyle = wb.createCellStyle();
         cellStyle.setDataFormat((short) 14);
