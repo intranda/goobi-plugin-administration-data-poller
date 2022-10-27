@@ -35,7 +35,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
+import de.intranda.goobi.plugins.cataloguePoller.PullDiff;
 
 public class XlsWriterTest {
     private XlsWriter xlsWriter;
@@ -74,7 +74,7 @@ public class XlsWriterTest {
         pd.setXlsData(xlsDataList);
         diff.add(pd);
 
-        Path result = xlsWriter.writeWorkbook(diff, date, ruleName, true);
+        Path result = xlsWriter.writeWorkbook(diff, date, ruleName, true, false);
 
         //Tests
         Assert.assertEquals("Wrong composition of file name!", fileName, result.getFileName().toString());

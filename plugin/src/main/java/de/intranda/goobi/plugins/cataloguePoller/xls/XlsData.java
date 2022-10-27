@@ -20,11 +20,13 @@ package de.intranda.goobi.plugins.cataloguePoller.xls;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class XlsData {
     private String field;
     private String oldValues;
     private String newValues;
-} 
+}

@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -34,7 +35,8 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct.PullDiff;
+import de.intranda.goobi.plugins.cataloguePoller.PullDiff;
+import de.sub.goobi.helper.StorageProvider;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
@@ -47,6 +49,29 @@ public class XlsWriter {
         this.path = targetFolder;
     }
 
+    public FolderInfo writeWorkbook(Path XmlFolder) {
+        Path reportInfoPath = FileManager.getReportInfoFile(XmlFolder);
+        ReportInfo info = ReportInfo.unmarshalReportInfo(reportInfoPath);
+        List<Path> differencesXML = FileManager.getXmlFiles(XmlFolder);
+        List<PullDiff> differences = new ArrayList<>();
+        if (info != null) {
+            for (Path xmlFile : differencesXML) {
+                differences.add(PullDiff.unmarshalPullDiff(xmlFile));
+            }
+            boolean unfinished = differences.size() < info.getProcessCount();
+            Path xlsFile = writeWorkbook(differences, info.getLastRunMillis(), info.getRuleName(), info.isTestRun(), unfinished);
+            if (xlsFile != null && differences.size() == info.getProcessCount()) {
+                if (!StorageProvider.getInstance().deleteDir(XmlFolder)) {
+                    log.debug("CatloguePollerPlugin: Couldn't delete the folder: " + XmlFolder);
+                }
+            }
+            return new FolderInfo(xlsFile, differences, info);
+        } else {
+            log.error("Couldn't find reportInfo.xml file in {}! No xlsx-Report was created!", XmlFolder.toString());
+            return null;
+        }
+    }
+
     /**
      * Creates an xlsx File with the Differences between the old docstruct and the new docstruct
      *
@@ -56,7 +81,7 @@ public class XlsWriter {
      * @param was this run a testRun run or not
      * @return Path that points to the generated xlsx-File
      */
-    public Path writeWorkbook(List<PullDiff> differences, long lastRunMillis, String ruleName, boolean testRun) {
+    public Path writeWorkbook(List<PullDiff> differences, long lastRunMillis, String ruleName, boolean testRun, boolean unfinished) {
         Workbook wb = new XSSFWorkbook();
         Sheet sheet = wb.createSheet("Report Catalogue Poller");
         String timeStamp = "";
@@ -68,7 +93,7 @@ public class XlsWriter {
         //create header
 
         Row header = sheet.createRow(rowCounter++);
-        writeCellsToRow(header, ruleName, (testRun) ? "test run" : "report");
+        writeCellsToRow(header, ruleName, (testRun) ? "test run" : "report", (unfinished) ? "interim result" : "");
         Cell cell = header.createCell(header.getLastCellNum());
         CellStyle cellStyle = wb.createCellStyle();
         cellStyle.setDataFormat((short) 14);
@@ -85,9 +110,9 @@ public class XlsWriter {
             }
         }
 
-        String fileName = ruleName.toLowerCase().trim().replace(" ", "_");
-        fileName += "-" + dateFormatter.format(calendar.getTime()) + ".xlsx";
-        Path targetPath = this.path.resolve(fileName);
+        StringBuilder fileName = new StringBuilder().append(ruleName.toLowerCase().trim().replace(" ", "_"));
+        fileName.append("-").append(dateFormatter.format(calendar.getTime())).append(".xlsx");
+        Path targetPath = this.path.resolve(fileName.toString());
 
         //write file to file system
         try (OutputStream outputFile = new FileOutputStream(targetPath.toString())) {

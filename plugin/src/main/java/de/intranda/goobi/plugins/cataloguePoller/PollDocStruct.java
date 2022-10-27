@@ -417,17 +417,6 @@ public class PollDocStruct {
         private String authorityValue;
     }
 
-    /**
-     * embedded class for the differences
-     */
-    @Data
-    public static class PullDiff {
-        private Integer processId;
-        private String processTitle;
-        private List<String> messages = new ArrayList<>();
-        private List<XlsData> xlsData = new ArrayList<>();
-    }
-
     @Data
     public class PullGroup {
         private String groupType;
