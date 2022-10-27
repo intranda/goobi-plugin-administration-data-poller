@@ -172,7 +172,6 @@ public class CataloguePoll {
         boolean exportUpdatedRecords = rule.getBoolean("exportUpdatedRecords", false);
         String configListType = rule.getString("fieldList/@mode", null);
         boolean isBlockList = false;
-
         List<String> fieldFilterList = Arrays.asList(rule.getStringArray("fieldList/field"));
 
         if (!fieldFilterList.isEmpty()) {
@@ -202,7 +201,7 @@ public class CataloguePoll {
                 return;
             }
             // if no list is specified run as if a black list with no Elements was given
-            if ("blacklist".equals(configListType)) {
+            if (configListType == null || "blacklist".equals(configListType)) {
                 isBlockList = true;
             }
         }
