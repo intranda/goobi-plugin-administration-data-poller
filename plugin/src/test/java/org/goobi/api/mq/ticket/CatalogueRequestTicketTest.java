@@ -1,4 +1,4 @@
-package de.intranda.goobi.plugins.cataloguePoller;
+package org.goobi.api.mq.ticket;
 
 import static org.junit.Assert.assertEquals;
 
@@ -47,7 +47,7 @@ import ugh.fileformats.opac.PicaPlus;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({ "jdk.internal.reflect.*", "javax.management.*" })
 @PrepareForTest({ ConfigPlugins.class, ConfigOpac.class, Helper.class, PluginLoader.class, MetadataManager.class })
-public class CataloguePollTest {
+public class CatalogueRequestTicketTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
     public static DigitalDocument document;
@@ -73,7 +73,7 @@ public class CataloguePollTest {
         String log4jFile = resourcesFolder + "log4j2.xml"; // for junit tests in eclipse
         System.setProperty("log4j.configurationFile", log4jFile);
 
-        Path template = Paths.get(CataloguePollTest.class.getClassLoader().getResource(".").getFile());
+        Path template = Paths.get(CatalogueRequestTicketTest.class.getClassLoader().getResource(".").getFile());
         defaultGoobiConfig = Paths.get(template.getParent().getParent().toString() + "/src/test/resources/config/goobi_config.properties"); // for junit tests in eclipse
         if (!Files.exists(defaultGoobiConfig)) {
             defaultGoobiConfig = Paths.get("target/test-classes/config/goobi_config.properties"); // to run mvn test from cli or in jenkins
