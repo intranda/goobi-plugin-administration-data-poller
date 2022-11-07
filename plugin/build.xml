@@ -1,9 +1,9 @@
-<project name="goobi-plugin-administration-catalogue-poller" default="devbuild">
+<project name="goobi-plugin-administration-data-poller" default="devbuild">
 	<target name="devbuild">
 		<exec executable="mvn">
 			<arg value="package"/>
 		</exec>
-		<copy file="module-gui/target/plugin_intranda_administration_catalogue-poller-GUI.jar" todir="/opt/digiverso/goobi/plugins/GUI/"/>
-		<copy file="module-main/target/plugin_intranda_administration_catalogue-poller.jar" todir="/opt/digiverso/goobi/plugins/administration/"/>
+		<copy file="module-gui/target/plugin_intranda_administration_data-poller-GUI.jar" todir="/opt/digiverso/goobi/plugins/GUI/"/>
+		<copy file="module-main/target/plugin_intranda_administration_data-poller.jar" todir="/opt/digiverso/goobi/plugins/administration/"/>
 	</target>
 </project>

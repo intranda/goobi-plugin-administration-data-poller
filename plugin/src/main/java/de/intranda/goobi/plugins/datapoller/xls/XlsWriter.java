@@ -16,7 +16,7 @@
  * Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  */
-package de.intranda.goobi.plugins.cataloguePoller.xls;
+package de.intranda.goobi.plugins.datapoller.xls;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -35,7 +35,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import de.intranda.goobi.plugins.cataloguePoller.PullDiff;
+import de.intranda.goobi.plugins.datapoller.PullDiff;
 import de.sub.goobi.helper.StorageProvider;
 import lombok.extern.log4j.Log4j2;
 
@@ -62,7 +62,7 @@ public class XlsWriter {
             Path xlsFile = writeWorkbook(differences, info.getLastRunMillis(), info.getRuleName(), info.isTestRun(), unfinished);
             if (xlsFile != null && differences.size() == info.getProcessCount()) {
                 if (!StorageProvider.getInstance().deleteDir(XmlFolder)) {
-                    log.debug("CatloguePollerPlugin: Couldn't delete the folder: " + XmlFolder);
+                    log.debug("DataPollerPlugin: Couldn't delete the folder: " + XmlFolder);
                 }
             }
             return new FolderInfo(xlsFile, differences, info);
@@ -118,13 +118,13 @@ public class XlsWriter {
         try (OutputStream outputFile = new FileOutputStream(targetPath.toString())) {
             wb.write(outputFile);
         } catch (IOException e) {
-            log.error("CatloguePollerPlugin: Error writing File to Disk! No xlsx-report was created!", e);
+            log.error("DataPollerPlugin: Error writing File to Disk! No xlsx-report was created!", e);
             return null;
         } finally {
             try {
                 wb.close();
             } catch (IOException e) {
-                log.error("CatloguePollerPlugin: Error closing XSSF workbook!", e);
+                log.error("DataPollerPlugin: Error closing XSSF workbook!", e);
             }
         }
         return targetPath;

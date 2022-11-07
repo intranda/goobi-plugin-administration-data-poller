@@ -16,7 +16,7 @@
  * Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  */
-package de.intranda.goobi.plugins.cataloguePoller;
+package de.intranda.goobi.plugins.datapoller;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -45,9 +45,9 @@ import org.goobi.production.cli.helper.StringPair;
 import org.goobi.production.flow.statistics.hibernate.FilterHelper;
 import org.omnifaces.util.Faces;
 
-import de.intranda.goobi.plugins.cataloguePoller.xls.FileManager;
-import de.intranda.goobi.plugins.cataloguePoller.xls.FolderInfo;
-import de.intranda.goobi.plugins.cataloguePoller.xls.ReportInfo;
+import de.intranda.goobi.plugins.datapoller.xls.FileManager;
+import de.intranda.goobi.plugins.datapoller.xls.FolderInfo;
+import de.intranda.goobi.plugins.datapoller.xls.ReportInfo;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.helper.Helper;
@@ -57,7 +57,7 @@ import lombok.extern.log4j.Log4j2;
 
 @Data
 @Log4j2
-public class CataloguePoll {
+public class DataPoll {
     private XMLConfiguration config;
     private List<PullDiff> differences;
     private boolean ticketStateTestRun;
@@ -69,11 +69,12 @@ public class CataloguePoll {
     private boolean queueIsUp = false;
     private static final DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
-    public CataloguePoll() {
+    public DataPoll() {
 
-        config = ConfigPlugins.getPluginConfig("intranda_administration_catalogue_poller");
+        config = ConfigPlugins.getPluginConfig("intranda_administration_data_poller");
         config.setExpressionEngine(new XPathExpressionEngine());
         MessageQueueBean queueBean = Helper.getBeanByClass(MessageQueueBean.class);
+        //this should be moved
         if (queueBean.isMessageBrokerStart()) {
             this.queueIsUp = true;
             Map<String, Integer> activeTicketType = queueBean.getSlowQueueContent();
@@ -190,14 +191,14 @@ public class CataloguePoll {
                     break;
                 default:
                     Helper.setFehlerMeldung("plugin_admin_cataloguePoller_configErrorModeInvalid");
-                    log.error("CatloguePollerPlugin: The value of the attribute mode: " + configListType
+                    log.error("DataPollerPlugin: The value of the attribute mode: " + configListType
                             + " is invalid! Pleas update the configuration file!");
                     return;
             }
         } else {
             if ("whitelist".equals(configListType)) {
                 Helper.setFehlerMeldung("plugin_admin_cataloguePoller_configErrorEmptyWhiteList");
-                log.error("CatloguePollerPlugin: The filterlist is a whitelist but has no elements!");
+                log.error("DataPollerPlugin: The filterlist is a whitelist but has no elements!");
                 return;
             }
             // if no list is specified run as if a black list with no Elements was given

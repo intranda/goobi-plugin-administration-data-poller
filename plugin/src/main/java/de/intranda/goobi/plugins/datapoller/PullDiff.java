@@ -1,4 +1,4 @@
-package de.intranda.goobi.plugins.cataloguePoller;
+package de.intranda.goobi.plugins.datapoller;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +17,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import de.intranda.goobi.plugins.cataloguePoller.xls.XlsData;
+import de.intranda.goobi.plugins.datapoller.xls.XlsData;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.StorageProviderInterface;
 import lombok.Data;
@@ -63,9 +63,9 @@ public class PullDiff {
             Path fileOutputPath = outputPath.resolve(fileName.toString());
             jaxbMarshaller.marshal(diff, new File(fileOutputPath.toString()));
         } catch (JAXBException ex) {
-            log.error("CatloguePollerPlugin: Couldn't marshal Object to xml!", ex);
+            log.error("DataPollerPlugin: Couldn't marshal Object to xml!", ex);
         } catch (IOException ex) {
-            log.error("CatloguePollerPlugin: Couldn't write xml-File into folder: " + outputPath.toString());
+            log.error("DataPollerPlugin: Couldn't write xml-File into folder: " + outputPath.toString());
         }
     }
 
@@ -76,7 +76,7 @@ public class PullDiff {
             Unmarshaller jaxbUnMarshaller = jaxbContext.createUnmarshaller();
             diff = (PullDiff) jaxbUnMarshaller.unmarshal(PullDiffXml.toFile());
         } catch (JAXBException ex) {
-            log.error("CatloguePollerPlugin: Couldn't unmarshal Object from xml: " + PullDiffXml.toString(), ex);
+            log.error("DataPollerPlugin: Couldn't unmarshal Object from xml: " + PullDiffXml.toString(), ex);
             return null;
         }
         return diff;

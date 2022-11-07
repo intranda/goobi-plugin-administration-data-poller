@@ -16,7 +16,7 @@
  * Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  */
-package de.intranda.goobi.plugins.cataloguePoller.xls;
+package de.intranda.goobi.plugins.datapoller.xls;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import de.intranda.goobi.plugins.cataloguePoller.ConfigInfo;
+import de.intranda.goobi.plugins.datapoller.ConfigInfo;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.StorageProviderInterface;
 import lombok.extern.log4j.Log4j2;
@@ -63,7 +63,7 @@ public class FileManager {
                 // delete the rest
                 for (Path xmlFolder : xmlFolders) {
                     if (!SPI.deleteDir(xmlFolder)) {
-                        log.debug("CatloguePollerPlugin: Couldn't delete the folder: " + xmlFolder);
+                        log.debug("DataPollerPlugin: Couldn't delete the folder: " + xmlFolder);
                     }
                 }
             } else {
@@ -78,7 +78,7 @@ public class FileManager {
                         try {
                             SPI.deleteFile(xlsFile);
                         } catch (IOException e) {
-                            log.error("CatloguePollerPlugin: Couldn't delete the file: " + xlsFile, e);
+                            log.error("DataPollerPlugin: Couldn't delete the file: " + xlsFile, e);
                         }
                     }
                 }
@@ -103,7 +103,7 @@ public class FileManager {
         try {
             SPI.createDirectories(xmlFolder);
         } catch (IOException ex) {
-            log.error("CatloguePollerPlugin: Couldn't create the folder: " + xmlFolder.toString(), ex);
+            log.error("DataPollerPlugin: Couldn't create the folder: " + xmlFolder.toString(), ex);
         }
         return xmlFolder;
     }

@@ -18,8 +18,8 @@ import org.goobi.production.plugin.PluginLoader;
 import org.goobi.production.plugin.interfaces.IExportPlugin;
 import org.goobi.production.plugin.interfaces.IOpacPlugin;
 
-import de.intranda.goobi.plugins.cataloguePoller.PollDocStruct;
-import de.intranda.goobi.plugins.cataloguePoller.PullDiff;
+import de.intranda.goobi.plugins.datapoller.PollDocStruct;
+import de.intranda.goobi.plugins.datapoller.PullDiff;
 import de.sub.goobi.export.dms.ExportDms;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.VariableReplacer;
@@ -84,7 +84,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
             PullDiff.marshalPullDiff(diff, xmlTempFolder, lastRunMillis);
             return PluginReturnValue.FINISH;
         } else {
-            log.debug("CatloguePollerPlugin: No PullDiff object was created for the process with id {}!", processId);
+            log.debug("DataPollerPlugin: No PullDiff object was created for the process with id {}!", processId);
             return PluginReturnValue.ERROR;
         }
     }

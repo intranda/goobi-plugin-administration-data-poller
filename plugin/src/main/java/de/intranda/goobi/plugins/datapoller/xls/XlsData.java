@@ -16,26 +16,17 @@
  * Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  */
-package de.intranda.goobi.plugins.cataloguePoller;
+package de.intranda.goobi.plugins.datapoller.xls;
 
-import java.util.List;
-
-import org.goobi.production.cli.helper.StringPair;
-
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class ConfigInfo {
-    private String title;
-    private String filter;
-    private String catalogue;
-    private List<StringPair> searchFields;
-    private boolean mergeRecords;
-    private String filterList;
-    private String fieldListMode;
-    private boolean analyseSubElements;
-    private String startTime;
-    private String delay;
-    private boolean exportUpdatedRecords;
-    private String lastRun;
+@AllArgsConstructor
+@NoArgsConstructor
+public class XlsData {
+    private String field;
+    private String oldValues;
+    private String newValues;
 }

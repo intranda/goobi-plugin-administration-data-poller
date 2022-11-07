@@ -16,7 +16,7 @@
  * Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  */
-package de.intranda.goobi.plugins.cataloguePoller;
+package de.intranda.goobi.plugins.datapoller;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,6 +29,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import de.intranda.goobi.plugins.datapoller.PollDocStruct;
+import de.intranda.goobi.plugins.datapoller.PullDiff;
 import ugh.dl.DigitalDocument;
 import ugh.dl.DocStruct;
 import ugh.dl.DocStructType;

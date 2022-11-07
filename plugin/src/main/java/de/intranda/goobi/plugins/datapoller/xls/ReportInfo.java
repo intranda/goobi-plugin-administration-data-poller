@@ -1,4 +1,4 @@
-package de.intranda.goobi.plugins.cataloguePoller.xls;
+package de.intranda.goobi.plugins.datapoller.xls;
 
 import java.io.File;
 import java.io.IOException;

@@ -16,14 +16,14 @@
  * Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  */
-package de.intranda.goobi.plugins.cataloguePoller;
+package de.intranda.goobi.plugins.datapoller;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import de.intranda.goobi.plugins.cataloguePoller.xls.XlsData;
+import de.intranda.goobi.plugins.datapoller.xls.XlsData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;

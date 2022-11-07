@@ -22,7 +22,7 @@ import org.goobi.production.enums.PluginType;
 import org.goobi.production.plugin.interfaces.IAdministrationPlugin;
 import org.goobi.production.plugin.interfaces.IPlugin;
 
-import de.intranda.goobi.plugins.cataloguePoller.CataloguePoll;
+import de.intranda.goobi.plugins.datapoller.DataPoll;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
@@ -30,17 +30,17 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 @PluginImplementation
 @Data
 @Log4j2
-public class CataloguePollerPlugin implements IAdministrationPlugin, IPlugin {
+public class DataPollerPlugin implements IAdministrationPlugin, IPlugin {
 
-    private static final String PLUGIN_NAME = "intranda_administration_catalogue_poller";
-    private static final String GUI = "/uii/administration_cataloguePoller.xhtml";
-    private CataloguePoll cp;
+    private static final String PLUGIN_NAME = "intranda_administration_data_poller";
+    private static final String GUI = "/uii/administration_dataPoller.xhtml";
+    private DataPoll cp;
 
     /**
      * Constructor for parameter initialisation from config file
      */
-    public CataloguePollerPlugin() {
-        cp = new CataloguePoll();
+    public DataPollerPlugin() {
+        cp = new DataPoll();
     }
 
     @Override

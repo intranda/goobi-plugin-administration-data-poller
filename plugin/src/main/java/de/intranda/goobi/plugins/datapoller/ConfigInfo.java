@@ -16,28 +16,26 @@
  * Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  */
-package de.intranda.goobi.plugins.cataloguePoller;
+package de.intranda.goobi.plugins.datapoller;
 
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
+import java.util.List;
 
-import lombok.extern.log4j.Log4j2;
+import org.goobi.production.cli.helper.StringPair;
 
-@Log4j2
-public class QuartzJob implements Job {
+import lombok.Data;
 
-    // This class is part of the GUI package, if access to other plugin jar is
-    // needed, it must be initialized first
-    // For each call a new instance is created, class gets destroyed after
-    // execute() is finished
-
-    @Override
-    public void execute(JobExecutionContext context) {
-
-        log.debug("Execute job for rule: " + context.getJobDetail().getName() + " - " + context.getRefireCount());
-        String ruleName = context.getJobDetail().getJobDataMap().getString("rule");
-        CataloguePoll cp = new CataloguePoll();
-        cp.execute(ruleName);
-    }
-
+@Data
+public class ConfigInfo {
+    private String title;
+    private String filter;
+    private String catalogue;
+    private List<StringPair> searchFields;
+    private boolean mergeRecords;
+    private String filterList;
+    private String fieldListMode;
+    private boolean analyseSubElements;
+    private String startTime;
+    private String delay;
+    private boolean exportUpdatedRecords;
+    private String lastRun;
 }

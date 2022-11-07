@@ -1,16 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.intranda.goobi.plugins.administration</groupId>
-  <artifactId>catalogue-poller-main</artifactId>
+  <artifactId>data-poller-main</artifactId>
   <version>1.0.0</version>
   <properties>
-    <jar.name>plugin_intranda_administration_catalogue-poller</jar.name>
+    <jar.name>plugin_intranda_administration_data-poller</jar.name>
     <dest.folder>/opt/digiverso/goobi/plugins/administration/</dest.folder>
     <maven.compiler.release>11</maven.compiler.release>
   </properties>
   <parent>
     <groupId>de.intranda.goobi.plugins.administration</groupId>
-    <artifactId>catalogue-poller</artifactId>
+    <artifactId>data-poller</artifactId>
     <version>1.0.0</version>
   </parent>
   <repositories>
