@@ -38,4 +38,10 @@ public class ConfigInfo {
     private String delay;
     private boolean exportUpdatedRecords;
     private String lastRun;
+
+    private String path;
+    private String ruleType;
+    private boolean fileHandlingEnabled;
+    private String fileHandlingMode;
+    private String fileHandlingDestination;
 }

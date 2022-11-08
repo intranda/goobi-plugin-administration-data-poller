@@ -37,6 +37,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
+import org.apache.commons.lang.StringUtils;
 import org.goobi.api.mq.QueueType;
 import org.goobi.api.mq.TaskTicket;
 import org.goobi.api.mq.TicketGenerator;
@@ -51,6 +52,7 @@ import de.intranda.goobi.plugins.datapoller.xls.ReportInfo;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.helper.Helper;
+import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.persistence.managers.ProcessManager;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
@@ -157,9 +159,32 @@ public class DataPoll {
         HierarchicalConfiguration rule = config.configurationAt("rule[@title='" + ruleName + "']");
         // first get all parameters of the rule
         String title = rule.getString("@title");
+        String type = rule.getString("@type");
         String filter = rule.getString("filter");
         String configCatalogue = rule.getString("catalogue");
 
+        String path = "";
+        boolean createMissingProcesses = rule.getBoolean("createMissingProcesses", false);
+        boolean fileHandlingEnabled = false;
+        String fileHandlingMode = "";
+        String fileHandlingDestination = "";
+
+        if ("hotfolder".equals(type)) {
+            path = rule.getString("path", "");
+            if (!StorageProvider.getInstance().isFileExists(Paths.get(path))) {
+                Helper.setFehlerMeldung("plugin_admin_dataPoller_configErrorHotfolderMissing");
+                log.error("The hotfolder {} does not exist!", path);
+
+                return;
+            }
+            fileHandlingEnabled = rule.getBoolean("fileHandling/@enabled", false);
+            fileHandlingMode = rule.getString("fileHandling/@mode", "copy");
+            fileHandlingDestination = rule.getString("fileHandling/@destinationFolder", "");
+            if (fileHandlingEnabled && StringUtils.isEmpty(fileHandlingDestination)) {
+                Helper.setFehlerMeldung("plugin_admin_dataPoller_configErrorDestinationMissing");
+                log.error("File handling is enabeld but but no destination was provided!");
+            }
+        }
         List<StringPair> searchfields = new ArrayList<>();
         List<HierarchicalConfiguration> fields = rule.configurationsAt("catalogueField");
         for (HierarchicalConfiguration field : fields) {
@@ -228,8 +253,6 @@ public class DataPoll {
         //create reportInfoXml
         ReportInfo info = new ReportInfo(testRun, ruleName, lastRunMillis, processIds.size());
         ReportInfo.marshalReportInfo(info, xmlTempFolderPath);
-
-        MessageQueueBean queueBean = Helper.getBeanByClass(MessageQueueBean.class);
 
         for (Integer id : processIds) {
             // create a new ticket
@@ -310,8 +333,14 @@ public class DataPoll {
                 String metadataName = field.getString("@fieldValue");
                 searchfields.add(new StringPair(fieldname, metadataName));
             }
-
             ci.setSearchFields(searchfields);
+
+            //FileHandling
+            ci.setRuleType(rule.getString("@type"));
+            ci.setPath(rule.getString("path", ""));
+            ci.setFileHandlingEnabled(rule.getBoolean("fileHandling/@enabled", false));
+            ci.setFileHandlingMode(rule.getString("fileHandling/@mode", "copy"));
+            ci.setFileHandlingDestination(rule.getString("fileHandling/@destinationFolder", ""));
 
             ci.setMergeRecords(rule.getBoolean("mergeRecords"));
             ci.setFieldListMode(rule.getString("fieldList/@mode"));

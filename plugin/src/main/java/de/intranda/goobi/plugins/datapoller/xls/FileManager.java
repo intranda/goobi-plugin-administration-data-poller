@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -46,7 +47,7 @@ public class FileManager {
      * @param configInfos List with ConfigInfo
      * @return latest xlsx-reports in tempfolder
      */
-    public static HashMap<String, FolderInfo> manageTempFiles(Path tempFolder, List<ConfigInfo> configInfos) {
+    public static HashMap<String, FolderInfo> manageTempFiles(Path tempFolder, Collection<ConfigInfo> configInfos) {
         HashMap<String, FolderInfo> reports = new HashMap<>();
         for (ConfigInfo configInfo : configInfos) {
             String ruleName = configInfo.getTitle();
