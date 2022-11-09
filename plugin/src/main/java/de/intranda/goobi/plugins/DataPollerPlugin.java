@@ -53,6 +53,10 @@ public class DataPollerPlugin implements IAdministrationPlugin, IPlugin {
         return PLUGIN_NAME;
     }
 
+    public static String getPluginName() {
+        return PLUGIN_NAME;
+    }
+
     @Override
     public String getGui() {
         return GUI;

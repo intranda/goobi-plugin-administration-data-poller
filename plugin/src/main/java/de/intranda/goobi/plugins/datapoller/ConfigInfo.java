@@ -35,7 +35,7 @@ public class ConfigInfo {
     private String fieldListMode;
     private boolean analyseSubElements;
     private String startTime;
-    private String delay;
+    private int delay;
     private boolean exportUpdatedRecords;
     private String lastRun;
 

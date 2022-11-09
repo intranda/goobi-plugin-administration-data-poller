@@ -19,15 +19,12 @@
 package de.intranda.goobi.plugins.datapoller;
 
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.apache.commons.lang.StringUtils;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
@@ -38,7 +35,6 @@ import org.quartz.Trigger;
 import org.quartz.TriggerUtils;
 import org.quartz.impl.StdSchedulerFactory;
 
-import de.sub.goobi.config.ConfigPlugins;
 import lombok.extern.log4j.Log4j2;
 
 // This class goes to GUI folder because it ends with *QuartzListener.class
@@ -64,21 +60,19 @@ public class QuartzListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent arg0) {
         log.info("Starting 'Catalogue Poller' scheduler");
-
-        XMLConfiguration config = ConfigPlugins.getPluginConfig("intranda_administration_catalogue_poller");
-        config.setExpressionEngine(new XPathExpressionEngine());
+        ConfigHelper cHelper = new ConfigHelper();
 
         try {
             // get default scheduler
             SchedulerFactory schedFact = new StdSchedulerFactory();
             Scheduler sched = schedFact.getScheduler();
-            List<HierarchicalConfiguration> rules = config.configurationsAt("rule");
+            HashMap<String, ConfigInfo> rules = cHelper.readConfigInfo();
 
-            for (HierarchicalConfiguration rule : rules) {
+            for (ConfigInfo rule : rules.values()) {
 
-                String ruleName = rule.getString("@title");
+                String ruleName = rule.getTitle();
                 // get start time, set Calendar object  / default 22:00:00
-                String configuredStartTime = rule.getString("@startTime");
+                String configuredStartTime = rule.getStartTime();
 
                 if (StringUtils.isBlank(configuredStartTime)) {
                     log.error("No starttime found for rule {}, starting at 22:00:00", ruleName);
@@ -89,7 +83,7 @@ public class QuartzListener implements ServletContextListener {
                 }
 
                 // get delay between trigger / default 24h
-                int delay = rule.getInt("@delay", 24);
+                int delay = rule.getDelay();
 
                 log.info("Definition for rule {} : starting at {}, repeat every {} hour(s).", ruleName, configuredStartTime, delay);
 

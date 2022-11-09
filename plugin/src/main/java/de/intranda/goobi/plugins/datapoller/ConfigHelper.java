@@ -16,6 +16,7 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.goobi.production.cli.helper.StringPair;
 
+import de.intranda.goobi.plugins.DataPollerPlugin;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import lombok.extern.log4j.Log4j2;
@@ -26,11 +27,10 @@ public class ConfigHelper {
     private static final DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
     private String pluginName;
 
-    public ConfigHelper(String pluginName) {
-        config = ConfigPlugins.getPluginConfig(pluginName);
+    public ConfigHelper() {
+        this.pluginName = DataPollerPlugin.getPluginName();
+        config = ConfigPlugins.getPluginConfig(this.pluginName);
         config.setExpressionEngine(new XPathExpressionEngine());
-        //needed in updateLastRun() - method
-        this.pluginName = pluginName;
     }
 
     public HashMap<String, ConfigInfo> readConfigInfo() {
@@ -70,7 +70,7 @@ public class ConfigHelper {
             ci.setExportUpdatedRecords(rule.getBoolean("exportUpdatedRecords", false));
             ci.setAnalyseSubElements(rule.getBoolean("analyseSubElements"));
             ci.setStartTime(rule.getString("@startTime"));
-            ci.setDelay(rule.getString("@delay"));
+            ci.setDelay(rule.getInt("@delay", 24));
 
             ci.setLastRun(formatter.format(calendar.getTime()));
 

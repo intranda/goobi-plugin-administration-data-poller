@@ -66,7 +66,7 @@ public class DataPoll {
 
     public DataPoll() {
 
-        cHelper = new ConfigHelper("intranda_administration_data_poller");
+        cHelper = new ConfigHelper();
 
         //this should be moved
         MessageQueueBean queueBean = Helper.getBeanByClass(MessageQueueBean.class);
