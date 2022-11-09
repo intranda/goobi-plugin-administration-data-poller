@@ -31,7 +31,7 @@ public class ConfigInfo {
     private String catalogue;
     private List<StringPair> searchFields;
     private boolean mergeRecords;
-    private String filterList;
+    private List<String> fieldFilterList;
     private String fieldListMode;
     private boolean analyseSubElements;
     private String startTime;
@@ -44,4 +44,9 @@ public class ConfigInfo {
     private boolean fileHandlingEnabled;
     private String fileHandlingMode;
     private String fileHandlingDestination;
+    private boolean createMissingProcesses;
+
+    public String getFilterListString() {
+        return String.valueOf(fieldFilterList);
+    }
 }
