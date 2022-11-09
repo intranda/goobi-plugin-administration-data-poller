@@ -1,0 +1,93 @@
+package de.intranda.goobi.plugins.datapoller;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
+import org.goobi.production.cli.helper.StringPair;
+
+import de.sub.goobi.config.ConfigPlugins;
+import de.sub.goobi.config.ConfigurationHelper;
+import lombok.extern.log4j.Log4j2;
+
+@Log4j2
+public class ConfigHelper {
+    private XMLConfiguration config;
+    private static final DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+    private String pluginName;
+
+    public ConfigHelper(String pluginName) {
+        config = ConfigPlugins.getPluginConfig(pluginName);
+        config.setExpressionEngine(new XPathExpressionEngine());
+        //needed in updateLastRun() - method
+        this.pluginName = pluginName;
+    }
+
+    public HashMap<String, ConfigInfo> readConfigInfo() {
+        HashMap<String, ConfigInfo> map = new HashMap<>();
+        // run through all rules
+        List<HierarchicalConfiguration> rulelist = config.configurationsAt("rule");
+        for (HierarchicalConfiguration rule : rulelist) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(rule.getLong("lastRun", 0));
+
+            ConfigInfo ci = new ConfigInfo();
+            ci.setTitle(rule.getString("@title"));
+            ci.setFilter(rule.getString("filter"));
+            ci.setCatalogue(rule.getString("catalogue"));
+
+            List<StringPair> searchfields = new ArrayList<>();
+            List<HierarchicalConfiguration> fields = rule.configurationsAt("catalogueField");
+            for (HierarchicalConfiguration field : fields) {
+                String fieldname = field.getString("@fieldName");
+                String metadataName = field.getString("@fieldValue");
+                searchfields.add(new StringPair(fieldname, metadataName));
+            }
+            ci.setSearchFields(searchfields);
+
+            //FileHandling
+            ci.setRuleType(rule.getString("@type"));
+            ci.setPath(rule.getString("path", ""));
+            ci.setFileHandlingEnabled(rule.getBoolean("fileHandling/@enabled", false));
+            ci.setFileHandlingMode(rule.getString("fileHandling/@mode", "copy"));
+            ci.setFileHandlingDestination(rule.getString("fileHandling/@destinationFolder", ""));
+
+            ci.setCreateMissingProcesses(rule.getBoolean("createMissingProcesses", false));
+            ci.setMergeRecords(rule.getBoolean("mergeRecords"));
+            ci.setFieldListMode(rule.getString("fieldList/@mode", null));
+            ci.setFieldFilterList(Arrays.asList(rule.getStringArray("fieldList/field")));
+
+            ci.setExportUpdatedRecords(rule.getBoolean("exportUpdatedRecords", false));
+            ci.setAnalyseSubElements(rule.getBoolean("analyseSubElements"));
+            ci.setStartTime(rule.getString("@startTime"));
+            ci.setDelay(rule.getString("@delay"));
+
+            ci.setLastRun(formatter.format(calendar.getTime()));
+
+            map.put(ci.getTitle(), ci);
+        }
+        return map;
+    }
+
+    public void updateLastRun(String ruleName, long lastRunMillis) {
+        try {
+            HierarchicalConfiguration rule = config.configurationAt("rule[@title='" + ruleName + "']");
+            rule.setProperty("lastRun", lastRunMillis);
+            Path configurationFile = Paths.get(ConfigurationHelper.getInstance().getConfigurationFolder(), "plugin_" + this.pluginName + ".xml");
+            config.save(configurationFile.toString());
+        } catch (ConfigurationException e) {
+            log.error("Error while updating the configuration file", e);
+        }
+
+    }
+}

@@ -21,11 +21,7 @@ package de.intranda.goobi.plugins.datapoller;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,10 +29,8 @@ import java.util.Set;
 
 import javax.jms.JMSException;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.apache.commons.lang.StringUtils;
 import org.goobi.api.mq.QueueType;
 import org.goobi.api.mq.TaskTicket;
@@ -49,7 +43,6 @@ import org.omnifaces.util.Faces;
 import de.intranda.goobi.plugins.datapoller.xls.FileManager;
 import de.intranda.goobi.plugins.datapoller.xls.FolderInfo;
 import de.intranda.goobi.plugins.datapoller.xls.ReportInfo;
-import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.StorageProvider;
@@ -61,22 +54,22 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class DataPoll {
     private XMLConfiguration config;
+    private ConfigHelper cHelper;
     private List<PullDiff> differences;
     private boolean ticketStateTestRun;
     private HashMap<String, Path> xlsxReports = new HashMap<>();
-    private List<ConfigInfo> ci;
+    private HashMap<String, ConfigInfo> ci = new HashMap<>();
     private boolean ticketsActive = false;
     private boolean allowRun = false;
     private boolean ticketStateUnfinished = true;
     private boolean queueIsUp = false;
-    private static final DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
     public DataPoll() {
 
-        config = ConfigPlugins.getPluginConfig("intranda_administration_data_poller");
-        config.setExpressionEngine(new XPathExpressionEngine());
-        MessageQueueBean queueBean = Helper.getBeanByClass(MessageQueueBean.class);
+        cHelper = new ConfigHelper("intranda_administration_data_poller");
+
         //this should be moved
+        MessageQueueBean queueBean = Helper.getBeanByClass(MessageQueueBean.class);
         if (queueBean.isMessageBrokerStart()) {
             this.queueIsUp = true;
             Map<String, Integer> activeTicketType = queueBean.getSlowQueueContent();
@@ -87,8 +80,6 @@ public class DataPoll {
             Helper.setFehlerMeldung("The Message Queue is not activated");
         }
         this.allowRun = this.queueIsUp && !this.ticketsActive;
-
-        //TODO maybe add an ErrorMessage (Helper.setFehlerMeldung)
     }
 
     public void executeAll() {
@@ -121,7 +112,8 @@ public class DataPoll {
 
     public boolean reportExists(String ruleName) {
         if (this.xlsxReports.isEmpty()) {
-            HashMap<String, FolderInfo> infos = FileManager.manageTempFiles(Paths.get(ConfigurationHelper.getInstance().getTemporaryFolder()), ci);
+            HashMap<String, FolderInfo> infos =
+                    FileManager.manageTempFiles(Paths.get(ConfigurationHelper.getInstance().getTemporaryFolder()), ci.values());
             Set<String> keys = infos.keySet();
             for (String key : keys) {
                 FolderInfo info = infos.get(key);
@@ -155,59 +147,38 @@ public class DataPoll {
         }
         log.debug(" Starting to update the METS files fo all processes defined in the rule ");
 
-        // run through all rules
-        HierarchicalConfiguration rule = config.configurationAt("rule[@title='" + ruleName + "']");
         // first get all parameters of the rule
-        String title = rule.getString("@title");
-        String type = rule.getString("@type");
-        String filter = rule.getString("filter");
-        String configCatalogue = rule.getString("catalogue");
+        if (this.ci.isEmpty()) {
+            this.ci = cHelper.readConfigInfo();
+        }
 
-        String path = "";
-        boolean createMissingProcesses = rule.getBoolean("createMissingProcesses", false);
-        boolean fileHandlingEnabled = false;
-        String fileHandlingMode = "";
-        String fileHandlingDestination = "";
+        ConfigInfo info = this.ci.get(ruleName);
+        // run through all rules
 
-        if ("hotfolder".equals(type)) {
-            path = rule.getString("path", "");
-            if (!StorageProvider.getInstance().isFileExists(Paths.get(path))) {
+        if ("hotfolder".equals(info.getRuleType())) {
+            if (!StorageProvider.getInstance().isFileExists(Paths.get(info.getPath()))) {
                 Helper.setFehlerMeldung("plugin_admin_dataPoller_configErrorHotfolderMissing");
-                log.error("The hotfolder {} does not exist!", path);
+                log.error("The hotfolder {} does not exist!", info.getPath());
 
                 return;
             }
-            fileHandlingEnabled = rule.getBoolean("fileHandling/@enabled", false);
-            fileHandlingMode = rule.getString("fileHandling/@mode", "copy");
-            fileHandlingDestination = rule.getString("fileHandling/@destinationFolder", "");
-            if (fileHandlingEnabled && StringUtils.isEmpty(fileHandlingDestination)) {
+
+            if (info.isFileHandlingEnabled() && StringUtils.isEmpty(info.getFileHandlingDestination())) {
                 Helper.setFehlerMeldung("plugin_admin_dataPoller_configErrorDestinationMissing");
                 log.error("File handling is enabeld but but no destination was provided!");
             }
         }
-        List<StringPair> searchfields = new ArrayList<>();
-        List<HierarchicalConfiguration> fields = rule.configurationsAt("catalogueField");
-        for (HierarchicalConfiguration field : fields) {
-            String fieldname = field.getString("@fieldName");
-            String metadataName = field.getString("@fieldValue");
-            searchfields.add(new StringPair(fieldname, metadataName));
-        }
 
-        boolean configMergeRecords = rule.getBoolean("mergeRecords");
-        boolean configAnalyseSubElements = rule.getBoolean("analyseSubElements");
-        boolean exportUpdatedRecords = rule.getBoolean("exportUpdatedRecords", false);
-        String configListType = rule.getString("fieldList/@mode", null);
         boolean isBlockList = false;
-        List<String> fieldFilterList = Arrays.asList(rule.getStringArray("fieldList/field"));
 
-        if (!fieldFilterList.isEmpty()) {
-            if (configListType == null) {
+        if (!info.getFieldFilterList().isEmpty()) {
+            if (info.getFieldListMode() == null) {
                 Helper.setFehlerMeldung("plugin_admin_cataloguePoller_configErrorModeMissing");
                 log.error("The mode Attribut of the fieldList element ist not specified! Pleas update the configuration file!");
                 return;
             }
 
-            switch (configListType) {
+            switch (info.getFieldListMode()) {
                 case "blacklist":
                     isBlockList = true;
                     break;
@@ -216,27 +187,27 @@ public class DataPoll {
                     break;
                 default:
                     Helper.setFehlerMeldung("plugin_admin_cataloguePoller_configErrorModeInvalid");
-                    log.error("DataPollerPlugin: The value of the attribute mode: " + configListType
+                    log.error("DataPollerPlugin: The value of the attribute mode: " + info.getFieldListMode()
                             + " is invalid! Pleas update the configuration file!");
                     return;
             }
         } else {
-            if ("whitelist".equals(configListType)) {
+            if ("whitelist".equals(info.getFieldListMode())) {
                 Helper.setFehlerMeldung("plugin_admin_cataloguePoller_configErrorEmptyWhiteList");
                 log.error("DataPollerPlugin: The filterlist is a whitelist but has no elements!");
                 return;
             }
             // if no list is specified run as if a black list with no Elements was given
-            if (configListType == null || "blacklist".equals(configListType)) {
+            if (info.getFieldListMode() == null || "blacklist".equals(info.getFieldListMode())) {
                 isBlockList = true;
             }
         }
 
-        log.debug("Rule '" + title + "' with filter '" + filter + "'");
+        log.debug("Rule '" + info.getTitle() + "' with filter '" + info.getFilter() + "'");
 
         // now filter the list of all processes that should be affected and
         // fun through it
-        String query = FilterHelper.criteriaBuilder(filter, false, null, null, null, true, false);
+        String query = FilterHelper.criteriaBuilder(info.getFilter(), false, null, null, null, true, false);
 
         List<Integer> processIds = ProcessManager.getIdsForFilter(query);
         long lastRunMillis = System.currentTimeMillis();
@@ -251,8 +222,8 @@ public class DataPoll {
                 .append(processIds.size());
         Path xmlTempFolderPath = FileManager.createXmlFolder(tempFolder, xmlTempFolder.toString());
         //create reportInfoXml
-        ReportInfo info = new ReportInfo(testRun, ruleName, lastRunMillis, processIds.size());
-        ReportInfo.marshalReportInfo(info, xmlTempFolderPath);
+        ReportInfo rinfo = new ReportInfo(testRun, ruleName, lastRunMillis, processIds.size());
+        ReportInfo.marshalReportInfo(rinfo, xmlTempFolderPath);
 
         for (Integer id : processIds) {
             // create a new ticket
@@ -260,17 +231,17 @@ public class DataPoll {
             ticket.setProcessId(id);
 
             // add rule configuration to ticket
-            ticket.getProperties().put("mergeRecords", String.valueOf(configMergeRecords));
-            ticket.getProperties().put("analyseSubElements", String.valueOf(configAnalyseSubElements));
-            ticket.getProperties().put("exportUpdatedRecords", String.valueOf(exportUpdatedRecords));
-            ticket.getProperties().put("catalogueName", configCatalogue);
+            ticket.getProperties().put("mergeRecords", String.valueOf(info.isMergeRecords()));
+            ticket.getProperties().put("analyseSubElements", String.valueOf(info.isAnalyseSubElements()));
+            ticket.getProperties().put("exportUpdatedRecords", String.valueOf(info.isExportUpdatedRecords()));
+            ticket.getProperties().put("catalogueName", info.getCatalogue());
             ticket.getProperties().put("testRun", String.valueOf(testRun));
             ticket.getProperties().put("blockList", String.valueOf(isBlockList));
             ticket.getProperties().put("lastRunMillis", String.valueOf(lastRunMillis));
             ticket.getProperties().put("xmlTempFolder", xmlTempFolderPath.toString());
 
             StringBuilder sb = new StringBuilder();
-            for (StringPair field : searchfields) {
+            for (StringPair field : info.getSearchFields()) {
                 if (sb.length() > 0) {
                     sb.append("|");
                 }
@@ -279,8 +250,9 @@ public class DataPoll {
                 sb.append(field.getTwo());
             }
             ticket.getProperties().put("searchfields", sb.toString());
+
             sb = new StringBuilder();
-            for (String field : fieldFilterList) {
+            for (String field : info.getFieldFilterList()) {
                 if (sb.length() > 0) {
                     sb.append("|");
                 }
@@ -297,14 +269,7 @@ public class DataPoll {
         }
 
         // write last updated time into the configuration file
-        try {
-            rule.setProperty("lastRun", lastRunMillis);
-            Path configurationFile =
-                    Paths.get(ConfigurationHelper.getInstance().getConfigurationFolder(), "plugin_intranda_administration_catalogue_poller.xml");
-            config.save(configurationFile.toString());
-        } catch (ConfigurationException e) {
-            log.error("Error while updating the configuration file", e);
-        }
+        cHelper.updateLastRun(ruleName, lastRunMillis);
     }
 
     /**
@@ -312,51 +277,9 @@ public class DataPoll {
      * 
      * @return
      */
-    public List<ConfigInfo> getConfigInfo() {
-
-        List<ConfigInfo> list = new ArrayList<>();
-        // run through all rules
-        List<HierarchicalConfiguration> rulelist = config.configurationsAt("rule");
-        for (HierarchicalConfiguration rule : rulelist) {
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(rule.getLong("lastRun", 0));
-
-            ConfigInfo ci = new ConfigInfo();
-            ci.setTitle(rule.getString("@title"));
-            ci.setFilter(rule.getString("filter"));
-            ci.setCatalogue(rule.getString("catalogue"));
-
-            List<StringPair> searchfields = new ArrayList<>();
-            List<HierarchicalConfiguration> fields = rule.configurationsAt("catalogueField");
-            for (HierarchicalConfiguration field : fields) {
-                String fieldname = field.getString("@fieldName");
-                String metadataName = field.getString("@fieldValue");
-                searchfields.add(new StringPair(fieldname, metadataName));
-            }
-            ci.setSearchFields(searchfields);
-
-            //FileHandling
-            ci.setRuleType(rule.getString("@type"));
-            ci.setPath(rule.getString("path", ""));
-            ci.setFileHandlingEnabled(rule.getBoolean("fileHandling/@enabled", false));
-            ci.setFileHandlingMode(rule.getString("fileHandling/@mode", "copy"));
-            ci.setFileHandlingDestination(rule.getString("fileHandling/@destinationFolder", ""));
-
-            ci.setMergeRecords(rule.getBoolean("mergeRecords"));
-            ci.setFieldListMode(rule.getString("fieldList/@mode"));
-            ci.setFilterList(String.valueOf(rule.getList("fieldList/field")));
-
-            ci.setExportUpdatedRecords(rule.getBoolean("exportUpdatedRecords"));
-            ci.setAnalyseSubElements(rule.getBoolean("analyseSubElements"));
-            ci.setStartTime(rule.getString("@startTime"));
-            ci.setDelay(rule.getString("@delay"));
-
-            ci.setLastRun(formatter.format(calendar.getTime()));
-
-            list.add(ci);
-        }
-        this.ci = list;
-        return list;
+    public Collection<ConfigInfo> getConfigInfo() {
+        this.ci = cHelper.readConfigInfo();
+        return this.ci.values();
     }
 
 }
