@@ -128,4 +128,10 @@ public class FileManager {
                     && path.getFileName().toString().matches("^" + ruleName.toLowerCase().trim().replace(" ", "_") + "[-\\d]*\\.xlsx$");
         });
     }
+
+    public static List<Path> getHotfolderFiles(String hotfolder, String filter) {
+        return SPI.listFiles(hotfolder, path -> {
+            return !Files.isDirectory(path) && path.getFileName().toString().matches(filter);
+        });
+    }
 }
