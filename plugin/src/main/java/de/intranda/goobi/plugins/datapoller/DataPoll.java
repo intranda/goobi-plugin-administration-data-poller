@@ -225,51 +225,72 @@ public class DataPoll {
         ReportInfo rinfo = new ReportInfo(testRun, ruleName, lastRunMillis, processIds.size());
         ReportInfo.marshalReportInfo(rinfo, xmlTempFolderPath);
 
-        for (Integer id : processIds) {
-            // create a new ticket
-            TaskTicket ticket = TicketGenerator.generateSimpleTicket("CatalogueRequest");
-            ticket.setProcessId(id);
-
-            // add rule configuration to ticket
-            ticket.getProperties().put("mergeRecords", String.valueOf(info.isMergeRecords()));
-            ticket.getProperties().put("analyseSubElements", String.valueOf(info.isAnalyseSubElements()));
-            ticket.getProperties().put("exportUpdatedRecords", String.valueOf(info.isExportUpdatedRecords()));
-            ticket.getProperties().put("catalogueName", info.getCatalogue());
-            ticket.getProperties().put("testRun", String.valueOf(testRun));
-            ticket.getProperties().put("blockList", String.valueOf(isBlockList));
-            ticket.getProperties().put("lastRunMillis", String.valueOf(lastRunMillis));
-            ticket.getProperties().put("xmlTempFolder", xmlTempFolderPath.toString());
-
-            StringBuilder sb = new StringBuilder();
-            for (StringPair field : info.getSearchFields()) {
-                if (sb.length() > 0) {
-                    sb.append("|");
-                }
-                sb.append(field.getOne());
-                sb.append("=");
-                sb.append(field.getTwo());
+        if ("hotfolder".compareToIgnoreCase(info.getRuleType()) == 0) {
+            List<Path> hotfolderFiles = FileManager.getHotfolderFiles(info.getPath(), "*\\.xml");
+            for (Path hotfolderFile : hotfolderFiles) {
+                TaskTicket ticket = TicketGenerator.generateSimpleTicket("CatalogueRequest");
+                ticket.setProcessId(-1);
+                ticket.getProperties().put("hotfolderFile", String.valueOf(hotfolderFile.toString()));
+                ticket.getProperties().put("createMissingProcesses", String.valueOf(info.isCreateMissingProcesses()));
+                ticket.getProperties().put("fileHandlingEnabled", String.valueOf(info.isFileHandlingEnabled()));
+                ticket.getProperties().put("fileHandlingMode", info.getFileHandlingMode());
+                ticket.getProperties().put("destination", info.getFileHandlingDestination());
+                // add rule configuration to ticket and submit it
+                updateAndSubmitTicket(ticket, info, testRun, isBlockList, lastRunMillis, xmlTempFolderPath);
             }
-            ticket.getProperties().put("searchfields", sb.toString());
+        } else {
+            for (Integer id : processIds) {
+                // create a new ticket
+                TaskTicket ticket = TicketGenerator.generateSimpleTicket("CatalogueRequest");
+                ticket.setProcessId(id);
 
-            sb = new StringBuilder();
-            for (String field : info.getFieldFilterList()) {
-                if (sb.length() > 0) {
-                    sb.append("|");
-                }
-                sb.append(field);
-            }
-            ticket.getProperties().put("fieldFilter", sb.toString());
-
-            // submit ticket
-            try {
-                TicketGenerator.submitInternalTicket(ticket, QueueType.SLOW_QUEUE, "CatalogueRequest", id);
-            } catch (JMSException e) {
-                log.error(e);
+                // add rule configuration to ticket and submit it
+                updateAndSubmitTicket(ticket, info, testRun, isBlockList, lastRunMillis, xmlTempFolderPath);
             }
         }
-
         // write last updated time into the configuration file
         cHelper.updateLastRun(ruleName, lastRunMillis);
+    }
+
+    private void updateAndSubmitTicket(TaskTicket ticket, ConfigInfo info, boolean testRun, boolean isBlockList, long lastRunMillis,
+            Path xmlTempFolderPath) {
+        // add rule configuration to ticket
+        ticket.getProperties().put("ruleType", String.valueOf(info.getRuleType()));
+        ticket.getProperties().put("mergeRecords", String.valueOf(info.isMergeRecords()));
+        ticket.getProperties().put("analyseSubElements", String.valueOf(info.isAnalyseSubElements()));
+        ticket.getProperties().put("exportUpdatedRecords", String.valueOf(info.isExportUpdatedRecords()));
+        ticket.getProperties().put("catalogueName", info.getCatalogue());
+        ticket.getProperties().put("testRun", String.valueOf(testRun));
+        ticket.getProperties().put("blockList", String.valueOf(isBlockList));
+        ticket.getProperties().put("lastRunMillis", String.valueOf(lastRunMillis));
+        ticket.getProperties().put("xmlTempFolder", xmlTempFolderPath.toString());
+
+        StringBuilder sb = new StringBuilder();
+        for (StringPair field : info.getSearchFields()) {
+            if (sb.length() > 0) {
+                sb.append("|");
+            }
+            sb.append(field.getOne());
+            sb.append("=");
+            sb.append(field.getTwo());
+        }
+        ticket.getProperties().put("searchfields", sb.toString());
+
+        sb = new StringBuilder();
+        for (String field : info.getFieldFilterList()) {
+            if (sb.length() > 0) {
+                sb.append("|");
+            }
+            sb.append(field);
+        }
+        ticket.getProperties().put("fieldFilter", sb.toString());
+
+        // submit ticket
+        try {
+            TicketGenerator.submitInternalTicket(ticket, QueueType.SLOW_QUEUE, "CatalogueRequest", ticket.getProcessId());
+        } catch (JMSException e) {
+            log.error(e);
+        }
     }
 
     /**

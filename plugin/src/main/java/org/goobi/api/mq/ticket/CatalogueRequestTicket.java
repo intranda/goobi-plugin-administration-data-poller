@@ -2,10 +2,13 @@ package org.goobi.api.mq.ticket;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.goobi.api.mq.TaskTicket;
 import org.goobi.api.mq.TicketHandler;
@@ -21,7 +24,9 @@ import org.goobi.production.plugin.interfaces.IOpacPlugin;
 import de.intranda.goobi.plugins.datapoller.PollDocStruct;
 import de.intranda.goobi.plugins.datapoller.PullDiff;
 import de.sub.goobi.export.dms.ExportDms;
+import de.sub.goobi.helper.BeanHelper;
 import de.sub.goobi.helper.Helper;
+import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.VariableReplacer;
 import de.sub.goobi.persistence.managers.ProcessManager;
 import de.unigoettingen.sub.search.opac.ConfigOpac;
@@ -39,6 +44,9 @@ import ugh.dl.Prefs;
 import ugh.exceptions.DocStructHasNoTypeException;
 import ugh.exceptions.IncompletePersonObjectException;
 import ugh.exceptions.MetadataTypeNotAllowedException;
+import ugh.exceptions.PreferencesException;
+import ugh.exceptions.TypeNotAllowedForParentException;
+import ugh.fileformats.mets.MetsMods;
 
 @Log4j2
 public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> {
@@ -63,6 +71,61 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         String catalogueName = ticket.getProperties().get("catalogueName");
         String searchFieldsAsString = ticket.getProperties().get("searchfields");
         List<StringPair> searchfields = new ArrayList<>();
+
+        if (processId == -1) {
+            Path hotfolderFile = Paths.get(ticket.getProperties().get("hotfolderFile"));
+            String processName = FilenameUtils.removeExtension(hotfolderFile.getFileName().toString());
+            boolean createMissingProcesses = Boolean.parseBoolean("createMissingProcesses");
+            boolean fileHandlingEnabled = Boolean.parseBoolean("fileHandlingEnabled");
+            String fileHandlingMode = ticket.getProperties().get("fileHandlingMode");
+            String destination = ticket.getProperties().get("destination");
+
+            String publicationType = "";
+            String workflowTemplate = "";
+
+            if (StorageProvider.getInstance().isFileExists(hotfolderFile)) {
+                //maybe add a filter for a specfic metadatvalue here later
+                process = ProcessManager.getProcessByExactTitle(processName);
+
+                //create process if it does not exist already... in any other case continue as usual
+                try {
+                    if (process == null && createMissingProcesses) {
+
+                        //TODO add workflow template
+
+                        Process template = ProcessManager.getProcessByExactTitle("");
+                        Prefs prefs = template.getRegelsatz().getPreferences();
+                        Fileformat ff;
+
+                        ff = new MetsMods(prefs);
+
+                        DigitalDocument dd = new DigitalDocument();
+                        ff.setDigitalDocument(dd);
+
+                        // add the physical basics
+                        DocStruct physical = dd.createDocStruct(prefs.getDocStrctTypeByName("BoundBook"));
+                        dd.setPhysicalDocStruct(physical);
+
+                        //TODO add publicationType
+                        DocStruct logic = dd.createDocStruct(prefs.getDocStrctTypeByName(publicationType));
+                        dd.setLogicalDocStruct(logic);
+                        // save the process
+                        BeanHelper bhelp = new BeanHelper();
+                        process = bhelp.createAndSaveNewProcess(template, processName, ff);
+                        log.info("{}: Process successfully created with ID: {} ", getTicketHandlerName(), process.getId());
+
+                        // add some properties
+                        bhelp.EigenschaftHinzufuegen(process, "Template", template.getTitel());
+                        bhelp.EigenschaftHinzufuegen(process, "TemplateID", "" + template.getId());
+
+                    }
+                } catch (PreferencesException | TypeNotAllowedForParentException e) {
+                    log.error("");
+                }
+                processId = process.getId();
+            }
+
+        }
 
         String[] fields = searchFieldsAsString.split("\\|");
 
