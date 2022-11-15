@@ -58,7 +58,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         log.info("got CatalogueRequest ticket for {}", ticket.getProcessId());
 
         Integer processId = ticket.getProcessId();
-        Process process = ProcessManager.getProcessById(processId);
+        Process process = null;
 
         // get configured rules from ticket
         boolean mergeRecords = Boolean.parseBoolean(ticket.getProperties().get("mergeRecords"));
@@ -75,13 +75,13 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         if (processId == -1) {
             Path hotfolderFile = Paths.get(ticket.getProperties().get("hotfolderFile"));
             String processName = FilenameUtils.removeExtension(hotfolderFile.getFileName().toString());
-            boolean createMissingProcesses = Boolean.parseBoolean("createMissingProcesses");
-            boolean fileHandlingEnabled = Boolean.parseBoolean("fileHandlingEnabled");
-            String fileHandlingMode = ticket.getProperties().get("fileHandlingMode");
-            String destination = ticket.getProperties().get("destination");
-
-            String publicationType = "";
-            String workflowTemplate = "";
+            boolean createMissingProcesses = Boolean.parseBoolean(ticket.getProperties().get("createMissingProcesses"));
+            //        boolean fileHandlingEnabled = Boolean.parseBoolean("fileHandlingEnabled");
+            //        String fileHandlingMode = ticket.getProperties().get("fileHandlingMode");
+            //        String destination = ticket.getProperties().get("destination");
+            //        functionality moved to step-plugin
+            String publicationType = ticket.getProperties().get("publicationType");
+            String workflowTemplate = ticket.getProperties().get("workflow");
 
             if (StorageProvider.getInstance().isFileExists(hotfolderFile)) {
                 //maybe add a filter for a specfic metadatvalue here later
@@ -91,9 +91,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                 try {
                     if (process == null && createMissingProcesses) {
 
-                        //TODO add workflow template
-
-                        Process template = ProcessManager.getProcessByExactTitle("");
+                        Process template = ProcessManager.getProcessByExactTitle(workflowTemplate);
                         Prefs prefs = template.getRegelsatz().getPreferences();
                         Fileformat ff;
 
@@ -112,19 +110,22 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                         // save the process
                         BeanHelper bhelp = new BeanHelper();
                         process = bhelp.createAndSaveNewProcess(template, processName, ff);
-                        log.info("{}: Process successfully created with ID: {} ", getTicketHandlerName(), process.getId());
+                        log.info("{}: Process successfully created with ID: {} and name {}", getTicketHandlerName(), process.getId(),
+                                process.getTitel());
 
                         // add some properties
                         bhelp.EigenschaftHinzufuegen(process, "Template", template.getTitel());
                         bhelp.EigenschaftHinzufuegen(process, "TemplateID", "" + template.getId());
-
                     }
                 } catch (PreferencesException | TypeNotAllowedForParentException e) {
                     log.error("");
+                    return PluginReturnValue.ERROR;
                 }
                 processId = process.getId();
             }
 
+        } else {
+            process = ProcessManager.getProcessById(processId);
         }
 
         String[] fields = searchFieldsAsString.split("\\|");
@@ -282,6 +283,8 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                 return false;
             }
         }
+        // TODO handle situation when opac returns null (no hit)!
+
         // if structure subelements shall be kept, merge old and new fileformat,
         // otherwise just write the new one
         try {

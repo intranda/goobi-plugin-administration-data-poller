@@ -39,11 +39,15 @@ public class ConfigInfo {
     private boolean exportUpdatedRecords;
     private String lastRun;
 
+    private String workflow;
+    private String publicationType;
+
     private String path;
     private String ruleType;
     private boolean fileHandlingEnabled;
     private String fileHandlingMode;
     private String fileHandlingDestination;
+    private String fileHandlingFileFilter;
     private boolean createMissingProcesses;
 
     public String getFilterListString() {

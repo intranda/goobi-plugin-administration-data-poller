@@ -225,8 +225,8 @@ public class DataPoll {
         ReportInfo rinfo = new ReportInfo(testRun, ruleName, lastRunMillis, processIds.size());
         ReportInfo.marshalReportInfo(rinfo, xmlTempFolderPath);
 
-        if ("hotfolder".compareToIgnoreCase(info.getRuleType()) == 0) {
-            List<Path> hotfolderFiles = FileManager.getHotfolderFiles(info.getPath(), "*\\.xml");
+        if ("hotfolder".equals(info.getRuleType())) {
+            List<Path> hotfolderFiles = FileManager.getHotfolderFiles(info.getPath(), info.getFileHandlingFileFilter());
             for (Path hotfolderFile : hotfolderFiles) {
                 TaskTicket ticket = TicketGenerator.generateSimpleTicket("CatalogueRequest");
                 ticket.setProcessId(-1);
@@ -235,6 +235,8 @@ public class DataPoll {
                 ticket.getProperties().put("fileHandlingEnabled", String.valueOf(info.isFileHandlingEnabled()));
                 ticket.getProperties().put("fileHandlingMode", info.getFileHandlingMode());
                 ticket.getProperties().put("destination", info.getFileHandlingDestination());
+                ticket.getProperties().put("publicationType", info.getPublicationType());
+                ticket.getProperties().put("workflow", info.getWorkflow());
                 // add rule configuration to ticket and submit it
                 updateAndSubmitTicket(ticket, info, testRun, isBlockList, lastRunMillis, xmlTempFolderPath);
             }
