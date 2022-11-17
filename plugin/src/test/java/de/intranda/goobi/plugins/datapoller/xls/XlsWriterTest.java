@@ -36,8 +36,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import de.intranda.goobi.plugins.datapoller.PullDiff;
-import de.intranda.goobi.plugins.datapoller.xls.XlsData;
-import de.intranda.goobi.plugins.datapoller.xls.XlsWriter;
 
 public class XlsWriterTest {
     private XlsWriter xlsWriter;

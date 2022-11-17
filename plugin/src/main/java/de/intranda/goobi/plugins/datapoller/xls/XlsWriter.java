@@ -58,9 +58,9 @@ public class XlsWriter {
             for (Path xmlFile : differencesXML) {
                 differences.add(PullDiff.unmarshalPullDiff(xmlFile));
             }
-            boolean unfinished = differences.size() < info.getProcessCount();
+            boolean unfinished = differences.size() < info.getTicketCount();
             Path xlsFile = writeWorkbook(differences, info.getLastRunMillis(), info.getRuleName(), info.isTestRun(), unfinished);
-            if (xlsFile != null && differences.size() == info.getProcessCount()) {
+            if (xlsFile != null && differences.size() == info.getTicketCount()) {
                 if (!StorageProvider.getInstance().deleteDir(XmlFolder)) {
                     log.debug("DataPollerPlugin: Couldn't delete the folder: " + XmlFolder);
                 }
@@ -105,8 +105,8 @@ public class XlsWriter {
         //write content
         for (PullDiff difference : differences) {
             for (XlsData data : difference.getXlsData()) {
-                writeCellsToRow(sheet.createRow(rowCounter++), difference.getProcessId().toString(), difference.getProcessTitle(), data.getField(),
-                        data.getOldValues(), data.getNewValues());
+                writeCellsToRow(sheet.createRow(rowCounter++), String.valueOf(difference.getProcessId()), difference.getProcessTitle(),
+                        data.getField(), data.getOldValues(), data.getNewValues());
             }
         }
 
