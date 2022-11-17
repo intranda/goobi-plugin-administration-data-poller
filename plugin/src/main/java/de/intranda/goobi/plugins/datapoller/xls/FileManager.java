@@ -118,7 +118,7 @@ public class FileManager {
 
     public static List<Path> getXmlFiles(Path xmlFolder) {
         return SPI.listFiles(xmlFolder.toString(), path -> {
-            return !Files.isDirectory(path) && path.getFileName().toString().matches("^[_\\d]*\\.xml$");
+            return !Files.isDirectory(path) && path.getFileName().toString().matches("^[-_\\d]*\\.xml$");
         });
     }
 
@@ -133,5 +133,23 @@ public class FileManager {
         return SPI.listFiles(hotfolder, path -> {
             return !Files.isDirectory(path) && path.getFileName().toString().matches(filter);
         });
+    }
+
+    public static void moveCatalogueFile(Path hotfolderFilePath, boolean success) {
+        if (hotfolderFilePath == null) {
+            return;
+        }
+        Path fileName = hotfolderFilePath.getFileName();
+        Path targetFolder = success ? hotfolderFilePath.getParent().resolve("success") : hotfolderFilePath.getParent().resolve("error");
+        try {
+            // check if error/ success Folders exists
+            if (!SPI.isFileExists(targetFolder)) {
+                SPI.createDirectories(targetFolder);
+            }
+            SPI.move(hotfolderFilePath, targetFolder.resolve(fileName));
+        } catch (IOException e) {
+            log.error("DataPollerPlugin: Couldn't move the file: " + hotfolderFilePath.toString() + " to new location " + targetFolder.toString(), e);
+
+        }
     }
 }

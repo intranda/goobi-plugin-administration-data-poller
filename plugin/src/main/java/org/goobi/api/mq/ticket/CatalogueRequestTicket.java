@@ -23,6 +23,7 @@ import org.goobi.production.plugin.interfaces.IOpacPlugin;
 
 import de.intranda.goobi.plugins.datapoller.PollDocStruct;
 import de.intranda.goobi.plugins.datapoller.PullDiff;
+import de.intranda.goobi.plugins.datapoller.xls.FileManager;
 import de.sub.goobi.export.dms.ExportDms;
 import de.sub.goobi.helper.BeanHelper;
 import de.sub.goobi.helper.Helper;
@@ -56,7 +57,6 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
     @Override
     public PluginReturnValue call(TaskTicket ticket) {
         log.info("got CatalogueRequest ticket for {}", ticket.getProcessId());
-
         Integer processId = ticket.getProcessId();
         Process process = null;
 
@@ -71,9 +71,9 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         String catalogueName = ticket.getProperties().get("catalogueName");
         String searchFieldsAsString = ticket.getProperties().get("searchfields");
         List<StringPair> searchfields = new ArrayList<>();
-
-        if (processId == -1) {
-            Path hotfolderFile = Paths.get(ticket.getProperties().get("hotfolderFile"));
+        Path hotfolderFile = null;
+        if (processId < 0) {
+            hotfolderFile = Paths.get(ticket.getProperties().get("hotfolderFile"));
             String processName = FilenameUtils.removeExtension(hotfolderFile.getFileName().toString());
             boolean createMissingProcesses = Boolean.parseBoolean(ticket.getProperties().get("createMissingProcesses"));
             //        boolean fileHandlingEnabled = Boolean.parseBoolean("fileHandlingEnabled");
@@ -89,7 +89,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
 
                 //create process if it does not exist already... in any other case continue as usual
                 try {
-                    if (process == null && createMissingProcesses) {
+                    if (!testRun && process == null && createMissingProcesses) {
 
                         Process template = ProcessManager.getProcessByExactTitle(workflowTemplate);
                         Prefs prefs = template.getRegelsatz().getPreferences();
@@ -118,10 +118,14 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                         bhelp.EigenschaftHinzufuegen(process, "TemplateID", "" + template.getId());
                     }
                 } catch (PreferencesException | TypeNotAllowedForParentException e) {
-                    log.error("");
+                    log.error("", e);
+                    this.diff = new PullDiff(processId, processName, true, "Error trying to create Process");
+                    PullDiff.marshalPullDiff(diff, xmlTempFolder, lastRunMillis);
                     return PluginReturnValue.ERROR;
                 }
-                processId = process.getId();
+                if (process != null) {
+                    processId = process.getId();
+                }
             }
 
         } else {
@@ -139,16 +143,25 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         }
         String fieldFilter = ticket.getProperties().get("fieldFilter");
         List<String> fieldFilterList = Arrays.asList(fieldFilter.split("\\|"));
+        if (testRun && process == null) {
+            log.debug("DataPollerPlugin: Processes will not be created during a testrun: {}", hotfolderFile.toString());
+            this.diff = new PullDiff(processId, "", false, "Processes will not be created during a testrun:");
+            PullDiff.marshalPullDiff(diff, xmlTempFolder, lastRunMillis);
+            return PluginReturnValue.FINISH;
+        }
         if (!updateMetsFileForProcess(process, catalogueName, searchfields, mergeRecords, fieldFilterList, exportUpdatedRecords, analyseSubElements,
                 testRun, blockList)) {
+            FileManager.moveCatalogueFile(hotfolderFile, false);
             return PluginReturnValue.ERROR;
         }
 
         if (diff != null) {
             PullDiff.marshalPullDiff(diff, xmlTempFolder, lastRunMillis);
+            FileManager.moveCatalogueFile(hotfolderFile, true);
             return PluginReturnValue.FINISH;
         } else {
             log.debug("DataPollerPlugin: No PullDiff object was created for the process with id {}!", processId);
+            FileManager.moveCatalogueFile(hotfolderFile, false);
             return PluginReturnValue.ERROR;
         }
     }
@@ -298,6 +311,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                     topstructNew = topstructNew.getAllChildren().get(0);
                 }
                 diff = new PullDiff();
+                diff.setMergeRecords(true);
                 PollDocStruct.checkDifferences(topstructNew, topstructOld, fieldFilterList, diff, isBlockList);
                 if (anchorNew != null && anchorOld != null) {
                     PollDocStruct.checkDifferences(anchorNew, anchorOld, fieldFilterList, diff, isBlockList);
@@ -356,18 +370,29 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                     if (exportUpdatedRecords) {
                         exportProcess(p);
                     }
-
                 }
 
-            } else // just write the new one and don't merge any data
-            if (!testRun) {
-                p.writeMetadataFile(ffNew);
-                Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG, "New Mets file successfully created by catalogue poller plugin");
+            } else {// just write the new one and don't merge any data
+                String message;
+                if (!testRun) {
+                    p.writeMetadataFile(ffNew);
+                    Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG, "New Mets file successfully created by catalogue poller plugin");
+                    this.diff = new PullDiff(p.getId(), p.getTitel(), false, "FileFormat was replaced no Diff was created!");
+                    this.diff.setMergeRecords(false);
+                } else {
+                    this.diff = new PullDiff(p.getId(), p.getTitel(), false, "FileFormat was replaced no Diff was created!");
+                    this.diff.setMergeRecords(false);
+                }
+
             }
         } catch (Exception e) {
             log.error("Exception while writing the updated METS file into the file system", e);
             Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG,
                     "Exception while writing the updated METS file into the file system inside of catalogue poller plugin: " + e.getMessage());
+            if (this.diff == null) {
+                this.diff = new PullDiff(p.getId(), p.getTitel(), false,
+                        "Exception while writing the updated METS file into the file system inside of catalogue poller plugin:");
+            }
             return false;
         }
 

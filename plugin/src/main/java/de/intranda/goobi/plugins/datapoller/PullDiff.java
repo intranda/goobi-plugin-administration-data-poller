@@ -33,14 +33,25 @@ import lombok.extern.log4j.Log4j2;
 @NoArgsConstructor
 @XmlAccessorType(XmlAccessType.FIELD)
 public class PullDiff {
-    private Integer processId;
+    private int processId;
     private String processTitle;
+    private boolean failed;
+    private boolean mergeRecords;
+    private String debugMessage;
     @XmlElementWrapper(name = "messages")
     @XmlElement(name = "message")
     private List<String> messages = new ArrayList<>();
     @XmlElementWrapper(name = "xlsDataEntries")
     @XmlElement(name = "xlsData")
     private List<XlsData> xlsData = new ArrayList<>();
+
+    public PullDiff(Integer processId, String processTitle, boolean failed, String debugMessage) {
+        this.processId = processId;
+        this.processTitle = processTitle;
+        this.failed = failed;
+        this.debugMessage = debugMessage;
+
+    }
 
     public static void marshalPullDiff(PullDiff diff, String xmlTempFolder, String lastRunMillis) {
         Path outputPath = Paths.get(xmlTempFolder);

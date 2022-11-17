@@ -123,7 +123,7 @@ public class DataPoll {
                 if (!diffs.isEmpty()) {
                     this.differences = diffs;
                     if (rInfo != null) {
-                        this.ticketStateUnfinished = (differences.size() < rInfo.getProcessCount());
+                        this.ticketStateUnfinished = (differences.size() < rInfo.getTicketCount() && this.ticketsActive);
                         this.ticketStateTestRun = rInfo.isTestRun();
                     }
                 }
@@ -222,14 +222,16 @@ public class DataPoll {
                 .append(processIds.size());
         Path xmlTempFolderPath = FileManager.createXmlFolder(tempFolder, xmlTempFolder.toString());
         //create reportInfoXml
-        ReportInfo rinfo = new ReportInfo(testRun, ruleName, lastRunMillis, processIds.size());
-        ReportInfo.marshalReportInfo(rinfo, xmlTempFolderPath);
 
+        ReportInfo rinfo;
         if ("hotfolder".equals(info.getRuleType())) {
             List<Path> hotfolderFiles = FileManager.getHotfolderFiles(info.getPath(), info.getFileHandlingFileFilter());
+            rinfo = new ReportInfo(testRun, ruleName, lastRunMillis, hotfolderFiles.size());
+            ReportInfo.marshalReportInfo(rinfo, xmlTempFolderPath);
+            int index = 0;
             for (Path hotfolderFile : hotfolderFiles) {
                 TaskTicket ticket = TicketGenerator.generateSimpleTicket("CatalogueRequest");
-                ticket.setProcessId(-1);
+                ticket.setProcessId(--index);
                 ticket.getProperties().put("hotfolderFile", String.valueOf(hotfolderFile.toString()));
                 ticket.getProperties().put("createMissingProcesses", String.valueOf(info.isCreateMissingProcesses()));
                 ticket.getProperties().put("fileHandlingEnabled", String.valueOf(info.isFileHandlingEnabled()));
@@ -241,6 +243,8 @@ public class DataPoll {
                 updateAndSubmitTicket(ticket, info, testRun, isBlockList, lastRunMillis, xmlTempFolderPath);
             }
         } else {
+            rinfo = new ReportInfo(testRun, ruleName, lastRunMillis, processIds.size());
+
             for (Integer id : processIds) {
                 // create a new ticket
                 TaskTicket ticket = TicketGenerator.generateSimpleTicket("CatalogueRequest");

@@ -26,7 +26,7 @@ public class ReportInfo {
     private boolean testRun;
     private String ruleName;
     private long lastRunMillis;
-    private int processCount;
+    private int ticketCount;
 
     public static void marshalReportInfo(ReportInfo info, Path xmlTempFolder) {
         StorageProviderInterface spi = StorageProvider.getInstance();
