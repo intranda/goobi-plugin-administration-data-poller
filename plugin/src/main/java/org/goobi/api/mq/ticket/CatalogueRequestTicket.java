@@ -13,6 +13,7 @@ import org.apache.commons.lang.StringUtils;
 import org.goobi.api.mq.TaskTicket;
 import org.goobi.api.mq.TicketHandler;
 import org.goobi.beans.Process;
+import org.goobi.beans.Step;
 import org.goobi.production.cli.helper.StringPair;
 import org.goobi.production.enums.LogType;
 import org.goobi.production.enums.PluginReturnValue;
@@ -27,8 +28,10 @@ import de.intranda.goobi.plugins.datapoller.xls.FileManager;
 import de.sub.goobi.export.dms.ExportDms;
 import de.sub.goobi.helper.BeanHelper;
 import de.sub.goobi.helper.Helper;
+import de.sub.goobi.helper.ScriptThreadWithoutHibernate;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.VariableReplacer;
+import de.sub.goobi.helper.enums.StepStatus;
 import de.sub.goobi.persistence.managers.ProcessManager;
 import de.unigoettingen.sub.search.opac.ConfigOpac;
 import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
@@ -153,6 +156,17 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                 testRun, blockList)) {
             FileManager.moveCatalogueFile(hotfolderFile, false);
             return PluginReturnValue.ERROR;
+        }
+
+        //TODO maybe make this a configirable option
+        if (process != null && hotfolderFile != null) {
+            // start any open automatic tasks for the created/updated process
+            for (Step s : process.getSchritteList()) {
+                if (StepStatus.OPEN.equals(s.getBearbeitungsstatusEnum()) && s.isTypAutomatisch()) {
+                    ScriptThreadWithoutHibernate myThread = new ScriptThreadWithoutHibernate(s);
+                    myThread.startOrPutToQueue();
+                }
+            }
         }
 
         if (diff != null) {
