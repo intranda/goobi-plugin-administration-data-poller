@@ -69,6 +69,8 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         boolean exportUpdatedRecords = Boolean.parseBoolean(ticket.getProperties().get("exportUpdatedRecords"));
         boolean testRun = Boolean.parseBoolean(ticket.getProperties().get("testRun"));
         boolean blockList = Boolean.parseBoolean(ticket.getProperties().get("blockList"));
+        // this will be set to false when the process is created by the ticket
+        boolean isExistingProcess = true;
         String lastRunMillis = ticket.getProperties().get("lastRunMillis");
         String xmlTempFolder = ticket.getProperties().get("xmlTempFolder");
         String catalogueName = ticket.getProperties().get("catalogueName");
@@ -93,7 +95,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                 //create process if it does not exist already... in any other case continue as usual
                 try {
                     if (!testRun && process == null && createMissingProcesses) {
-
+                        isExistingProcess = false;
                         Process template = ProcessManager.getProcessByExactTitle(workflowTemplate);
                         Prefs prefs = template.getRegelsatz().getPreferences();
                         Fileformat ff;
@@ -159,7 +161,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         }
 
         //TODO maybe make this a configirable option
-        if (process != null && hotfolderFile != null) {
+        if (!isExistingProcess) {
             // start any open automatic tasks for the created/updated process
             for (Step s : process.getSchritteList()) {
                 if (StepStatus.OPEN.equals(s.getBearbeitungsstatusEnum()) && s.isTypAutomatisch()) {
