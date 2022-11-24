@@ -61,11 +61,14 @@ public class PullDiff {
     private List<XlsData> xlsData = new ArrayList<>();
 
     public PullDiff(Integer processId, String processTitle, boolean failed, String debugMessage) {
+        reset(processId, processTitle, failed, debugMessage);
+    }
+
+    public void reset(Integer processId, String processTitle, boolean failed, String debugMessage) {
         this.processId = processId;
         this.processTitle = processTitle;
         this.failed = failed;
         this.debugMessage = debugMessage;
-
     }
 
     public static void marshalPullDiff(PullDiff diff, String xmlTempFolder, String lastRunMillis) {

@@ -55,11 +55,10 @@ import ugh.fileformats.mets.MetsMods;
 @Log4j2
 public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> {
 
-    private PullDiff diff;
-
     @Override
     public PluginReturnValue call(TaskTicket ticket) {
         log.info("got CatalogueRequest ticket for {}", ticket.getProcessId());
+        PullDiff diff = null;
         Integer processId = ticket.getProcessId();
         Process process = null;
 
@@ -124,7 +123,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                     }
                 } catch (PreferencesException | TypeNotAllowedForParentException e) {
                     log.error("", e);
-                    this.diff = new PullDiff(processId, processName, true, "Error trying to create Process");
+                    diff = new PullDiff(processId, processName, true, "Error trying to create Process");
                     PullDiff.marshalPullDiff(diff, xmlTempFolder, lastRunMillis);
                     return PluginReturnValue.ERROR;
                 }
@@ -136,7 +135,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         } else {
             process = ProcessManager.getProcessById(processId);
         }
-
+        diff = new PullDiff();
         String[] fields = searchFieldsAsString.split("\\|");
 
         for (String f : fields) {
@@ -150,17 +149,15 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         List<String> fieldFilterList = Arrays.asList(fieldFilter.split("\\|"));
         if (testRun && process == null) {
             log.debug("DataPollerPlugin: Processes will not be created during a testrun: {}", hotfolderFile.toString());
-            this.diff = new PullDiff(processId, "", false, "Processes will not be created during a testrun:");
+            diff = new PullDiff(processId, "", false, "Processes will not be created during a testrun:");
             PullDiff.marshalPullDiff(diff, xmlTempFolder, lastRunMillis);
             return PluginReturnValue.FINISH;
         }
         if (!updateMetsFileForProcess(process, catalogueName, searchfields, mergeRecords, fieldFilterList, exportUpdatedRecords, analyseSubElements,
-                testRun, blockList)) {
+                testRun, blockList, diff)) {
             FileManager.moveCatalogueFile(hotfolderFile, false);
             return PluginReturnValue.ERROR;
         }
-
-        //TODO maybe make this a configirable option
 
         if (!isExistingProcess) {
             // start any open automatic tasks for the created/updated process
@@ -174,15 +171,10 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
             }
         }
 
-        if (diff != null) {
-            PullDiff.marshalPullDiff(diff, xmlTempFolder, lastRunMillis);
-            FileManager.moveCatalogueFile(hotfolderFile, true);
-            return PluginReturnValue.FINISH;
-        } else {
-            log.debug("DataPollerPlugin: No PullDiff object was created for the process with id {}!", processId);
-            FileManager.moveCatalogueFile(hotfolderFile, false);
-            return PluginReturnValue.ERROR;
-        }
+        // marshall PullDiff
+        PullDiff.marshalPullDiff(diff, xmlTempFolder, lastRunMillis);
+        FileManager.moveCatalogueFile(hotfolderFile, true);
+        return PluginReturnValue.FINISH;
     }
 
     @Override
@@ -201,9 +193,13 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
      * @return
      */
     public boolean updateMetsFileForProcess(Process p, String configCatalogue, List<StringPair> searchfields, boolean configMergeRecords,
-            List<String> fieldFilterList, boolean exportUpdatedRecords, boolean configAnalyseSubElements, boolean testRun, boolean isBlockList) {
+            List<String> fieldFilterList, boolean exportUpdatedRecords, boolean configAnalyseSubElements, boolean testRun, boolean isBlockList,
+            PullDiff diff) {
         log.debug("Starting catalogue request using catalogue: {}", configCatalogue);
-
+        if (diff == null) {
+            log.debug("PullDiff is not allowed to be null  {}", p.getId());
+            return false;
+        }
         // first read the original METS file for the process
         Fileformat ffOld = null;
         DigitalDocument dd = null;
@@ -329,7 +325,6 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                     anchorNew = topstructNew;
                     topstructNew = topstructNew.getAllChildren().get(0);
                 }
-                diff = new PullDiff();
                 diff.setMergeRecords(true);
                 PollDocStruct.checkDifferences(topstructNew, topstructOld, fieldFilterList, diff, isBlockList);
                 if (anchorNew != null && anchorOld != null) {
@@ -396,11 +391,11 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                 if (!testRun) {
                     p.writeMetadataFile(ffNew);
                     Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG, "New Mets file successfully created by catalogue poller plugin");
-                    this.diff = new PullDiff(p.getId(), p.getTitel(), false, "FileFormat was replaced no Diff was created!");
-                    this.diff.setMergeRecords(false);
+                    diff.reset(p.getId(), p.getTitel(), false, "FileFormat was replaced no Diff was created!");
+                    diff.setMergeRecords(false);
                 } else {
-                    this.diff = new PullDiff(p.getId(), p.getTitel(), false, "FileFormat was replaced no Diff was created!");
-                    this.diff.setMergeRecords(false);
+                    diff.reset(p.getId(), p.getTitel(), false, "FileFormat was replaced no Diff was created!");
+                    diff.setMergeRecords(false);
                 }
 
             }
@@ -408,11 +403,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
             log.error("Exception while writing the updated METS file into the file system", e);
             Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG,
                     "Exception while writing the updated METS file into the file system inside of catalogue poller plugin: " + e.getMessage());
-            if (this.diff == null) {
-                this.diff = new PullDiff(p.getId(), p.getTitel(), false,
-                        "Exception while writing the updated METS file into the file system inside of catalogue poller plugin:");
-            }
-            return false;
+
         }
 
         // everything finished
