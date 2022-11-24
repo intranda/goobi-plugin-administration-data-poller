@@ -161,12 +161,15 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         }
 
         //TODO maybe make this a configirable option
+
         if (!isExistingProcess) {
             // start any open automatic tasks for the created/updated process
+            log.debug("Trying to start steps with status open for process with Id {}!", process.getId());
             for (Step s : process.getSchritteList()) {
                 if (StepStatus.OPEN.equals(s.getBearbeitungsstatusEnum()) && s.isTypAutomatisch()) {
                     ScriptThreadWithoutHibernate myThread = new ScriptThreadWithoutHibernate(s);
                     myThread.startOrPutToQueue();
+                    log.debug("Put open step {}! into queue for process with id {}", s.getTitel(), process.getId());
                 }
             }
         }
