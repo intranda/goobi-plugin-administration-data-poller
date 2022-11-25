@@ -60,9 +60,7 @@ public class ConfigHelper {
             ci.setPath(rule.getString("path", ""));
             ci.setWorkflow(rule.getString("workflow", null));
             ci.setPublicationType(rule.getString("publicationType", null));
-            ci.setFileHandlingEnabled(rule.getBoolean("fileHandling/@enabled", false));
-            ci.setFileHandlingMode(rule.getString("fileHandling/@mode", "copy"));
-            ci.setFileHandlingDestination(rule.getString("fileHandling/@destinationFolder", ""));
+
             ci.setFileHandlingFileFilter(rule.getString("fileHandling/@fileFilter", "*\\.xml"));
 
             ci.setCreateMissingProcesses(rule.getBoolean("createMissingProcesses", false));

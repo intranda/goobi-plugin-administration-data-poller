@@ -80,10 +80,6 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
             hotfolderFile = Paths.get(ticket.getProperties().get("hotfolderFile"));
             String processName = FilenameUtils.removeExtension(hotfolderFile.getFileName().toString());
             boolean createMissingProcesses = Boolean.parseBoolean(ticket.getProperties().get("createMissingProcesses"));
-            //        boolean fileHandlingEnabled = Boolean.parseBoolean("fileHandlingEnabled");
-            //        String fileHandlingMode = ticket.getProperties().get("fileHandlingMode");
-            //        String destination = ticket.getProperties().get("destination");
-            //        functionality moved to step-plugin
             String publicationType = ticket.getProperties().get("publicationType");
             String workflowTemplate = ticket.getProperties().get("workflow");
 

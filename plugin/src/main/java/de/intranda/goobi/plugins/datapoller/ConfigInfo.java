@@ -44,9 +44,6 @@ public class ConfigInfo {
 
     private String path;
     private String ruleType;
-    private boolean fileHandlingEnabled;
-    private String fileHandlingMode;
-    private String fileHandlingDestination;
     private String fileHandlingFileFilter;
     private boolean createMissingProcesses;
 

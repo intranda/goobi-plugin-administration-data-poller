@@ -31,7 +31,6 @@ import javax.jms.JMSException;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.lang.StringUtils;
 import org.goobi.api.mq.QueueType;
 import org.goobi.api.mq.TaskTicket;
 import org.goobi.api.mq.TicketGenerator;
@@ -162,11 +161,6 @@ public class DataPoll {
 
                 return;
             }
-
-            if (info.isFileHandlingEnabled() && StringUtils.isEmpty(info.getFileHandlingDestination())) {
-                Helper.setFehlerMeldung("plugin_admin_dataPoller_configErrorDestinationMissing");
-                log.error("File handling is enabeld but but no destination was provided!");
-            }
         }
 
         boolean isBlockList = false;
@@ -234,9 +228,6 @@ public class DataPoll {
                 ticket.setProcessId(--index);
                 ticket.getProperties().put("hotfolderFile", String.valueOf(hotfolderFile.toString()));
                 ticket.getProperties().put("createMissingProcesses", String.valueOf(info.isCreateMissingProcesses()));
-                ticket.getProperties().put("fileHandlingEnabled", String.valueOf(info.isFileHandlingEnabled()));
-                ticket.getProperties().put("fileHandlingMode", info.getFileHandlingMode());
-                ticket.getProperties().put("destination", info.getFileHandlingDestination());
                 ticket.getProperties().put("publicationType", info.getPublicationType());
                 ticket.getProperties().put("workflow", info.getWorkflow());
                 // add rule configuration to ticket and submit it
