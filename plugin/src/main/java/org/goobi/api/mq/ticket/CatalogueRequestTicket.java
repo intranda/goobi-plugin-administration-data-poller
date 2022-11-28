@@ -307,8 +307,13 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                 return false;
             }
         }
-        // TODO handle situation when opac returns null (no hit)!
 
+        if (ffNew == null) {
+            diff.setFailed(true);
+            log.debug("DataPollerPöugin: OPAC-Search returned no Fileformat for pocess with id {}", p.getId());
+            diff.setDebugMessage("OPAC-Search returned no Fileformat");
+            return false;
+        }
         // if structure subelements shall be kept, merge old and new fileformat,
         // otherwise just write the new one
         try {
