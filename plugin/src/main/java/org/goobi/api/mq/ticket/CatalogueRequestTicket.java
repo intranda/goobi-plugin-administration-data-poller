@@ -1,7 +1,5 @@
 package org.goobi.api.mq.ticket;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -20,8 +18,9 @@ import org.goobi.production.enums.PluginReturnValue;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.plugin.PluginLoader;
 import org.goobi.production.plugin.interfaces.IExportPlugin;
-import org.goobi.production.plugin.interfaces.IOpacPlugin;
 
+import de.intranda.goobi.plugins.datapoller.CatalogueHandler;
+import de.intranda.goobi.plugins.datapoller.CatalogueHandlerException;
 import de.intranda.goobi.plugins.datapoller.PollDocStruct;
 import de.intranda.goobi.plugins.datapoller.PullDiff;
 import de.intranda.goobi.plugins.datapoller.xls.FileManager;
@@ -33,8 +32,6 @@ import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.VariableReplacer;
 import de.sub.goobi.helper.enums.StepStatus;
 import de.sub.goobi.persistence.managers.ProcessManager;
-import de.unigoettingen.sub.search.opac.ConfigOpac;
-import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
 import lombok.extern.log4j.Log4j2;
 import ugh.dl.Corporate;
 import ugh.dl.DigitalDocument;
@@ -238,167 +235,103 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         }
 
         // request the wished catalogue with the correct identifier
-        Fileformat ffNew = null;
-        IOpacPlugin myImportOpac = null;
-        ConfigOpacCatalogue coc = null;
+        try {
+            CatalogueHandler catHandler = new CatalogueHandler(configCatalogue, valueList, prefs);
 
-        for (ConfigOpacCatalogue configOpacCatalogue : ConfigOpac.getInstance().getAllCatalogues("")) {
-            if (configOpacCatalogue.getTitle().equals(configCatalogue)) {
-                myImportOpac = configOpacCatalogue.getOpacPlugin();
-                coc = configOpacCatalogue;
+            if (catHandler.getFfNew() == null) {
+                diff.setFailed(true);
+                log.debug("DataPollerPöugin: OPAC-Search returned no Fileformat for pocess with id {}", p.getId());
+                diff.setDebugMessage("OPAC-Search returned no Fileformat");
+                return false;
             }
-        }
-        if (coc == null) {
-            return false;
-
-        }
-
-        if ("intranda_opac_json".equals(myImportOpac.getTitle())) {
-
+            // if structure subelements shall be kept, merge old and new fileformat,
+            // otherwise just write the new one
             try {
-                Class<? extends Object> opacClass = myImportOpac.getClass();
-                Method getConfigForOpac = opacClass.getMethod("getConfigForOpac");
-                Object jsonOpacConfig = getConfigForOpac.invoke(myImportOpac);
+                if (configMergeRecords) {
+                    // first load logical topstruct or first child
+                    DocStruct topstructNew = catHandler.getFfNew().getDigitalDocument().getLogicalDocStruct();
+                    DocStruct anchorNew = null;
+                    DocStruct physNew = catHandler.getFfNew().getDigitalDocument().getPhysicalDocStruct();
+                    if (topstructNew.getType().isAnchor()) {
+                        anchorNew = topstructNew;
+                        topstructNew = topstructNew.getAllChildren().get(0);
+                    }
+                    diff.setMergeRecords(true);
+                    PollDocStruct.checkDifferences(topstructNew, topstructOld, fieldFilterList, diff, isBlockList);
+                    if (anchorNew != null && anchorOld != null) {
+                        PollDocStruct.checkDifferences(anchorNew, anchorOld, fieldFilterList, diff, isBlockList);
+                    }
+                    if (physNew != null && physOld != null) {
+                        PollDocStruct.checkDifferences(physNew, physOld, fieldFilterList, diff, isBlockList);
+                    }
 
-                Class<? extends Object> jsonOpacConfigClass = jsonOpacConfig.getClass();
+                    diff.setProcessId(p.getId());
+                    diff.setProcessTitle(p.getTitel());
 
-                Method getFieldList = jsonOpacConfigClass.getMethod("getFieldList");
-
-                Object fieldList = getFieldList.invoke(jsonOpacConfig);
-                @SuppressWarnings("unchecked")
-                List<Object> fields = (List<Object>) fieldList;
-                for (StringPair sp : valueList) {
-                    for (Object searchField : fields) {
-                        Class<? extends Object> searchFieldClass = searchField.getClass();
-
-                        Method getId = searchFieldClass.getMethod("getId");
-
-                        Method setText = searchFieldClass.getMethod("setText", String.class);
-                        Method setSelectedField = searchFieldClass.getMethod("setSelectedField", String.class);
-
-                        Object id = getId.invoke(searchField);
-                        if (((String) id).equals(sp.getOne())) {
-                            String value = sp.getTwo();
-                            if (StringUtils.isNotBlank(value)) {
-                                setText.invoke(searchField, value);
-                                setSelectedField.invoke(searchField, sp.getOne());
+                    if (configAnalyseSubElements) {
+                        List<DocStruct> dsl = topstructOld.getAllChildren();
+                        if (dsl != null) {
+                            MetadataType type = prefs.getMetadataTypeByName(searchfields.get(0)
+                                    .getTwo()
+                                    .replace("$", "")
+                                    .replace("meta.", "")
+                                    .replace("topstruct.", "")
+                                    .replace("firstchild.", "")
+                                    .replace("(", "")
+                                    .replace("{", "")
+                                    .replace("}", "")
+                                    .replace(")", ""));
+                            for (DocStruct ds : dsl) {
+                                getMetadataForChild(fieldFilterList, prefs, catHandler, diff, type, ds, isBlockList);
                             }
                         }
                     }
 
-                }
-                Method search = opacClass.getMethod("search", String.class, String.class, ConfigOpacCatalogue.class, Prefs.class);
+                    if (diff.getMessages() != null && !diff.getMessages().isEmpty() && !testRun) {
 
-                ffNew = (Fileformat) search.invoke(myImportOpac, "", "", coc, prefs);
+                        // then run through all new metadata and check if these should
+                        // replace the old ones
+                        // if yes remove the old ones from the old fileformat
+                        mergeMetadataRecords(fieldFilterList, topstructOld, topstructNew, isBlockList);
+                        if (anchorNew != null && anchorOld != null) {
+                            mergeMetadataRecords(fieldFilterList, anchorOld, anchorNew, isBlockList);
+                        }
+                        if (physNew != null && physOld != null) {
+                            mergeMetadataRecords(fieldFilterList, physOld, physNew, isBlockList);
+                        }
 
-            } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                return false;
-            }
-        } else {
+                        // then write the updated old file format
+                        p.writeMetadataFile(ffOld);
 
-            try {
-                coc = ConfigOpac.getInstance().getCatalogueByName(configCatalogue);
-                myImportOpac = (IOpacPlugin) PluginLoader.getPluginByTitle(PluginType.Opac, coc.getOpacType());
-                ffNew = myImportOpac.search(valueList.get(0).getOne(), valueList.get(0).getTwo(), coc, prefs);
-            } catch (Exception e) {
-                log.error("Exception while requesting the catalogue", e);
-                Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG,
-                        "Exception while requesting the catalogue inside of catalogue poller plugin: " + e.getMessage());
-                return false;
-            }
-        }
+                        StringBuilder processlog = new StringBuilder("Mets file updated by catalogue poller plugin successfully" + "<br/>");
+                        processlog.append("<ul>");
+                        for (String s : diff.getMessages()) {
+                            processlog.append("<li>" + s + "</li>");
+                        }
+                        processlog.append("</ul>");
+                        Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG, processlog.toString());
 
-        if (ffNew == null) {
-            diff.setFailed(true);
-            log.debug("DataPollerPöugin: OPAC-Search returned no Fileformat for pocess with id {}", p.getId());
-            diff.setDebugMessage("OPAC-Search returned no Fileformat");
-            return false;
-        }
-        // if structure subelements shall be kept, merge old and new fileformat,
-        // otherwise just write the new one
-        try {
-            if (configMergeRecords) {
-                // first load logical topstruct or first child
-                DocStruct topstructNew = ffNew.getDigitalDocument().getLogicalDocStruct();
-                DocStruct anchorNew = null;
-                DocStruct physNew = ffNew.getDigitalDocument().getPhysicalDocStruct();
-                if (topstructNew.getType().isAnchor()) {
-                    anchorNew = topstructNew;
-                    topstructNew = topstructNew.getAllChildren().get(0);
-                }
-                diff.setMergeRecords(true);
-                PollDocStruct.checkDifferences(topstructNew, topstructOld, fieldFilterList, diff, isBlockList);
-                if (anchorNew != null && anchorOld != null) {
-                    PollDocStruct.checkDifferences(anchorNew, anchorOld, fieldFilterList, diff, isBlockList);
-                }
-                if (physNew != null && physOld != null) {
-                    PollDocStruct.checkDifferences(physNew, physOld, fieldFilterList, diff, isBlockList);
-                }
-
-                diff.setProcessId(p.getId());
-                diff.setProcessTitle(p.getTitel());
-
-                if (configAnalyseSubElements) {
-                    List<DocStruct> dsl = topstructOld.getAllChildren();
-                    if (dsl != null) {
-                        MetadataType type = prefs.getMetadataTypeByName(searchfields.get(0)
-                                .getTwo()
-                                .replace("$", "")
-                                .replace("meta.", "")
-                                .replace("topstruct.", "")
-                                .replace("firstchild.", "")
-                                .replace("(", "")
-                                .replace("{", "")
-                                .replace("}", "")
-                                .replace(")", ""));
-                        for (DocStruct ds : dsl) {
-                            getMetadataForChild(fieldFilterList, prefs, myImportOpac, coc, diff, type, ds, isBlockList);
+                        // if the record was updated and it shall be exported again then do it now
+                        if (exportUpdatedRecords) {
+                            exportProcess(p);
                         }
                     }
+
+                } else {// just write the new one and don't merge any data
+                    String message;
+                    if (!testRun) {
+                        p.writeMetadataFile(catHandler.getFfNew());
+                        Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG, "New Mets file successfully created by catalogue poller plugin");
+                        diff.reset(p.getId(), p.getTitel(), false, "FileFormat was replaced no Diff was created!");
+                        diff.setMergeRecords(false);
+                    } else {
+                        diff.reset(p.getId(), p.getTitel(), false, "FileFormat was replaced no Diff was created!");
+                        diff.setMergeRecords(false);
+                    }
+
                 }
-
-                if (diff.getMessages() != null && !diff.getMessages().isEmpty() && !testRun) {
-
-                    // then run through all new metadata and check if these should
-                    // replace the old ones
-                    // if yes remove the old ones from the old fileformat
-                    mergeMetadataRecords(fieldFilterList, topstructOld, topstructNew, isBlockList);
-                    if (anchorNew != null && anchorOld != null) {
-                        mergeMetadataRecords(fieldFilterList, anchorOld, anchorNew, isBlockList);
-                    }
-                    if (physNew != null && physOld != null) {
-                        mergeMetadataRecords(fieldFilterList, physOld, physNew, isBlockList);
-                    }
-
-                    // then write the updated old file format
-                    p.writeMetadataFile(ffOld);
-
-                    StringBuilder processlog = new StringBuilder("Mets file updated by catalogue poller plugin successfully" + "<br/>");
-                    processlog.append("<ul>");
-                    for (String s : diff.getMessages()) {
-                        processlog.append("<li>" + s + "</li>");
-                    }
-                    processlog.append("</ul>");
-                    Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG, processlog.toString());
-
-                    // if the record was updated and it shall be exported again then do it now
-                    if (exportUpdatedRecords) {
-                        exportProcess(p);
-                    }
-                }
-
-            } else {// just write the new one and don't merge any data
-                String message;
-                if (!testRun) {
-                    p.writeMetadataFile(ffNew);
-                    Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG, "New Mets file successfully created by catalogue poller plugin");
-                    diff.reset(p.getId(), p.getTitel(), false, "FileFormat was replaced no Diff was created!");
-                    diff.setMergeRecords(false);
-                } else {
-                    diff.reset(p.getId(), p.getTitel(), false, "FileFormat was replaced no Diff was created!");
-                    diff.setMergeRecords(false);
-                }
-
+            } catch (CatalogueHandlerException ex) {
+                Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG, "Error opening the catalogue:" + ex.getMessage());
             }
         } catch (Exception e) {
             log.error("Exception while writing the updated METS file into the file system", e);
@@ -566,19 +499,19 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         }
     }
 
-    private void getMetadataForChild(List<String> fieldFilterList, Prefs prefs, IOpacPlugin myImportOpac, ConfigOpacCatalogue coc, PullDiff diff,
-            MetadataType type, DocStruct ds, boolean isBlockList) throws Exception {
+    public void getMetadataForChild(List<String> fieldFilterList, Prefs prefs, CatalogueHandler catHandler, PullDiff diff, MetadataType type,
+            DocStruct ds, boolean isBlockList) throws Exception {
         List<? extends Metadata> identifierList = ds.getAllMetadataByType(type);
         if (identifierList != null && !identifierList.isEmpty()) {
             String identifier = identifierList.get(0).getValue();
-            Fileformat ff = myImportOpac.search("12", identifier, coc, prefs);
+            Fileformat ff = catHandler.getMyImportOpac().search("12", identifier, catHandler.getCoc(), prefs);
             PollDocStruct.checkDifferences(ff.getDigitalDocument().getLogicalDocStruct(), ds, fieldFilterList, diff, isBlockList);
             mergeMetadataRecords(fieldFilterList, ds, ff.getDigitalDocument().getLogicalDocStruct(), isBlockList);
         }
         List<DocStruct> children = ds.getAllChildren();
         if (children != null && !children.isEmpty()) {
             for (DocStruct child : children) {
-                getMetadataForChild(fieldFilterList, prefs, myImportOpac, coc, diff, type, child, isBlockList);
+                getMetadataForChild(fieldFilterList, prefs, catHandler, diff, type, child, isBlockList);
             }
         }
     }
