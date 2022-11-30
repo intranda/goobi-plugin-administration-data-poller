@@ -43,9 +43,9 @@ public class ReportInfo {
 
             jaxbMarshaller.marshal(info, new File(fileOutputPath.toString()));
         } catch (JAXBException ex) {
-            log.error("CatloguePollerPlugin: Couldn't marshal ReportInfo Object to xml!", ex);
+            log.error("DataPollerPlugin: Couldn't marshal ReportInfo Object to xml!", ex);
         } catch (IOException ex) {
-            log.error("CatloguePollerPlugin: Couldn't write xml-File into folder: " + fileOutputPath.toString());
+            log.error("DataPollerPlugin: Couldn't write xml-File into folder: " + fileOutputPath.toString());
         }
     }
 
@@ -56,7 +56,7 @@ public class ReportInfo {
             Unmarshaller jaxbUnMarshaller = jaxbContext.createUnmarshaller();
             info = (ReportInfo) jaxbUnMarshaller.unmarshal(ReportInfoXml.toFile());
         } catch (JAXBException ex) {
-            log.error("CatloguePollerPlugin: Couldn't unmarshal ReportInfo Object from xml: " + ReportInfoXml.toString(), ex);
+            log.error("DataPollerPlugin: Couldn't unmarshal ReportInfo Object from xml: " + ReportInfoXml.toString(), ex);
             return null;
         }
         return info;

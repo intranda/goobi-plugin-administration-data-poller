@@ -67,7 +67,7 @@ public class XlsWriter {
             }
             return new FolderInfo(xlsFile, differences, info);
         } else {
-            log.error("Couldn't find reportInfo.xml file in {}! No xlsx-Report was created!", XmlFolder.toString());
+            log.error("DataPollerPlugin: Couldn't find reportInfo.xml file in {}! No xlsx-Report was created!", XmlFolder.toString());
             return null;
         }
     }

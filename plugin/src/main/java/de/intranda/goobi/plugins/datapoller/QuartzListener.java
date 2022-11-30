@@ -46,12 +46,12 @@ public class QuartzListener implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent arg0) {
-        // stop the catalogue poller job
+        // stop the data poller job
         try {
             SchedulerFactory schedFact = new StdSchedulerFactory();
             Scheduler sched = schedFact.getScheduler();
-            sched.deleteJob("Catalogue Poller", "Goobi Admin Plugin");
-            log.info("Scheduler for 'Catalogue Poller' stopped");
+            sched.deleteJob("Data Poller", "Goobi Admin Plugin");
+            log.info("Scheduler for 'Data Poller' stopped");
         } catch (SchedulerException e) {
             log.error("Error while stopping the job", e);
         }
@@ -59,7 +59,7 @@ public class QuartzListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent arg0) {
-        log.info("Starting 'Catalogue Poller' scheduler");
+        log.info("Starting 'Data Poller' scheduler");
         ConfigHelper cHelper = new ConfigHelper();
 
         try {
@@ -100,13 +100,13 @@ public class QuartzListener implements ServletContextListener {
                 }
 
                 // create new job only if job doesnt already exist
-                if (sched.getTrigger("Catalogue Poller", "DEFAULT") == null) {
-                    JobDetail jobDetail = new JobDetail("Catalogue Poller " + ruleName, "Goobi Admin Plugin", QuartzJob.class);
+                if (sched.getTrigger("Data Poller", "DEFAULT") == null) {
+                    JobDetail jobDetail = new JobDetail("Data Poller " + ruleName, "Goobi Admin Plugin", QuartzJob.class);
                     JobDataMap map = new JobDataMap();
                     map.put("rule", ruleName);
                     jobDetail.setJobDataMap(map);
                     Trigger trigger = TriggerUtils.makeHourlyTrigger(delay);
-                    trigger.setName("Catalogue Poller");
+                    trigger.setName("Data Poller");
                     trigger.setStartTime(startTime.getTime());
                     // register job and trigger at scheduler
                     sched.scheduleJob(jobDetail, trigger);

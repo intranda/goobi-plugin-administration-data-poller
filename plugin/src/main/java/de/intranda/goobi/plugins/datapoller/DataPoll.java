@@ -138,13 +138,13 @@ public class DataPoll {
     public void executePoll(String ruleName, boolean testRun) {
         if (!this.allowRun) {
             log.debug(
-                    "CatloguePollerPlugin: Error starting Poll either the message queue wasn't activated or another catalogue poll job was in progress! ");
+                    "DataPollerPlugin: Error starting Poll either the message queue wasn't activated or another catalogue poll job was in progress! ");
             return;
         } else {
             // set allowRun to false after starting a new poll
             this.allowRun = false;
         }
-        log.debug(" Starting to update the METS files fo all processes defined in the rule ");
+        log.debug("DataPollerPlugin: Starting to update the METS files fo all processes defined in the rule ");
 
         // first get all parameters of the rule
         if (this.ci.isEmpty()) {
@@ -157,7 +157,7 @@ public class DataPoll {
         if ("hotfolder".equals(info.getRuleType())) {
             if (!StorageProvider.getInstance().isFileExists(Paths.get(info.getPath()))) {
                 Helper.setFehlerMeldung("plugin_admin_dataPoller_configErrorHotfolderMissing");
-                log.error("The hotfolder {} does not exist!", info.getPath());
+                log.error("DataPollerPlugin: The hotfolder {} does not exist!", info.getPath());
 
                 return;
             }
@@ -167,7 +167,7 @@ public class DataPoll {
 
         if (!info.getFieldFilterList().isEmpty()) {
             if (info.getFieldListMode() == null) {
-                Helper.setFehlerMeldung("plugin_admin_cataloguePoller_configErrorModeMissing");
+                Helper.setFehlerMeldung("plugin_admin_dataPoller_configErrorModeMissing");
                 log.error("The mode Attribut of the fieldList element ist not specified! Pleas update the configuration file!");
                 return;
             }
@@ -180,14 +180,14 @@ public class DataPoll {
                     isBlockList = false;
                     break;
                 default:
-                    Helper.setFehlerMeldung("plugin_admin_cataloguePoller_configErrorModeInvalid");
+                    Helper.setFehlerMeldung("plugin_admin_dataPoller_configErrorModeInvalid");
                     log.error("DataPollerPlugin: The value of the attribute mode: " + info.getFieldListMode()
                             + " is invalid! Pleas update the configuration file!");
                     return;
             }
         } else {
             if ("whitelist".equals(info.getFieldListMode())) {
-                Helper.setFehlerMeldung("plugin_admin_cataloguePoller_configErrorEmptyWhiteList");
+                Helper.setFehlerMeldung("plugin_admin_dataPoller_configErrorEmptyWhiteList");
                 log.error("DataPollerPlugin: The filterlist is a whitelist but has no elements!");
                 return;
             }
