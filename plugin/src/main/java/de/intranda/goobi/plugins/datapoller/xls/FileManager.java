@@ -16,17 +16,18 @@
  * Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  */
-package de.intranda.goobi.plugins.cataloguePoller.xls;
+package de.intranda.goobi.plugins.datapoller.xls;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import de.intranda.goobi.plugins.cataloguePoller.ConfigInfo;
+import de.intranda.goobi.plugins.datapoller.ConfigInfo;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.StorageProviderInterface;
 import lombok.extern.log4j.Log4j2;
@@ -46,7 +47,7 @@ public class FileManager {
      * @param configInfos List with ConfigInfo
      * @return latest xlsx-reports in tempfolder
      */
-    public static HashMap<String, FolderInfo> manageTempFiles(Path tempFolder, List<ConfigInfo> configInfos) {
+    public static HashMap<String, FolderInfo> manageTempFiles(Path tempFolder, Collection<ConfigInfo> configInfos) {
         HashMap<String, FolderInfo> reports = new HashMap<>();
         for (ConfigInfo configInfo : configInfos) {
             String ruleName = configInfo.getTitle();
@@ -63,7 +64,7 @@ public class FileManager {
                 // delete the rest
                 for (Path xmlFolder : xmlFolders) {
                     if (!SPI.deleteDir(xmlFolder)) {
-                        log.debug("CatloguePollerPlugin: Couldn't delete the folder: " + xmlFolder);
+                        log.debug("DataPollerPlugin: Couldn't delete the folder: " + xmlFolder);
                     }
                 }
             } else {
@@ -78,7 +79,7 @@ public class FileManager {
                         try {
                             SPI.deleteFile(xlsFile);
                         } catch (IOException e) {
-                            log.error("CatloguePollerPlugin: Couldn't delete the file: " + xlsFile, e);
+                            log.error("DataPollerPlugin: Couldn't delete the file: " + xlsFile, e);
                         }
                     }
                 }
@@ -103,7 +104,7 @@ public class FileManager {
         try {
             SPI.createDirectories(xmlFolder);
         } catch (IOException ex) {
-            log.error("CatloguePollerPlugin: Couldn't create the folder: " + xmlFolder.toString(), ex);
+            log.error("DataPollerPlugin: Couldn't create the folder: " + xmlFolder.toString(), ex);
         }
         return xmlFolder;
     }
@@ -117,7 +118,7 @@ public class FileManager {
 
     public static List<Path> getXmlFiles(Path xmlFolder) {
         return SPI.listFiles(xmlFolder.toString(), path -> {
-            return !Files.isDirectory(path) && path.getFileName().toString().matches("^[_\\d]*\\.xml$");
+            return !Files.isDirectory(path) && path.getFileName().toString().matches("^[-_\\d]*\\.xml$");
         });
     }
 
@@ -126,5 +127,29 @@ public class FileManager {
             return !Files.isDirectory(path)
                     && path.getFileName().toString().matches("^" + ruleName.toLowerCase().trim().replace(" ", "_") + "[-\\d]*\\.xlsx$");
         });
+    }
+
+    public static List<Path> getHotfolderFiles(String hotfolder, String filter) {
+        return SPI.listFiles(hotfolder, path -> {
+            return !Files.isDirectory(path) && path.getFileName().toString().matches(filter);
+        });
+    }
+
+    public static void moveCatalogueFile(Path hotfolderFilePath, boolean success) {
+        if (hotfolderFilePath == null) {
+            return;
+        }
+        Path fileName = hotfolderFilePath.getFileName();
+        Path targetFolder = success ? hotfolderFilePath.getParent().resolve("success") : hotfolderFilePath.getParent().resolve("error");
+        try {
+            // check if error/ success Folders exists
+            if (!SPI.isFileExists(targetFolder)) {
+                SPI.createDirectories(targetFolder);
+            }
+            SPI.move(hotfolderFilePath, targetFolder.resolve(fileName));
+        } catch (IOException e) {
+            log.error("DataPollerPlugin: Couldn't move the file: " + hotfolderFilePath.toString() + " to new location " + targetFolder.toString(), e);
+
+        }
     }
 }

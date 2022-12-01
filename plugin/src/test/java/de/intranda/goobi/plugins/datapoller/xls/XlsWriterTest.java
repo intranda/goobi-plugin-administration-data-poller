@@ -16,7 +16,7 @@
  * Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  */
-package de.intranda.goobi.plugins.cataloguePoller.xls;
+package de.intranda.goobi.plugins.datapoller.xls;
 
 import static org.junit.Assert.fail;
 
@@ -35,7 +35,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import de.intranda.goobi.plugins.cataloguePoller.PullDiff;
+import de.intranda.goobi.plugins.datapoller.PullDiff;
 
 public class XlsWriterTest {
     private XlsWriter xlsWriter;

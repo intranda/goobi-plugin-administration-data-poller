@@ -1,4 +1,4 @@
-package de.intranda.goobi.plugins.cataloguePoller.xls;
+package de.intranda.goobi.plugins.datapoller.xls;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +26,7 @@ public class ReportInfo {
     private boolean testRun;
     private String ruleName;
     private long lastRunMillis;
-    private int processCount;
+    private int ticketCount;
 
     public static void marshalReportInfo(ReportInfo info, Path xmlTempFolder) {
         StorageProviderInterface spi = StorageProvider.getInstance();
@@ -43,9 +43,9 @@ public class ReportInfo {
 
             jaxbMarshaller.marshal(info, new File(fileOutputPath.toString()));
         } catch (JAXBException ex) {
-            log.error("CatloguePollerPlugin: Couldn't marshal ReportInfo Object to xml!", ex);
+            log.error("DataPollerPlugin: Couldn't marshal ReportInfo Object to xml!", ex);
         } catch (IOException ex) {
-            log.error("CatloguePollerPlugin: Couldn't write xml-File into folder: " + fileOutputPath.toString());
+            log.error("DataPollerPlugin: Couldn't write xml-File into folder: " + fileOutputPath.toString());
         }
     }
 
@@ -56,7 +56,7 @@ public class ReportInfo {
             Unmarshaller jaxbUnMarshaller = jaxbContext.createUnmarshaller();
             info = (ReportInfo) jaxbUnMarshaller.unmarshal(ReportInfoXml.toFile());
         } catch (JAXBException ex) {
-            log.error("CatloguePollerPlugin: Couldn't unmarshal ReportInfo Object from xml: " + ReportInfoXml.toString(), ex);
+            log.error("DataPollerPlugin: Couldn't unmarshal ReportInfo Object from xml: " + ReportInfoXml.toString(), ex);
             return null;
         }
         return info;

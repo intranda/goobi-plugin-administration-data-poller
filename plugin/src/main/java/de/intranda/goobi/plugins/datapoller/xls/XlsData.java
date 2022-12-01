@@ -16,28 +16,17 @@
  * Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  */
-package de.intranda.goobi.plugins.cataloguePoller;
+package de.intranda.goobi.plugins.datapoller.xls;
 
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import lombok.extern.log4j.Log4j2;
-
-@Log4j2
-public class QuartzJob implements Job {
-
-    // This class is part of the GUI package, if access to other plugin jar is
-    // needed, it must be initialized first
-    // For each call a new instance is created, class gets destroyed after
-    // execute() is finished
-
-    @Override
-    public void execute(JobExecutionContext context) {
-
-        log.debug("Execute job for rule: " + context.getJobDetail().getName() + " - " + context.getRefireCount());
-        String ruleName = context.getJobDetail().getJobDataMap().getString("rule");
-        CataloguePoll cp = new CataloguePoll();
-        cp.execute(ruleName);
-    }
-
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class XlsData {
+    private String field;
+    private String oldValues;
+    private String newValues;
 }

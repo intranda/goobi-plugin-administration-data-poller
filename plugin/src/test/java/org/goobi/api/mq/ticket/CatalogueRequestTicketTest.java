@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.easymock.EasyMock;
-import org.goobi.api.mq.ticket.CatalogueRequestTicket;
 import org.goobi.beans.Process;
 import org.goobi.beans.Project;
 import org.goobi.beans.Ruleset;
@@ -31,6 +30,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import de.intranda.goobi.plugins.datapoller.PullDiff;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.helper.Helper;
@@ -170,7 +170,7 @@ public class CatalogueRequestTicketTest {
         filter.add("PublicationYear");
         long beforeCall = StorageProvider.getInstance().getLastModifiedDate(metaTarget);
         // run updateMetsFileForProcess in test mode
-        catPollTicket.updateMetsFileForProcess(process, "K10Plus", catalogueList, true, filter, false, true, true, false);
+        catPollTicket.updateMetsFileForProcess(process, "K10Plus", catalogueList, true, filter, false, true, true, false, new PullDiff());
         long afterCall = StorageProvider.getInstance().getLastModifiedDate(metaTarget);
         assertEquals("The meta.xml-file was changed!", beforeCall, afterCall);
     }

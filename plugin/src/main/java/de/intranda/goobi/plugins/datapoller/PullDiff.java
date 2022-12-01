@@ -1,4 +1,22 @@
-package de.intranda.goobi.plugins.cataloguePoller;
+/**
+ * This file is part of a plugin for Goobi - a Workflow tool for the support of mass digitization.
+ *
+ * Visit the websites for more information.
+ *          - https://goobi.io
+ *          - https://www.intranda.com
+ *          - https://github.com/intranda/goobi
+ *
+ * This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 59
+ * Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ */
+package de.intranda.goobi.plugins.datapoller;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,30 +35,41 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import de.intranda.goobi.plugins.cataloguePoller.xls.XlsData;
+import de.intranda.goobi.plugins.datapoller.xls.XlsData;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.StorageProviderInterface;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
-/**
- * embedded class for the differences
- */
 @Data
 @Log4j2
 @XmlRootElement(name = "pullDiff")
 @NoArgsConstructor
 @XmlAccessorType(XmlAccessType.FIELD)
 public class PullDiff {
-    private Integer processId;
+    private int processId;
     private String processTitle;
+    private boolean failed;
+    private boolean mergeRecords;
+    private String debugMessage;
     @XmlElementWrapper(name = "messages")
     @XmlElement(name = "message")
     private List<String> messages = new ArrayList<>();
     @XmlElementWrapper(name = "xlsDataEntries")
     @XmlElement(name = "xlsData")
     private List<XlsData> xlsData = new ArrayList<>();
+
+    public PullDiff(Integer processId, String processTitle, boolean failed, String debugMessage) {
+        reset(processId, processTitle, failed, debugMessage);
+    }
+
+    public void reset(Integer processId, String processTitle, boolean failed, String debugMessage) {
+        this.processId = processId;
+        this.processTitle = processTitle;
+        this.failed = failed;
+        this.debugMessage = debugMessage;
+    }
 
     public static void marshalPullDiff(PullDiff diff, String xmlTempFolder, String lastRunMillis) {
         Path outputPath = Paths.get(xmlTempFolder);
@@ -63,9 +92,9 @@ public class PullDiff {
             Path fileOutputPath = outputPath.resolve(fileName.toString());
             jaxbMarshaller.marshal(diff, new File(fileOutputPath.toString()));
         } catch (JAXBException ex) {
-            log.error("CatloguePollerPlugin: Couldn't marshal Object to xml!", ex);
+            log.error("DataPollerPlugin: Couldn't marshal Object to xml!", ex);
         } catch (IOException ex) {
-            log.error("CatloguePollerPlugin: Couldn't write xml-File into folder: " + outputPath.toString());
+            log.error("DataPollerPlugin: Couldn't write xml-File into folder: " + outputPath.toString());
         }
     }
 
@@ -76,7 +105,7 @@ public class PullDiff {
             Unmarshaller jaxbUnMarshaller = jaxbContext.createUnmarshaller();
             diff = (PullDiff) jaxbUnMarshaller.unmarshal(PullDiffXml.toFile());
         } catch (JAXBException ex) {
-            log.error("CatloguePollerPlugin: Couldn't unmarshal Object from xml: " + PullDiffXml.toString(), ex);
+            log.error("DataPollerPlugin: Couldn't unmarshal Object from xml: " + PullDiffXml.toString(), ex);
             return null;
         }
         return diff;

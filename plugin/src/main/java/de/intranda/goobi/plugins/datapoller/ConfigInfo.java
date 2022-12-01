@@ -16,7 +16,7 @@
  * Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  */
-package de.intranda.goobi.plugins.cataloguePoller;
+package de.intranda.goobi.plugins.datapoller;
 
 import java.util.List;
 
@@ -31,11 +31,23 @@ public class ConfigInfo {
     private String catalogue;
     private List<StringPair> searchFields;
     private boolean mergeRecords;
-    private String filterList;
+    private List<String> fieldFilterList;
     private String fieldListMode;
     private boolean analyseSubElements;
     private String startTime;
-    private String delay;
+    private int delay;
     private boolean exportUpdatedRecords;
     private String lastRun;
+
+    private String workflow;
+    private String publicationType;
+
+    private String path;
+    private String ruleType;
+    private String fileHandlingFileFilter;
+    private boolean createMissingProcesses;
+
+    public String getFilterListString() {
+        return String.valueOf(fieldFilterList);
+    }
 }

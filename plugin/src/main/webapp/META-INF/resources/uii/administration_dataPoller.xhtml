@@ -24,10 +24,10 @@
 
         <h:outputText
             styleClass="alert alert-danger block margin-top-most"
-            value="#{msgs.noAccessAllowed} Plugin_Goobi_CataloguePoller"
-            rendered="#{!LoginForm.hasRole('Plugin_Goobi_CataloguePoller')}" />
+            value="#{msgs.noAccessAllowed} Plugin_Goobi_DataPoller"
+            rendered="#{!LoginForm.hasRole('Plugin_Goobi_DataPoller')}" />
 
-        <h:panelGroup rendered="#{LoginForm.hasRole('Plugin_Goobi_CataloguePoller')}">
+        <h:panelGroup rendered="#{LoginForm.hasRole('Plugin_Goobi_DataPoller')}">
             <div class="row">
                 <div class="col-sm-12">
                     <div class="box box-color box-bordered">
@@ -52,40 +52,40 @@
                                             <thead>
                                                 <tr>
                                                     <th>
-                                                        <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleFilter}" />
+                                                        <h:outputText value="#{msgs.plugin_admin_dataPoller_ruleFilter}" />
                                                     </th>
                                                     <th style="width:100px">
-                                                        <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleCatalogue}" />
+                                                        <h:outputText value="#{msgs.plugin_admin_dataPoller_ruleCatalogue}" />
                                                     </th>
                                                     <th style="width:150px">
-                                                        <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleCatalogueId}" />
+                                                        <h:outputText value="#{msgs.plugin_admin_dataPoller_ruleCatalogueId}" />
                                                     </th>
                                                     <th style="width:250px">
-                                                        <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleSkipFields}"
+                                                        <h:outputText value="#{msgs.plugin_admin_dataPoller_ruleSkipFields}"
                                                                         rendered="#{'blacklist' eq configInfo.fieldListMode}" />
-                                                        <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleWhitelist}" 
+                                                        <h:outputText value="#{msgs.plugin_admin_dataPoller_ruleWhitelist}" 
                                                                         rendered="#{'whitelist' eq configInfo.fieldListMode}"/>
                                                     </th>
                                                     <th style="width:150px">
-                                                        <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleAnalyseSubElements}" />
+                                                        <h:outputText value="#{msgs.plugin_admin_dataPoller_ruleAnalyseSubElements}" />
                                                     </th>
                                                     <th style="width:150px">
-                                                        <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleMergeRecords}" />
+                                                        <h:outputText value="#{msgs.plugin_admin_dataPoller_ruleMergeRecords}" />
                                                     </th>
                                                     <th style="width:150px">
-                                                        <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleExportUpdatedRecords}" />
+                                                        <h:outputText value="#{msgs.plugin_admin_dataPoller_ruleExportUpdatedRecords}" />
                                                     </th>
                                                     <th style="width:150px">
-                                                        <h:outputText value="#{msgs.plugin_admin_cataloguePoller_startingTime}"/>
+                                                        <h:outputText value="#{msgs.plugin_admin_dataPoller_startingTime}"/>
                                                     </th>
                                                     <th style="width:150px">
-                                                        <h:outputText value="#{msgs.plugin_admin_cataloguePoller_ruleDelay}" />
+                                                        <h:outputText value="#{msgs.plugin_admin_dataPoller_ruleDelay}" />
                                                     </th>
                                                     <th style="width:150px">
-                                                        <h:outputText value="#{msgs.plugin_admin_cataloguePoller_lastRun}"/>
+                                                        <h:outputText value="#{msgs.plugin_admin_dataPoller_lastRun}"/>
                                                     </th>
                                                     <th style="width:150px">
-                                                        <h:outputText value="#{msgs.plugin_admin_cataloguePoller_actions}"/>
+                                                        <h:outputText value="#{msgs.plugin_admin_dataPoller_actions}"/>
                                                     </th>
                                                 </tr>
                                             </thead>
@@ -94,7 +94,7 @@
                                                     <td>#{configInfo.filter}</td>
                                                     <td>#{configInfo.catalogue}</td>
                                                     <td>#{configInfo.searchFields}</td>
-                                                    <td>#{configInfo.filterList}</td>
+                                                    <td>#{configInfo.filterListString}</td>
                                                     <td>
                                                         <h:panelGroup class="badge badge-intranda-red" rendered="#{!configInfo.analyseSubElements}">
                                                             <i class="fa fa-circle-o"></i> #{msgs.inactive}	
@@ -126,26 +126,26 @@
 	                                               <button class="btn margin-right-5" jsf:rel="tooltip"
                                                         jsf:action="#{AdministrationForm.administrationPlugin.cp.executeTest(configInfo.title)}"
                                                         jsf:disabled="#{not AdministrationForm.administrationPlugin.cp.allowRun}"
-                                                        title="#{msgs.plugin_admin_cataloguePoller_runTest}">
+                                                        title="#{msgs.plugin_admin_dataPoller_runTest}">
                                                         <i class="fa fa-flask"></i>
                                                         <f:passThroughAttribute name="data-toggle" value="tooltip" />
-                                                        <f:passThroughAttribute name="aria-label" value="#{msgs.plugin_admin_cataloguePoller_runTest}" />
+                                                        <f:passThroughAttribute name="aria-label" value="#{msgs.plugin_admin_dataPoller_runTest}" />
                                                    </button>
                                                     <button class="btn margin-right-5" jsf:rel="tooltip"
                                                         jsf:action="#{AdministrationForm.administrationPlugin.cp.execute(configInfo.title)}"
                                                          jsf:disabled="#{not AdministrationForm.administrationPlugin.cp.allowRun}"
-                                                        title="#{msgs.plugin_admin_cataloguePoller_runNow}">
+                                                        title="#{msgs.plugin_admin_dataPoller_runNow}">
                                                         <i class="fa fa-play"></i>
                                                         <f:passThroughAttribute name="data-toggle" value="tooltip" />
-                                                        <f:passThroughAttribute name="aria-label" value="#{msgs.plugin_admin_cataloguePoller_runNow}" />
+                                                        <f:passThroughAttribute name="aria-label" value="#{msgs.plugin_admin_dataPoller_runNow}" />
                                                     </button>
                                                     <button class="btn margin-right-5" jsf:rel="tooltip"
                                                         jsf:action="#{AdministrationForm.administrationPlugin.cp.download(configInfo.title)}"
-                                                        title="#{msgs.plugin_admin_cataloguePoller_download}"
+                                                        title="#{msgs.plugin_admin_dataPoller_download}"
                                                         jsf:rendered="#{AdministrationForm.administrationPlugin.cp.reportExists(configInfo.title)}">
                                                         <i class="fa fa-download"></i>
                                                         <f:passThroughAttribute name="data-toggle" value="tooltip" />
-                                                        <f:passThroughAttribute name="aria-label" value="#{msgs.plugin_admin_cataloguePoller_download}" />
+                                                        <f:passThroughAttribute name="aria-label" value="#{msgs.plugin_admin_dataPoller_download}" />
                                                     </button>
                                                 </td>
                                             </tr>
@@ -158,11 +158,11 @@
                         <h:panelGroup rendered="#{AdministrationForm.administrationPlugin.cp.differences!=null and AdministrationForm.administrationPlugin.cp.differences.size() ne 0}">
                             <div class="box-content">
                                 <h4>
-                                    <h:outputText value="#{msgs.plugin_admin_cataloguePoller_resultsTest}" 
+                                    <h:outputText value="#{msgs.plugin_admin_dataPoller_resultsTest}" 
                                     rendered="#{AdministrationForm.administrationPlugin.cp.ticketStateTestRun}" />
-                                    <h:outputText value="#{msgs.plugin_admin_cataloguePoller_results}" 
+                                    <h:outputText value="#{msgs.plugin_admin_dataPoller_results}" 
                                     rendered="#{not AdministrationForm.administrationPlugin.cp.ticketStateTestRun}" />
-                                    <h:outputText value=" #{msgs.plugin_admin_cataloguePoller_resultsUnfinished}" 
+                                    <h:outputText value=" #{msgs.plugin_admin_dataPoller_resultsUnfinished}" 
                                     rendered="#{AdministrationForm.administrationPlugin.cp.ticketStateUnfinished}" />
                                 </h4>
                                 <ui:repeat
