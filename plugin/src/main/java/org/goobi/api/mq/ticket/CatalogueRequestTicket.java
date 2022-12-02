@@ -73,6 +73,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         String searchFieldsAsString = ticket.getProperties().get("searchfields");
         List<StringPair> searchfields = new ArrayList<>();
         Path hotfolderFile = null;
+        // if the processId is negative we are handling a run with paths instead of processes
         if (processId < 0) {
             hotfolderFile = Paths.get(ticket.getProperties().get("hotfolderFile"));
             String processName = FilenameUtils.removeExtension(hotfolderFile.getFileName().toString());
@@ -240,7 +241,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
 
             if (catHandler.getFfNew() == null) {
                 diff.setFailed(true);
-                log.debug("DataPollerPöugin: OPAC-Search returned no Fileformat for pocess with id {}", p.getId());
+                log.debug("DataPollerPlugin: OPAC-Search returned no Fileformat for pocess with id {}", p.getId());
                 diff.setDebugMessage("OPAC-Search returned no Fileformat");
                 return false;
             }

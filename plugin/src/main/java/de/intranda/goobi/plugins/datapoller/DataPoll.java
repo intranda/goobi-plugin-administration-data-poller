@@ -117,12 +117,12 @@ public class DataPoll {
             for (String key : keys) {
                 FolderInfo info = infos.get(key);
                 this.xlsxReports.put(key, info.getXlsFile());
-                List<PullDiff> diffs = info.getDifferences();
+                List<PullDiff> diffsForDisplay = info.getDifferences(0);
                 ReportInfo rInfo = info.getInfo();
-                if (!diffs.isEmpty()) {
-                    this.differences = diffs;
+                if (!diffsForDisplay.isEmpty()) {
+                    this.differences = diffsForDisplay;
                     if (rInfo != null) {
-                        this.ticketStateUnfinished = (differences.size() < rInfo.getTicketCount() && this.ticketsActive);
+                        this.ticketStateUnfinished = (info.getDiffSize() < rInfo.getTicketCount() && this.ticketsActive);
                         this.ticketStateTestRun = rInfo.isTestRun();
                     }
                 }

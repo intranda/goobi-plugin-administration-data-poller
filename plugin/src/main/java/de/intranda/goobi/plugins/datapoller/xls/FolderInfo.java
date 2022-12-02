@@ -20,4 +20,17 @@ public class FolderInfo {
         this.differences = new ArrayList<>();
         this.info = null;
     }
+
+    public int getDiffSize() {
+        return this.differences.size();
+    }
+
+    public List<PullDiff> getDifferences(int startIndex) {
+        if (startIndex >= differences.size()) {
+            return new ArrayList<>();
+        }
+        int offset = 500;
+        int endIndex = (startIndex + offset < differences.size()) ? startIndex + offset : differences.size();
+        return differences.subList(startIndex, endIndex);
+    }
 }
