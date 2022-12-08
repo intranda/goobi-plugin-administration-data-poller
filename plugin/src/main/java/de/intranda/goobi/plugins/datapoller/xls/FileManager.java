@@ -135,12 +135,19 @@ public class FileManager {
         });
     }
 
-    public static void moveCatalogueFile(Path hotfolderFilePath, boolean success) {
+    /**
+     * moves the catlogue file to its new destination after processing. null indicates failure and if a new destination is provided it's assumed that
+     * the operation was successful. if the operation wasn't successful the files will be saved in an error folder in the hotfolderFilePath
+     * 
+     * @param hotfolderFilePath Path of the hotfolder
+     * @param destination Path where the file should be stored if the operation was successful
+     */
+    public static void moveCatalogueFile(Path hotfolderFilePath, String destination) {
         if (hotfolderFilePath == null) {
             return;
         }
         Path fileName = hotfolderFilePath.getFileName();
-        Path targetFolder = success ? hotfolderFilePath.getParent().resolve("success") : hotfolderFilePath.getParent().resolve("error");
+        Path targetFolder = destination != null ? Paths.get(destination) : hotfolderFilePath.getParent().resolve("error");
         try {
             // check if error/ success Folders exists
             if (!SPI.isFileExists(targetFolder)) {

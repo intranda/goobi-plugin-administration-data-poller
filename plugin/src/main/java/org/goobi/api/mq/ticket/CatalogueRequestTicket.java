@@ -1,5 +1,6 @@
 package org.goobi.api.mq.ticket;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import de.sub.goobi.helper.ScriptThreadWithoutHibernate;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.VariableReplacer;
 import de.sub.goobi.helper.enums.StepStatus;
+import de.sub.goobi.helper.exceptions.SwapException;
 import de.sub.goobi.persistence.managers.ProcessManager;
 import lombok.extern.log4j.Log4j2;
 import ugh.dl.Corporate;
@@ -149,7 +151,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         }
         if (!updateMetsFileForProcess(process, catalogueName, searchfields, mergeRecords, fieldFilterList, exportUpdatedRecords, analyseSubElements,
                 testRun, blockList, diff)) {
-            FileManager.moveCatalogueFile(hotfolderFile, false);
+            FileManager.moveCatalogueFile(hotfolderFile, null);
             return PluginReturnValue.ERROR;
         }
 
@@ -167,7 +169,11 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
 
         // marshall PullDiff
         PullDiff.marshalPullDiff(diff, xmlTempFolder, lastRunMillis);
-        FileManager.moveCatalogueFile(hotfolderFile, true);
+        try {
+            FileManager.moveCatalogueFile(hotfolderFile, process.getImportDirectory());
+        } catch (SwapException | IOException ex) {
+            log.debug("Couldn't save the imported xml file in the import directory of the process " + ex);
+        }
         return PluginReturnValue.FINISH;
     }
 
