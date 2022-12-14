@@ -27,6 +27,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import org.goobi.io.BackupFileManager;
+
 import de.intranda.goobi.plugins.datapoller.ConfigInfo;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.StorageProviderInterface;
@@ -140,23 +142,33 @@ public class FileManager {
      * the operation was successful. if the operation wasn't successful the files will be saved in an error folder in the hotfolderFilePath
      * 
      * @param hotfolderFilePath Path of the hotfolder
-     * @param destination Path where the file should be stored if the operation was successful
+     * @param backupDestination destination Path where the file should be stored if the operation was successful
      */
-    public static void moveCatalogueFile(Path hotfolderFilePath, String destination) {
+    public static void moveCatalogueFile(Path hotfolderFilePath, String backupDestination) {
         if (hotfolderFilePath == null) {
             return;
         }
         Path fileName = hotfolderFilePath.getFileName();
-        Path targetFolder = destination != null ? Paths.get(destination) : hotfolderFilePath.getParent().resolve("error");
+        Path targetFolder =
+                backupDestination != null ? hotfolderFilePath.getParent().resolve("success") : hotfolderFilePath.getParent().resolve("error");
         try {
             // check if error/ success Folders exists
-            if (!SPI.isFileExists(targetFolder)) {
-                SPI.createDirectories(targetFolder);
+            createFolderIfNotExists(targetFolder.toString());
+            if (backupDestination != null) {
+                createFolderIfNotExists(backupDestination);
+                BackupFileManager.createBackup(hotfolderFilePath.getParent().toString() + "/", backupDestination, fileName.toString(), 10, false);
             }
             SPI.move(hotfolderFilePath, targetFolder.resolve(fileName));
         } catch (IOException e) {
             log.error("DataPollerPlugin: Couldn't move the file: " + hotfolderFilePath.toString() + " to new location " + targetFolder.toString(), e);
 
+        }
+    }
+
+    private static void createFolderIfNotExists(String path) throws IOException {
+        Path target = Paths.get(path);
+        if (!SPI.isFileExists(target)) {
+            SPI.createDirectories(target);
         }
     }
 }
