@@ -154,6 +154,7 @@ public class FileManager {
         try {
             // check if error/ success Folders exists
             createFolderIfNotExists(targetFolder.toString());
+            log.debug("Following backup destination was provided:" + backupDestination);
             if (backupDestination != null) {
                 createFolderIfNotExists(backupDestination);
                 BackupFileManager.createBackup(hotfolderFilePath.getParent().toString() + "/", backupDestination, fileName.toString(), 10, false);

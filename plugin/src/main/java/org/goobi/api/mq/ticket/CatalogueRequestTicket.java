@@ -197,7 +197,11 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
             PullDiff diff) {
         log.debug("Starting catalogue request using catalogue: {}", configCatalogue);
         if (diff == null) {
-            log.debug("PullDiff is not allowed to be null  {}", p.getId());
+            if (p == null) {
+                log.debug("Process shouldn't be null but is");
+            } else {
+                log.debug("PullDiff is not allowed to be null  {}", p.getId());
+            }
             return false;
         }
         // first read the original METS file for the process
