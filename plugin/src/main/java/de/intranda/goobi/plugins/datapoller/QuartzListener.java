@@ -69,20 +69,25 @@ public class QuartzListener implements ServletContextListener {
             HashMap<String, ConfigInfo> rules = cHelper.readConfigInfo();
 
             for (ConfigInfo rule : rules.values()) {
-
+                if (!rule.isJobActive()) {
+                    // skip rule if job is not active
+                    // this may need more effort to deactivate already registered jobs but
+                    // the same is true for schedule changes
+                    continue;
+                }
                 String ruleName = rule.getTitle();
                 // get start time, set Calendar object  / default 22:00:00
                 String configuredStartTime = rule.getStartTime();
 
                 if (StringUtils.isBlank(configuredStartTime)) {
-                    log.error("No starttime found for rule {}, starting at 22:00:00", ruleName);
-                    configuredStartTime = "22:00:00";
+                    log.error("No starttime found for rule {}, no job was scheduled!", ruleName);
+                    continue;
                 } else if (!configuredStartTime.matches("([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]")) {
                     log.error("Invalid time format found for rule {}, use hh:mm:ss. Starting at 22:00:00", ruleName);
                     configuredStartTime = "22:00:00";
                 }
 
-                // get delay between trigger / default 24h
+                // get delay between trigger / default 24h / default is specified in ConfigHelper
                 int delay = rule.getDelay();
 
                 log.info("Definition for rule {} : starting at {}, repeat every {} hour(s).", ruleName, configuredStartTime, delay);

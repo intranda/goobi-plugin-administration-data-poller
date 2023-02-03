@@ -2,7 +2,7 @@
 <config_plugin>
 
 	<!-- multiple different rules can be defined for individual use cases -->
-	<rule title="SampleProject" startTime="22:00:00" delay="24">
+	<rule title="SampleProject" activateJob="false" startTime="22:00:00" delay="24">
 
 		<!-- filter which items to run through (can be more then one, otherwise use *) please notice that blanks inside of the filter query need to be surrounded by quotation marks -->
 		<filter>project:SampleProject</filter>
@@ -39,7 +39,7 @@
 
 	</rule>
 
-	<rule title="Archive project" startTime="21:00:00" delay="48">
+	<rule title="Archive project" activateJob="false" startTime="21:00:00" delay="48">
 		<filter>project:Archive</filter>
 		<catalogue>K10Plus</catalogue>
 		<catalogueField fieldName="12" fieldValue="$(meta.CatalogIDDigital)" />
@@ -54,7 +54,7 @@
         </fieldList>
 	</rule>
 
-	<rule title="Manuscript project" startTime="23:00:00" delay="24">
+	<rule title="Manuscript project" activateJob="false" startTime="23:00:00" delay="24">
 		<filter>"project:Manuscript items"</filter>
 		<catalogue>K10Plus</catalogue>
 		<catalogueField fieldName="12" fieldValue="$(meta.CatalogIDDigital)" />

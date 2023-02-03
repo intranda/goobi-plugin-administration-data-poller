@@ -29,14 +29,14 @@ public class ConfigHelper {
 
     public ConfigHelper() {
         this.pluginName = DataPollerPlugin.getPluginName();
-        config = ConfigPlugins.getPluginConfig(this.pluginName);
-        config.setExpressionEngine(new XPathExpressionEngine());
+        this.config = ConfigPlugins.getPluginConfig(this.pluginName);
+        this.config.setExpressionEngine(new XPathExpressionEngine());
     }
 
     public HashMap<String, ConfigInfo> readConfigInfo() {
         HashMap<String, ConfigInfo> map = new HashMap<>();
         // run through all rules
-        List<HierarchicalConfiguration> rulelist = config.configurationsAt("rule");
+        List<HierarchicalConfiguration> rulelist = this.config.configurationsAt("rule");
         for (HierarchicalConfiguration rule : rulelist) {
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(rule.getLong("lastRun", 0));
@@ -70,8 +70,11 @@ public class ConfigHelper {
 
             ci.setExportUpdatedRecords(rule.getBoolean("exportUpdatedRecords", false));
             ci.setAnalyseSubElements(rule.getBoolean("analyseSubElements"));
+
+            //quartz job related attributes
             ci.setStartTime(rule.getString("@startTime"));
             ci.setDelay(rule.getInt("@delay", 24));
+            ci.setJobActive(rule.getBoolean("@activateJob", false));
 
             ci.setLastRun(formatter.format(calendar.getTime()));
 
@@ -82,10 +85,10 @@ public class ConfigHelper {
 
     public void updateLastRun(String ruleName, long lastRunMillis) {
         try {
-            HierarchicalConfiguration rule = config.configurationAt("rule[@title='" + ruleName + "']");
+            HierarchicalConfiguration rule = this.config.configurationAt("rule[@title='" + ruleName + "']");
             rule.setProperty("lastRun", lastRunMillis);
             Path configurationFile = Paths.get(ConfigurationHelper.getInstance().getConfigurationFolder(), "plugin_" + this.pluginName + ".xml");
-            config.save(configurationFile.toString());
+            this.config.save(configurationFile.toString());
         } catch (ConfigurationException e) {
             log.error("Error while updating the configuration file", e);
         }

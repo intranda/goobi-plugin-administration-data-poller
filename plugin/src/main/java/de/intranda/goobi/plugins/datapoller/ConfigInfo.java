@@ -36,6 +36,7 @@ public class ConfigInfo {
     private boolean analyseSubElements;
     private String startTime;
     private int delay;
+    private boolean jobActive;
     private boolean exportUpdatedRecords;
     private String lastRun;
 
@@ -48,6 +49,6 @@ public class ConfigInfo {
     private boolean createMissingProcesses;
 
     public String getFilterListString() {
-        return String.valueOf(fieldFilterList);
+        return String.valueOf(this.fieldFilterList);
     }
 }

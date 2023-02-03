@@ -40,7 +40,7 @@ public class DataPollerPlugin implements IAdministrationPlugin, IPlugin {
      * Constructor for parameter initialisation from config file
      */
     public DataPollerPlugin() {
-        cp = new DataPoll();
+        this.cp = new DataPoll();
     }
 
     @Override
@@ -62,20 +62,20 @@ public class DataPollerPlugin implements IAdministrationPlugin, IPlugin {
         return GUI;
     }
 
-    //    public void updateStatusInformation() {
-    //        try {
-    //            // get all job groups
-    //            SchedulerFactory schedFact = new StdSchedulerFactory();
-    //            Scheduler sched = schedFact.getScheduler();
-    //            for (String groupName : sched.getJobGroupNames()) {
-    //                // get all jobs within the group
-    //                for (Object name : sched.getJobNames(groupName)) {
-    //                    log.debug("Scheduler job: " + groupName + " - " + name);
+    //        public void updateStatusInformation() {
+    //            try {
+    //                // get all job groups
+    //                SchedulerFactory schedFact = new StdSchedulerFactory();
+    //                Scheduler sched = schedFact.getScheduler();
+    //                for (String groupName : sched.getJobGroupNames()) {
+    //                    // get all jobs within the group
+    //                    for (Object name : sched.getJobNames(groupName)) {
+    //                        log.debug("Scheduler job: " + groupName + " - " + name);
+    //                    }
     //                }
+    //            } catch (SchedulerException e) {
+    //                log.error("Error while reading job information", e);
     //            }
-    //        } catch (SchedulerException e) {
-    //            log.error("Error while reading job information", e);
     //        }
-    //    }
 
 }
