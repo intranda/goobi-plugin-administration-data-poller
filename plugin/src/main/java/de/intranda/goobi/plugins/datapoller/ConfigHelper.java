@@ -67,7 +67,7 @@ public class ConfigHelper {
             ci.setMergeRecords(rule.getBoolean("mergeRecords"));
             ci.setFieldListMode(rule.getString("fieldList/@mode", null));
             ci.setFieldFilterList(Arrays.asList(rule.getStringArray("fieldList/field")));
-
+            ci.setSteps(Arrays.asList(rule.getStringArray("alwaysExecute/step")));
             ci.setExportUpdatedRecords(rule.getBoolean("exportUpdatedRecords", false));
             ci.setAnalyseSubElements(rule.getBoolean("analyseSubElements"));
 

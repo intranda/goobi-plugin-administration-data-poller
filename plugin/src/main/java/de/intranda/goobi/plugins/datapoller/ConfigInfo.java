@@ -32,6 +32,7 @@ public class ConfigInfo {
     private List<StringPair> searchFields;
     private boolean mergeRecords;
     private List<String> fieldFilterList;
+    private List<String> steps;
     private String fieldListMode;
     private boolean analyseSubElements;
     private String startTime;

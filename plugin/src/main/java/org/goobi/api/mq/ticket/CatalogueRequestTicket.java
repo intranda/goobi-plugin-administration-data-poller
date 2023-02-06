@@ -141,8 +141,14 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
             sp.setTwo(parts[1]);
             searchfields.add(sp);
         }
+
+        // retrieve lists from strings
+        String stepsAsString = ticket.getProperties().get("steps");
+        List<String> steplist = Arrays.asList(stepsAsString.split("\\|"));
+
         String fieldFilter = ticket.getProperties().get("fieldFilter");
         List<String> fieldFilterList = Arrays.asList(fieldFilter.split("\\|"));
+
         if (testRun && process == null) {
             log.debug("DataPollerPlugin: Processes will not be created during a testrun: {}", hotfolderFile.toString());
             diff = new PullDiff(processId, "", false, "Processes will not be created during a testrun:");
@@ -155,15 +161,19 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
             return PluginReturnValue.ERROR;
         }
 
-        if (!isExistingProcess) {
-            // start any open automatic tasks for the created/updated process
-            log.debug("Trying to start steps with status open for process with Id {}!", process.getId());
-            for (Step s : process.getSchritteList()) {
-                if (StepStatus.OPEN.equals(s.getBearbeitungsstatusEnum()) && s.isTypAutomatisch()) {
-                    ScriptThreadWithoutHibernate myThread = new ScriptThreadWithoutHibernate(s);
-                    myThread.startOrPutToQueue();
-                    log.debug("Put open step {}! into queue for process with id {}", s.getTitel(), process.getId());
-                }
+        // start any open automatic tasks for the created/updated process
+        log.debug("Trying to start steps with status open for process with Id {}!", process.getId());
+        for (Step s : process.getSchritteList()) {
+            // if the process is new start open Steps
+            if (!isExistingProcess && StepStatus.OPEN.equals(s.getBearbeitungsstatusEnum()) && s.isTypAutomatisch()) {
+                ScriptThreadWithoutHibernate myThread = new ScriptThreadWithoutHibernate(s);
+                myThread.startOrPutToQueue();
+                log.debug("Put open step {}! into queue for process with id {}", s.getTitel(), process.getId());
+                // else if to keep mental load acceptable ;)
+            } else if (steplist.contains(s.getTitel())) {
+                ScriptThreadWithoutHibernate myThread = new ScriptThreadWithoutHibernate(s);
+                myThread.startOrPutToQueue();
+                log.debug("Put specified step {}! into queue for process with id {}", s.getTitel(), process.getId());
             }
         }
 

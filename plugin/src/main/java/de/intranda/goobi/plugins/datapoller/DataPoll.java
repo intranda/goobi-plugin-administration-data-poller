@@ -65,7 +65,7 @@ public class DataPoll {
 
     public DataPoll() {
 
-        cHelper = new ConfigHelper();
+        this.cHelper = new ConfigHelper();
 
         //this should be moved
         MessageQueueBean queueBean = Helper.getBeanByClass(MessageQueueBean.class);
@@ -83,7 +83,7 @@ public class DataPoll {
 
     public void executeAll() {
 
-        List<HierarchicalConfiguration> rules = config.configurationsAt("rule");
+        List<HierarchicalConfiguration> rules = this.config.configurationsAt("rule");
 
         for (HierarchicalConfiguration rule : rules) {
             execute(rule.getString("@title"));
@@ -99,7 +99,7 @@ public class DataPoll {
     }
 
     public void download(String ruleName) {
-        Path report = xlsxReports.get(ruleName);
+        Path report = this.xlsxReports.get(ruleName);
         if (report != null) {
             try {
                 Faces.sendFile(report.toFile(), true);
@@ -112,7 +112,7 @@ public class DataPoll {
     public boolean reportExists(String ruleName) {
         if (this.xlsxReports.isEmpty()) {
             HashMap<String, FolderInfo> infos =
-                    FileManager.manageTempFiles(Paths.get(ConfigurationHelper.getInstance().getTemporaryFolder()), ci.values());
+                    FileManager.manageTempFiles(Paths.get(ConfigurationHelper.getInstance().getTemporaryFolder()), this.ci.values());
             Set<String> keys = infos.keySet();
             for (String key : keys) {
                 FolderInfo info = infos.get(key);
@@ -129,7 +129,7 @@ public class DataPoll {
 
             }
         }
-        return xlsxReports.containsKey(ruleName);
+        return this.xlsxReports.containsKey(ruleName);
     }
 
     /**
@@ -148,7 +148,7 @@ public class DataPoll {
 
         // first get all parameters of the rule
         if (this.ci.isEmpty()) {
-            this.ci = cHelper.readConfigInfo();
+            this.ci = this.cHelper.readConfigInfo();
         }
 
         ConfigInfo info = this.ci.get(ruleName);
@@ -246,7 +246,7 @@ public class DataPoll {
             }
         }
         // write last updated time into the configuration file
-        cHelper.updateLastRun(ruleName, lastRunMillis);
+        this.cHelper.updateLastRun(ruleName, lastRunMillis);
     }
 
     private void updateAndSubmitTicket(TaskTicket ticket, ConfigInfo info, boolean testRun, boolean isBlockList, long lastRunMillis,
@@ -282,6 +282,15 @@ public class DataPoll {
         }
         ticket.getProperties().put("fieldFilter", sb.toString());
 
+        sb = new StringBuilder();
+        for (String field : info.getSteps()) {
+            if (sb.length() > 0) {
+                sb.append("|");
+            }
+            sb.append(field);
+        }
+        ticket.getProperties().put("steps", sb.toString());
+
         // submit ticket
         try {
             TicketGenerator.submitInternalTicket(ticket, QueueType.SLOW_QUEUE, "CatalogueRequest", ticket.getProcessId());
@@ -296,7 +305,7 @@ public class DataPoll {
      * @return
      */
     public Collection<ConfigInfo> getConfigInfo() {
-        this.ci = cHelper.readConfigInfo();
+        this.ci = this.cHelper.readConfigInfo();
         return this.ci.values();
     }
 
