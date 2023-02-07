@@ -62,23 +62,34 @@ public class DataPoll {
     private boolean allowRun = false;
     private boolean ticketStateUnfinished = true;
     private boolean queueIsUp = false;
+    private boolean quartzJob;
 
-    public DataPoll() {
+    public DataPoll(boolean quartzJob) {
 
         this.cHelper = new ConfigHelper();
-
+        this.quartzJob = quartzJob;
         //this should be moved
-        MessageQueueBean queueBean = Helper.getBeanByClass(MessageQueueBean.class);
-        if (queueBean.isMessageBrokerStart()) {
-            this.queueIsUp = true;
-            Map<String, Integer> activeTicketType = queueBean.getSlowQueueContent();
-            if (activeTicketType.containsKey("CatalogueRequest")) {
-                this.ticketsActive = true;
+
+        if (!this.quartzJob) {
+            MessageQueueBean queueBean = Helper.getBeanByClass(MessageQueueBean.class);
+            if (queueBean.isMessageBrokerStart()) {
+                this.queueIsUp = true;
+                Map<String, Integer> activeTicketType = queueBean.getSlowQueueContent();
+                if (activeTicketType.containsKey("CatalogueRequest")) {
+                    this.ticketsActive = true;
+                }
+            } else {
+                Helper.setFehlerMeldung("The Message Queue is not activated");
+                log.debug("The Message Queue is not activated!");
             }
+            this.allowRun = this.queueIsUp && !this.ticketsActive;
         } else {
-            Helper.setFehlerMeldung("The Message Queue is not activated");
+            // if this run was trigered by a quartz job only check if queue is running.
+            this.allowRun = ConfigurationHelper.getInstance().isStartInternalMessageBroker();
+            if (!allowRun) {
+                log.debug("The Message Queue is not activated!");
+            }
         }
-        this.allowRun = this.queueIsUp && !this.ticketsActive;
     }
 
     public void executeAll() {
@@ -154,6 +165,11 @@ public class DataPoll {
         ConfigInfo info = this.ci.get(ruleName);
         // run through all rules
 
+        // make sure job will not run if isactive is false
+        if (this.quartzJob && !info.isJobActive()) {
+            log.debug("Quartz Job was triggered but rule was specified to be inactive (jobActive is false)");
+            return;
+        }
         if ("hotfolder".equals(info.getRuleType())) {
             if (!StorageProvider.getInstance().isFileExists(Paths.get(info.getPath()))) {
                 Helper.setFehlerMeldung("plugin_admin_dataPoller_configErrorHotfolderMissing");

@@ -40,7 +40,7 @@ public class DataPollerPlugin implements IAdministrationPlugin, IPlugin {
      * Constructor for parameter initialisation from config file
      */
     public DataPollerPlugin() {
-        this.cp = new DataPoll();
+        this.cp = new DataPoll(false);
     }
 
     @Override
