@@ -166,7 +166,7 @@ public class DataPoll {
         // run through all rules
 
         // make sure job will not run if isactive is false
-        if (this.quartzJob && !info.isJobActive()) {
+        if (this.quartzJob && !info.isEnabled()) {
             log.debug("Quartz Job was triggered but rule was specified to be inactive (jobActive is false)");
             return;
         }

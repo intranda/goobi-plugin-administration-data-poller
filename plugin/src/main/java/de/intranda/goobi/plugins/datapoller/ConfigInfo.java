@@ -37,7 +37,7 @@ public class ConfigInfo {
     private boolean analyseSubElements;
     private String startTime;
     private int delay;
-    private boolean jobActive;
+    private boolean enabled;
     private boolean exportUpdatedRecords;
     private String lastRun;
 

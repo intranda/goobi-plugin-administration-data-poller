@@ -67,14 +67,14 @@ public class ConfigHelper {
             ci.setMergeRecords(rule.getBoolean("mergeRecords"));
             ci.setFieldListMode(rule.getString("fieldList/@mode", null));
             ci.setFieldFilterList(Arrays.asList(rule.getStringArray("fieldList/field")));
-            ci.setSteps(Arrays.asList(rule.getStringArray("alwaysExecute/step")));
+            ci.setSteps(Arrays.asList(rule.getStringArray("alwaysExecuteStepList/step")));
             ci.setExportUpdatedRecords(rule.getBoolean("exportUpdatedRecords", false));
             ci.setAnalyseSubElements(rule.getBoolean("analyseSubElements"));
 
             //quartz job related attributes
             ci.setStartTime(rule.getString("@startTime"));
             ci.setDelay(rule.getInt("@delay", 24));
-            ci.setJobActive(rule.getBoolean("@activateJob", false));
+            ci.setEnabled(rule.getBoolean("@activateJob", false));
 
             ci.setLastRun(formatter.format(calendar.getTime()));
 

@@ -69,7 +69,7 @@ public class QuartzListener implements ServletContextListener {
             HashMap<String, ConfigInfo> rules = cHelper.readConfigInfo();
 
             for (ConfigInfo rule : rules.values()) {
-                if (!rule.isJobActive()) {
+                if (!rule.isEnabled()) {
                     // skip rule if job is not active
                     // this may need more effort to deactivate already registered jobs but
                     // the same is true for schedule changes
