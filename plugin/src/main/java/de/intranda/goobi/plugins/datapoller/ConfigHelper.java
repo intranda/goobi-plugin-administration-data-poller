@@ -74,7 +74,7 @@ public class ConfigHelper {
             //quartz job related attributes
             ci.setStartTime(rule.getString("@startTime"));
             ci.setDelay(rule.getInt("@delay", 24));
-            ci.setEnabled(rule.getBoolean("@activateJob", false));
+            ci.setEnabled(rule.getBoolean("@enabled", false));
 
             ci.setLastRun(formatter.format(calendar.getTime()));
 
