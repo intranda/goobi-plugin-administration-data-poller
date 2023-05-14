@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.intranda.goobi.plugins.administration</groupId>
   <artifactId>data-poller-main</artifactId>
-  <version>1.0.0</version>
+  <version>23.04.2</version>
   <properties>
     <jar.name>plugin_intranda_administration_data-poller</jar.name>
     <dest.folder>/opt/digiverso/goobi/plugins/administration/</dest.folder>
@@ -11,7 +11,7 @@
   <parent>
     <groupId>de.intranda.goobi.plugins.administration</groupId>
     <artifactId>data-poller</artifactId>
-    <version>1.0.0</version>
+    <version>23.04.2</version>
   </parent>
   <repositories>
     <repository>
@@ -22,12 +22,11 @@
   <build>
     <finalName>${jar.name}</finalName>
     <sourceDirectory>${project.basedir}/../src/main/java/</sourceDirectory>
-
     <testSourceDirectory>${project.basedir}/../src/test/java/</testSourceDirectory>
     <testResources>
-        <testResource>
-            <directory>${project.basedir}/../src/test/resources</directory>
-        </testResource>
+      <testResource>
+        <directory>${project.basedir}/../src/test/resources</directory>
+      </testResource>
     </testResources>
     <plugins>
       <plugin>
