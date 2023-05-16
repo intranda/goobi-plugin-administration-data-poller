@@ -26,14 +26,18 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
 import org.apache.commons.lang.StringUtils;
+import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
+import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;
+import org.quartz.SimpleScheduleBuilder;
 import org.quartz.Trigger;
-import org.quartz.TriggerUtils;
+import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
+import org.quartz.impl.matchers.GroupMatcher;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -46,15 +50,7 @@ public class QuartzListener implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent arg0) {
-        // stop the data poller job
-        try {
-            SchedulerFactory schedFact = new StdSchedulerFactory();
-            Scheduler sched = schedFact.getScheduler();
-            sched.deleteJob("Data Poller", "Goobi Admin Plugin");
-            log.info("Scheduler for 'Data Poller' stopped");
-        } catch (SchedulerException e) {
-            log.error("Error while stopping the job", e);
-        }
+        // do nothing, stopping all jobs is handled in JobManager.class
     }
 
     @Override
@@ -104,15 +100,23 @@ public class QuartzListener implements ServletContextListener {
                     startTime.add(java.util.Calendar.DAY_OF_MONTH, 1);
                 }
 
+                boolean isRuleRegistered = false;
+                for (JobKey jobKey : sched.getJobKeys(GroupMatcher.jobGroupEquals("Goobi Data Poller Plugin"))) {
+                    String jobName = jobKey.getName();
+                    if (jobName.equals("Data Poller " + ruleName)) {
+                        isRuleRegistered = true;
+                    }
+
+                }
+
                 // create new job only if job doesnt already exist
-                if (sched.getTrigger("Data Poller", "DEFAULT") == null) {
-                    JobDetail jobDetail = new JobDetail("Data Poller " + ruleName, "Goobi Admin Plugin", QuartzJob.class);
+                if (!isRuleRegistered) {
                     JobDataMap map = new JobDataMap();
                     map.put("rule", ruleName);
-                    jobDetail.setJobDataMap(map);
-                    Trigger trigger = TriggerUtils.makeHourlyTrigger(delay);
-                    trigger.setName("Data Poller");
-                    trigger.setStartTime(startTime.getTime());
+                    JobDetail jobDetail = JobBuilder.newJob(QuartzJob.class).withIdentity( "Data Poller " + ruleName, "Goobi Data Poller Plugin").setJobData(map) .build();
+                    Trigger trigger = TriggerBuilder.newTrigger().withIdentity("Data Poller " + ruleName, "Goobi Data Poller Plugin").startAt(startTime.getTime()).
+                            withSchedule(SimpleScheduleBuilder.simpleSchedule().repeatForever().withIntervalInHours(delay))
+                            .build();
                     // register job and trigger at scheduler
                     sched.scheduleJob(jobDetail, trigger);
                 }
