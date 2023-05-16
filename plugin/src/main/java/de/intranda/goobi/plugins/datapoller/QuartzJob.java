@@ -34,7 +34,7 @@ public class QuartzJob implements Job {
     @Override
     public void execute(JobExecutionContext context) {
 
-        log.debug("DataPollerPlugin: Execute job for rule: " + context.getJobDetail().getName() + " - " + context.getRefireCount());
+        log.debug("DataPollerPlugin: Execute job for rule: " + context.getJobDetail().getJobDataMap().getString("rule") + " - " + context.getRefireCount());
         String ruleName = context.getJobDetail().getJobDataMap().getString("rule");
         DataPoll cp = new DataPoll(true);
         cp.execute(ruleName);
