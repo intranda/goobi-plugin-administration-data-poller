@@ -1,0 +1,245 @@
+<ui:composition
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+    xmlns:composite="http://xmlns.jcp.org/jsf/composite"
+    xmlns:h="http://xmlns.jcp.org/jsf/html"
+    xmlns:f="http://xmlns.jcp.org/jsf/core"
+    xmlns:x="http://myfaces.apache.org/tomahawk"
+    xmlns:intranda="http://xmlns.jcp.org/jsf/composite/compositesPG"
+    xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:jsf="http://xmlns.jcp.org/jsf">
+
+    <composite:interface>
+    </composite:interface>
+
+    <composite:implementation>
+
+        <style>
+.topAligned {
+    vertical-align: top;
+    padding-right: 50px;
+}
+</style>
+
+        <h:outputText
+            styleClass="alert alert-danger d-block"
+            value="#{msgs.noAccessAllowed} Plugin_Goobi_DataPoller"
+            rendered="#{!LoginForm.hasRole('Plugin_Goobi_DataPoller')}" />
+
+        <ui:fragment rendered="#{LoginForm.hasRole('Plugin_Goobi_DataPoller')}">
+            
+            <intranda:box
+                boxType="primary"
+                boxPadding="true"
+                icon="fa-plug"
+                title="#{myPageTitle}">
+                
+                <h:form>
+                    <ui:repeat
+                        var="configInfo"
+                        value="#{AdministrationForm.administrationPlugin.cp.configInfo}">
+                        <h4>#{configInfo.title}</h4>
+
+                        <div class="gw-table">
+                            <div class="gw-table__wrapper">
+                                <table class="table table-hover dataTable table-bordered responsive mb-5 mt-2">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                <h:outputText value="#{msgs.plugin_admin_dataPoller_ruleFilter}" />
+                                            </th>
+                                            <th style="width: 100px">
+                                                <h:outputText value="#{msgs.plugin_admin_dataPoller_ruleCatalogue}" />
+                                            </th>
+                                            <th style="width: 150px">
+                                                <h:outputText value="#{msgs.plugin_admin_dataPoller_ruleCatalogueId}" />
+                                            </th>
+                                            <th style="width: 250px">
+                                                <h:outputText
+                                                    value="#{msgs.plugin_admin_dataPoller_ruleSkipFields}"
+                                                    rendered="#{'blacklist' eq configInfo.fieldListMode}" />
+                                                <h:outputText
+                                                    value="#{msgs.plugin_admin_dataPoller_ruleWhitelist}"
+                                                    rendered="#{'whitelist' eq configInfo.fieldListMode}" />
+                                            </th>
+                                            <th style="width: 150px">
+                                                <h:outputText value="#{msgs.plugin_admin_dataPoller_ruleAnalyseSubElements}" />
+                                            </th>
+                                            <th style="width: 150px">
+                                                <h:outputText value="#{msgs.plugin_admin_dataPoller_ruleMergeRecords}" />
+                                            </th>
+                                            <th style="width: 150px">
+                                                <h:outputText value="#{msgs.plugin_admin_dataPoller_ruleExportUpdatedRecords}" />
+                                            </th>
+                                            <th style="width: 150px">
+                                                <h:outputText value="#{msgs.plugin_admin_dataPoller_startingTime}" />
+                                            </th>
+                                            <th style="width: 150px">
+                                                <h:outputText value="#{msgs.plugin_admin_dataPoller_ruleDelay}" />
+                                            </th>
+                                            <th style="width: 150px">
+                                                <h:outputText value="#{msgs.plugin_admin_dataPoller_lastRun}" />
+                                            </th>
+                                            <th style="width: 150px">
+                                                <h:outputText value="#{msgs.plugin_admin_dataPoller_actions}" />
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>#{configInfo.filter}</td>
+                                            <td>#{configInfo.catalogue}</td>
+                                            <td>#{configInfo.searchFields}</td>
+                                            <td>#{configInfo.filterListString}</td>
+                                            <td>
+                                                <h:panelGroup
+                                                    class="badge badge-intranda-red"
+                                                    rendered="#{!configInfo.analyseSubElements}">
+                                                    <i class="fa fa-circle-o"></i> 
+                                                    <span>
+                                                        <h:outputText value="#{msgs.inactive}"/>	
+                                                    </span>
+                                                </h:panelGroup>
+                                                <h:panelGroup
+                                                    class="badge badge-intranda-green"
+                                                    rendered="#{configInfo.analyseSubElements}">
+                                                    <i class="fa fa-check-circle"></i> 
+                                                    <span>
+                                                        <h:outputText value="#{msgs.active}"/>
+                                                    </span>
+                                                </h:panelGroup>
+                                            </td>
+                                            <td>
+                                                <h:panelGroup
+                                                    class="badge badge-intranda-red"
+                                                    rendered="#{!configInfo.mergeRecords}">
+                                                    <i class="fa fa-circle-o"></i> 
+                                                    <span>
+                                                        <h:outputText value="#{msgs.inactive}"/>
+                                                    </span>
+                                                </h:panelGroup>
+                                                <h:panelGroup
+                                                    class="badge badge-intranda-green"
+                                                    rendered="#{configInfo.mergeRecords}">
+                                                    <i class="fa fa-check-circle"></i>
+                                                    <span>
+                                                        <h:outputText value="#{msgs.active}"/>
+                                                    </span> 
+                                                </h:panelGroup>
+                                            </td>
+                                            <td>
+                                                <h:panelGroup
+                                                    class="badge badge-intranda-red"
+                                                    rendered="#{!configInfo.exportUpdatedRecords}">
+                                                    <i class="fa fa-circle-o"></i>
+                                                    <span>
+                                                        <h:outputText value="#{msgs.inactive}"/>	
+                                                    </span>
+                                                </h:panelGroup>
+                                                <h:panelGroup
+                                                    class="badge badge-intranda-green"
+                                                    rendered="#{configInfo.exportUpdatedRecords}">
+                                                    <i class="fa fa-check-circle"></i>
+                                                    <span>
+                                                        <h:outputText value="#{msgs.active}"/>
+                                                    </span>
+                                                </h:panelGroup>
+                                            </td>
+                                            <td>#{configInfo.startTime}</td>
+                                            <td>#{configInfo.delay}</td>
+                                            <td>#{configInfo.lastRun}"</td>
+                                            <td>
+                                                <button
+                                                    class="btn btn-blank me-3"
+                                                    jsf:rel="tooltip"
+                                                    jsf:action="#{AdministrationForm.administrationPlugin.cp.executeTest(configInfo.title)}"
+                                                    jsf:disabled="#{not AdministrationForm.administrationPlugin.cp.allowRun}"
+                                                    title="#{msgs.plugin_admin_dataPoller_runTest}">
+                                                    <i class="fa fa-flask"></i>
+                                                    <f:passThroughAttribute
+                                                        name="data-toggle"
+                                                        value="tooltip" />
+                                                    <f:passThroughAttribute
+                                                        name="aria-label"
+                                                        value="#{msgs.plugin_admin_dataPoller_runTest}" />
+                                                </button>
+                                                <button
+                                                    class="btn btn-blank me-3"
+                                                    jsf:rel="tooltip"
+                                                    jsf:action="#{AdministrationForm.administrationPlugin.cp.execute(configInfo.title)}"
+                                                    jsf:disabled="#{not AdministrationForm.administrationPlugin.cp.allowRun}"
+                                                    title="#{msgs.plugin_admin_dataPoller_runNow}">
+                                                    <i class="fa fa-play"></i>
+                                                    <f:passThroughAttribute
+                                                        name="data-toggle"
+                                                        value="tooltip" />
+                                                    <f:passThroughAttribute
+                                                        name="aria-label"
+                                                        value="#{msgs.plugin_admin_dataPoller_runNow}" />
+                                                </button>
+                                                <button
+                                                    class="btn btn-blank"
+                                                    jsf:rel="tooltip"
+                                                    jsf:action="#{AdministrationForm.administrationPlugin.cp.download(configInfo.title)}"
+                                                    title="#{msgs.plugin_admin_dataPoller_download}"
+                                                    jsf:rendered="#{AdministrationForm.administrationPlugin.cp.reportExists(configInfo.title)}">
+                                                    <i class="fa fa-download"></i>
+                                                    <f:passThroughAttribute
+                                                        name="data-toggle"
+                                                        value="tooltip" />
+                                                    <f:passThroughAttribute
+                                                        name="aria-label"
+                                                        value="#{msgs.plugin_admin_dataPoller_download}" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </ui:repeat>
+                </h:form>
+                        
+                        
+                <ui:fragment rendered="#{AdministrationForm.administrationPlugin.cp.differences!=null and AdministrationForm.administrationPlugin.cp.differences.size() ne 0}">
+                    <hr />
+                    <div class="mt-5">
+                        <h4>
+                            <h:outputText value="#{msgs.plugin_admin_dataPoller_resultsTest}" 
+                            rendered="#{AdministrationForm.administrationPlugin.cp.ticketStateTestRun}" />
+                            <h:outputText value="#{msgs.plugin_admin_dataPoller_results}" 
+                            rendered="#{not AdministrationForm.administrationPlugin.cp.ticketStateTestRun}" />
+                            <h:outputText value=" #{msgs.plugin_admin_dataPoller_resultsUnfinished}" 
+                            rendered="#{AdministrationForm.administrationPlugin.cp.ticketStateUnfinished}" />
+                        </h4>
+                        <ui:repeat
+                            var="pd"
+                            value="#{AdministrationForm.administrationPlugin.cp.differences}">
+                            <hr />
+                            <h:panelGrid
+                                columns="2"
+                                columnClasses="topAligned">
+                                <h:panelGroup>
+                                    <h:outputText value="#{msgs.prozess}: #{pd.processTitle}" />
+                                    <br />
+                                    <h:outputText value="#{msgs.id}: #{pd.processId}" />
+
+                                </h:panelGroup>
+                                <h:panelGroup>
+                                    <ui:repeat
+                                        var="mess"
+                                        value="#{pd.messages}">
+                                        <h:outputText value="#{mess}" />
+                                        <br />
+                                    </ui:repeat>
+                                </h:panelGroup>
+                            </h:panelGrid>
+                        </ui:repeat>
+                    </div>
+                </ui:fragment>        
+            </intranda:box>
+            
+        </ui:fragment>
+    </composite:implementation>
+</ui:composition>

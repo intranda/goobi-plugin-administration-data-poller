@@ -33,7 +33,7 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 public class DataPollerPlugin implements IAdministrationPlugin, IPlugin {
 
     private static final String PLUGIN_NAME = "intranda_administration_data_poller";
-    private static final String GUI = "/uii/administration_dataPoller.xhtml";
+    private static final String GUI = "/uii/plugin_administration_dataPoller.xhtml";
     private DataPoll cp;
 
     /**
