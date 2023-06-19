@@ -79,7 +79,7 @@ public class DataPoll {
                     this.ticketsActive = true;
                 }
             } else {
-                Helper.setFehlerMeldung("The Message Queue is not activated");
+                // Helper.setFehlerMeldung("The Message Queue is not activated");
                 log.debug("The Message Queue is not activated!");
             }
             this.allowRun = this.queueIsUp && !this.ticketsActive;
