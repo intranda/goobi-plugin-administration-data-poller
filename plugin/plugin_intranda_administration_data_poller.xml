@@ -39,7 +39,7 @@
 
 	</rule>
 
-	<rule title="Archive project" enabled="false" startTime="21:00:00" delay="48">
+	<rule type="filter" title="Archive project" enabled="false" startTime="21:00:00" delay="48">
 		<filter>project:Archive</filter>
 		<catalogue>K10Plus</catalogue>
 		<catalogueField fieldName="12" fieldValue="$(meta.CatalogIDDigital)" />
@@ -54,7 +54,7 @@
         </fieldList>
 	</rule>
 
-	<rule title="Manuscript project" enabled="false" startTime="23:00:00" delay="24">
+	<rule type="filter" title="Manuscript project" enabled="false" startTime="23:00:00" delay="24">
 		<filter>"project:Manuscript items"</filter>
 		<catalogue>K10Plus</catalogue>
 		<catalogueField fieldName="12" fieldValue="$(meta.CatalogIDDigital)" />
