@@ -51,6 +51,9 @@ public class XlsWriter {
 
     public FolderInfo writeWorkbook(Path XmlFolder) {
         Path reportInfoPath = FileManager.getReportInfoFile(XmlFolder);
+        if (reportInfoPath == null) {
+            return null;
+        }
         ReportInfo info = ReportInfo.unmarshalReportInfo(reportInfoPath);
         List<Path> differencesXML = FileManager.getXmlFiles(XmlFolder);
         List<PullDiff> differences = new ArrayList<>();
