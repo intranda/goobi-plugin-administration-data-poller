@@ -74,7 +74,7 @@ public class CatalogueRequestTicketTest {
         System.setProperty("log4j.configurationFile", log4jFile);
 
         Path template = Paths.get(CatalogueRequestTicketTest.class.getClassLoader().getResource(".").getFile());
-        defaultGoobiConfig = Paths.get(template.getParent().getParent().toString() + "/src/test/resources/config/goobi_config.properties"); // for junit tests in eclipse
+        defaultGoobiConfig = Paths.get("src/test/resources/goobi_config.properties"); // for junit tests in eclipse
         if (!Files.exists(defaultGoobiConfig)) {
             defaultGoobiConfig = Paths.get("target/test-classes/config/goobi_config.properties"); // to run mvn test from cli or in jenkins
         }
@@ -103,7 +103,7 @@ public class CatalogueRequestTicketTest {
         Files.createDirectories(processDirectory);
         Path rulesetDirectory = Paths.get(goobiMainFolder.toString(), "rulesets");
         Files.createDirectories(rulesetDirectory);
-        Files.copy(Paths.get(defaultGoobiConfig.getParent().getParent().toString(), "ruleset.xml"),
+        Files.copy(Paths.get(defaultGoobiConfig.getParent().toString(), "ruleset.xml"),
                 Paths.get(rulesetDirectory.toString(), "ruleset.xml"));
 
         // copy meta.xml
