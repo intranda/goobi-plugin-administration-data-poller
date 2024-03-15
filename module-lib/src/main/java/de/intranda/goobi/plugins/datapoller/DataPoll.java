@@ -18,17 +18,15 @@
  */
 package de.intranda.goobi.plugins.datapoller;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.jms.JMSException;
-
+import de.intranda.goobi.plugins.datapoller.xls.FileManager;
+import de.intranda.goobi.plugins.datapoller.xls.FolderInfo;
+import de.intranda.goobi.plugins.datapoller.xls.ReportInfo;
+import de.sub.goobi.config.ConfigurationHelper;
+import de.sub.goobi.helper.Helper;
+import de.sub.goobi.helper.StorageProvider;
+import de.sub.goobi.persistence.managers.ProcessManager;
+import lombok.Data;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.goobi.api.mq.QueueType;
@@ -39,15 +37,15 @@ import org.goobi.production.cli.helper.StringPair;
 import org.goobi.production.flow.statistics.hibernate.FilterHelper;
 import org.omnifaces.util.Faces;
 
-import de.intranda.goobi.plugins.datapoller.xls.FileManager;
-import de.intranda.goobi.plugins.datapoller.xls.FolderInfo;
-import de.intranda.goobi.plugins.datapoller.xls.ReportInfo;
-import de.sub.goobi.config.ConfigurationHelper;
-import de.sub.goobi.helper.Helper;
-import de.sub.goobi.helper.StorageProvider;
-import de.sub.goobi.persistence.managers.ProcessManager;
-import lombok.Data;
-import lombok.extern.log4j.Log4j2;
+import javax.jms.JMSException;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Data
 @Log4j2

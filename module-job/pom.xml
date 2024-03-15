@@ -5,7 +5,7 @@
     <artifactId>plugin-administration-data-poller</artifactId>
     <version>24.03-SNAPSHOT</version>
   </parent>
-  <artifactId>plugin-administration-data-poller-base</artifactId>
+  <artifactId>plugin-administration-data-poller-job</artifactId>
   <packaging>jar</packaging>
   <dependencies>
     <dependency>

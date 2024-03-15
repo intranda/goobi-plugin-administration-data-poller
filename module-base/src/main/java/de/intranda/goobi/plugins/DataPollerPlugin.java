@@ -31,7 +31,7 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 @Data
 @Log4j2
 public class DataPollerPlugin implements IAdministrationPlugin, IPlugin {
-
+    // TODO: Duplicated name to break cyclic dependency between base and lib module
     private static final String PLUGIN_NAME = "intranda_administration_data_poller";
     private static final String GUI = "/uii/plugin_administration_dataPoller.xhtml";
     private DataPoll cp;
@@ -50,10 +50,6 @@ public class DataPollerPlugin implements IAdministrationPlugin, IPlugin {
 
     @Override
     public String getTitle() {
-        return PLUGIN_NAME;
-    }
-
-    public static String getPluginName() {
         return PLUGIN_NAME;
     }
 

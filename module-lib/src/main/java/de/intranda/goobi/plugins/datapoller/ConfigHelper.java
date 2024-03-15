@@ -1,5 +1,14 @@
 package de.intranda.goobi.plugins.datapoller;
 
+import de.sub.goobi.config.ConfigPlugins;
+import de.sub.goobi.config.ConfigurationHelper;
+import lombok.extern.log4j.Log4j2;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
+import org.goobi.production.cli.helper.StringPair;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
@@ -10,26 +19,16 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
-import org.goobi.production.cli.helper.StringPair;
-
-import de.intranda.goobi.plugins.DataPollerPlugin;
-import de.sub.goobi.config.ConfigPlugins;
-import de.sub.goobi.config.ConfigurationHelper;
-import lombok.extern.log4j.Log4j2;
-
 @Log4j2
 public class ConfigHelper {
+    // TODO: Duplicated name to break cyclic dependency between base and lib module
+    private static final String PLUGIN_NAME = "intranda_administration_data_poller";
+
     private XMLConfiguration config;
     private static final DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-    private String pluginName;
 
     public ConfigHelper() {
-        this.pluginName = DataPollerPlugin.getPluginName();
-        this.config = ConfigPlugins.getPluginConfig(this.pluginName);
+        this.config = ConfigPlugins.getPluginConfig(PLUGIN_NAME);
         this.config.setExpressionEngine(new XPathExpressionEngine());
     }
 
@@ -87,7 +86,7 @@ public class ConfigHelper {
         try {
             HierarchicalConfiguration rule = this.config.configurationAt("rule[@title='" + ruleName + "']");
             rule.setProperty("lastRun", lastRunMillis);
-            Path configurationFile = Paths.get(ConfigurationHelper.getInstance().getConfigurationFolder(), "plugin_" + this.pluginName + ".xml");
+            Path configurationFile = Paths.get(ConfigurationHelper.getInstance().getConfigurationFolder(), "plugin_" + PLUGIN_NAME + ".xml");
             this.config.save(configurationFile.toString());
         } catch (ConfigurationException e) {
             log.error("Error while updating the configuration file", e);

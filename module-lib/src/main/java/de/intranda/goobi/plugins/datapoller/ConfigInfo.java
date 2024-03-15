@@ -18,11 +18,10 @@
  */
 package de.intranda.goobi.plugins.datapoller;
 
-import java.util.List;
-
+import lombok.Data;
 import org.goobi.production.cli.helper.StringPair;
 
-import lombok.Data;
+import java.util.List;
 
 @Data
 public class ConfigInfo {

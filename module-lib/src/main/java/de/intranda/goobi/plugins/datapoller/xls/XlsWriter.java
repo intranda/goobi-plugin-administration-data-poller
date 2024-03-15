@@ -18,6 +18,16 @@
  */
 package de.intranda.goobi.plugins.datapoller.xls;
 
+import de.intranda.goobi.plugins.datapoller.PullDiff;
+import de.sub.goobi.helper.StorageProvider;
+import lombok.extern.log4j.Log4j2;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -27,17 +37,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
-import de.intranda.goobi.plugins.datapoller.PullDiff;
-import de.sub.goobi.helper.StorageProvider;
-import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 public class XlsWriter {
