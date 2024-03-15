@@ -18,11 +18,6 @@
  */
 package de.intranda.goobi.plugins.datapoller;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import de.intranda.goobi.plugins.datapoller.xls.XlsData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,6 +26,11 @@ import ugh.dl.DocStruct;
 import ugh.dl.Metadata;
 import ugh.dl.MetadataGroup;
 import ugh.dl.Person;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Data
 @Log4j2

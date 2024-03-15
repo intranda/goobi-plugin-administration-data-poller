@@ -1,21 +1,20 @@
 package de.intranda.goobi.plugins.datapoller;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.List;
-
+import de.unigoettingen.sub.search.opac.ConfigOpac;
+import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
+import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang.StringUtils;
 import org.goobi.production.cli.helper.StringPair;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.plugin.PluginLoader;
 import org.goobi.production.plugin.interfaces.IOpacPlugin;
-
-import de.unigoettingen.sub.search.opac.ConfigOpac;
-import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
-import lombok.Getter;
-import lombok.extern.log4j.Log4j2;
 import ugh.dl.Fileformat;
 import ugh.dl.Prefs;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
 
 @Log4j2
 public class CatalogueHandler {
