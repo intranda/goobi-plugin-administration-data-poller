@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config_plugin>
+
+	<!-- multiple different rules can be defined for individual use cases -->
+	<rule title="SampleProject" enabled="false" startTime="22:00:00" delay="24">
+
+		<!-- filter which items to run through (can be more then one, otherwise use *) please notice that blanks inside of the filter query need to be surrounded by quotation marks -->
+		<filter>project:SampleProject</filter>
+		<filter>"project:Manuscript items"</filter>
+
+		<!-- which catalogue to use (GBV, Wiener, CBL Adlib ...) -->
+		<catalogue>Wiener</catalogue>
+		
+		<!-- which catalogue field to use and which identifier to use for the catalogue request (use standard variable replacer compatible value here) -->
+		<catalogueField fieldName="12" fieldValue="$(meta.CatalogIDDigital)" />
+
+		<!-- define if existing structure subelements shall be kept (true), otherwise a complete new mets file is created and overwrites the existing one (false) -->
+		<mergeRecords>true</mergeRecords>
+
+		<!-- define if children are analysed as well. If a sub element contains an identifier, the metadata will get imported as well -->
+		<analyseSubElements>true</analyseSubElements>
+
+		<!-- execute an automatic export of updated records; this is only executed if mergeRecords is set to true -->
+		<exportUpdatedRecords>false</exportUpdatedRecords>
+
+       <!-- fieldList: Must have a mode attribute which can contain either blacklist or whitelist as a value.
+            blacklist: All fields are updated except the defined ones. This is a potential dangerous setting!
+            whitelist: Only the definied fields are updated. All others are skipped. 
+            field: Use the internal metadata names from the ruleset as field definition
+        -->
+         <fieldList mode="blacklist">
+            <field>viewerinstance</field>
+            <field>singleDigCollection</field>
+            <field>pathimagefiles</field>
+            <field>_urn</field>
+            <field>_representative</field>
+         </fieldList>
+        
+
+	</rule>
+
+	<rule type="filter" title="Archive project" enabled="false" startTime="21:00:00" delay="48">
+		<filter>project:Archive</filter>
+		<catalogue>K10Plus</catalogue>
+		<catalogueField fieldName="12" fieldValue="$(meta.CatalogIDDigital)" />
+		<mergeRecords>true</mergeRecords>
+		<analyseSubElements>true</analyseSubElements>
+		<exportUpdatedRecords>false</exportUpdatedRecords>
+        <fieldList mode="whitelist">
+		  <field>Author</field>
+		  <field>PublicationYear</field>
+		  <field>Subject</field>
+		  <field>CreatorsAllOrigin</field>
+        </fieldList>
+	</rule>
+
+	<rule type="filter" title="Manuscript project" enabled="false" startTime="23:00:00" delay="24">
+		<filter>"project:Manuscript items"</filter>
+		<catalogue>K10Plus</catalogue>
+		<catalogueField fieldName="12" fieldValue="$(meta.CatalogIDDigital)" />
+		<mergeRecords>true</mergeRecords>
+		<analyseSubElements>true</analyseSubElements>
+		<exportUpdatedRecords>false</exportUpdatedRecords>
+        <fieldList mode="blacklist">
+		  <field>TitleDocMain</field>
+		  <field>CatalogueIDDigital</field>
+		  <field>DocLanguage</field>
+        </fieldList>fieldList mode="blacklist">
+	</rule>
+
+	<!-- internal timestamp for the plugin to know when it was last executed -->
+	<lastRun>1551731078691</lastRun>
+
+</config_plugin>
