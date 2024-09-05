@@ -25,6 +25,7 @@ import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.persistence.managers.ProcessManager;
+import jakarta.jms.JMSException;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.configuration.HierarchicalConfiguration;
@@ -37,7 +38,6 @@ import org.goobi.production.cli.helper.StringPair;
 import org.goobi.production.flow.statistics.hibernate.FilterHelper;
 import org.omnifaces.util.Faces;
 
-import javax.jms.JMSException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
