@@ -15,8 +15,8 @@ Detail                      | Description
 **Plugin identifier**       | intranda_administration_data_poller
 **Plugin type**             | administration
 **Licence**                 | GPL 2.0 or newer
-**Documentation (German)**  | https://docs.goobi.io/workflow-plugins/v/eng/administration/goobi-plugin-administration-data-poller
-**Documentation (English)** | https://docs.goobi.io/workflow-plugins/v/ger/administration/goobi-plugin-administration-data-poller
+**Documentation (German)**  | https://docs.goobi.io/workflow-plugins/v/ger/administration/goobi-plugin-administration-data-poller
+**Documentation (English)** | https://docs.goobi.io/workflow-plugins/v/eng/administration/goobi-plugin-administration-data-poller
 
 ## Goobi details
 
