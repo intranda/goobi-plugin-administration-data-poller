@@ -18,10 +18,11 @@
  */
 package de.intranda.goobi.plugins.datapoller;
 
-import lombok.Data;
+import java.util.List;
+
 import org.goobi.production.cli.helper.StringPair;
 
-import java.util.List;
+import lombok.Data;
 
 @Data
 public class ConfigInfo {
@@ -49,6 +50,7 @@ public class ConfigInfo {
     private boolean createMissingProcesses;
 
     public String getFilterListString() {
-        return String.valueOf(this.fieldFilterList);
+        String list = String.valueOf(this.fieldFilterList);
+        return list.substring(1, list.length() - 1);
     }
 }
