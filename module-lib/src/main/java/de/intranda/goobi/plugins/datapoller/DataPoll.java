@@ -18,16 +18,15 @@
  */
 package de.intranda.goobi.plugins.datapoller;
 
-import de.intranda.goobi.plugins.datapoller.xls.FileManager;
-import de.intranda.goobi.plugins.datapoller.xls.FolderInfo;
-import de.intranda.goobi.plugins.datapoller.xls.ReportInfo;
-import de.sub.goobi.config.ConfigurationHelper;
-import de.sub.goobi.helper.Helper;
-import de.sub.goobi.helper.StorageProvider;
-import de.sub.goobi.persistence.managers.ProcessManager;
-import jakarta.jms.JMSException;
-import lombok.Data;
-import lombok.extern.log4j.Log4j2;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.goobi.api.mq.QueueType;
@@ -38,14 +37,16 @@ import org.goobi.production.cli.helper.StringPair;
 import org.goobi.production.flow.statistics.hibernate.FilterHelper;
 import org.omnifaces.util.Faces;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import de.intranda.goobi.plugins.datapoller.xls.FileManager;
+import de.intranda.goobi.plugins.datapoller.xls.FolderInfo;
+import de.intranda.goobi.plugins.datapoller.xls.ReportInfo;
+import de.sub.goobi.config.ConfigurationHelper;
+import de.sub.goobi.helper.Helper;
+import de.sub.goobi.helper.StorageProvider;
+import de.sub.goobi.persistence.managers.ProcessManager;
+import jakarta.jms.JMSException;
+import lombok.Data;
+import lombok.extern.log4j.Log4j2;
 
 @Data
 @Log4j2
@@ -119,25 +120,24 @@ public class DataPoll {
     }
 
     public boolean reportExists(String ruleName) {
-        if (this.xlsxReports.isEmpty()) {
-            HashMap<String, FolderInfo> infos =
-                    FileManager.manageTempFiles(Paths.get(ConfigurationHelper.getInstance().getTemporaryFolder()), this.ci.values());
-            Set<String> keys = infos.keySet();
-            for (String key : keys) {
-                FolderInfo info = infos.get(key);
-                this.xlsxReports.put(key, info.getXlsFile());
-                List<PullDiff> diffsForDisplay = info.getDifferences(0);
-                ReportInfo rInfo = info.getInfo();
-                if (!diffsForDisplay.isEmpty()) {
-                    this.differences = diffsForDisplay;
-                    if (rInfo != null) {
-                        this.ticketStateUnfinished = (info.getDiffSize() < rInfo.getTicketCount() && this.ticketsActive);
-                        this.ticketStateTestRun = rInfo.isTestRun();
-                    }
+        HashMap<String, FolderInfo> infos =
+                FileManager.manageTempFiles(Paths.get(ConfigurationHelper.getInstance().getTemporaryFolder()), this.ci.values());
+        Set<String> keys = infos.keySet();
+        for (String key : keys) {
+            FolderInfo info = infos.get(key);
+            this.xlsxReports.put(key, info.getXlsFile());
+            List<PullDiff> diffsForDisplay = info.getDifferences(0);
+            ReportInfo rInfo = info.getInfo();
+            if (!diffsForDisplay.isEmpty()) {
+                this.differences = diffsForDisplay;
+                if (rInfo != null) {
+                    this.ticketStateUnfinished = (info.getDiffSize() < rInfo.getTicketCount() && this.ticketsActive);
+                    this.ticketStateTestRun = rInfo.isTestRun();
                 }
-
             }
+
         }
+
         return this.xlsxReports.containsKey(ruleName);
     }
 
@@ -249,7 +249,7 @@ public class DataPoll {
             }
         } else {
             rinfo = new ReportInfo(testRun, ruleName, lastRunMillis, processIds.size());
-
+            ReportInfo.marshalReportInfo(rinfo, xmlTempFolderPath);
             for (Integer id : processIds) {
                 // create a new ticket
                 TaskTicket ticket = TicketGenerator.generateSimpleTicket("CatalogueRequest");

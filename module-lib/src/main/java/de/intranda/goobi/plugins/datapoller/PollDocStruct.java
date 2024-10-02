@@ -18,22 +18,20 @@
  */
 package de.intranda.goobi.plugins.datapoller;
 
-import de.intranda.goobi.plugins.datapoller.xls.XlsData;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.extern.log4j.Log4j2;
-import ugh.dl.DocStruct;
-import ugh.dl.Metadata;
-import ugh.dl.MetadataGroup;
-import ugh.dl.Person;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import de.intranda.goobi.plugins.datapoller.xls.XlsData;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import ugh.dl.DocStruct;
+import ugh.dl.Metadata;
+import ugh.dl.MetadataGroup;
+import ugh.dl.Person;
+
 @Data
-@Log4j2
 public class PollDocStruct {
     private List<PullMetadataType> types;
     private List<PullPersonType> personTypes;

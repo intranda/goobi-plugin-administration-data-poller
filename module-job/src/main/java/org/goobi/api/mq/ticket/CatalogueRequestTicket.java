@@ -1,5 +1,25 @@
 package org.goobi.api.mq.ticket;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
+import org.goobi.api.mq.TaskTicket;
+import org.goobi.api.mq.TicketHandler;
+import org.goobi.beans.Process;
+import org.goobi.beans.Step;
+import org.goobi.production.cli.helper.StringPair;
+import org.goobi.production.enums.LogType;
+import org.goobi.production.enums.PluginReturnValue;
+import org.goobi.production.enums.PluginType;
+import org.goobi.production.plugin.PluginLoader;
+import org.goobi.production.plugin.interfaces.IExportPlugin;
+
 import de.intranda.goobi.plugins.datapoller.CatalogueHandler;
 import de.intranda.goobi.plugins.datapoller.CatalogueHandlerException;
 import de.intranda.goobi.plugins.datapoller.PollDocStruct;
@@ -15,18 +35,6 @@ import de.sub.goobi.helper.enums.StepStatus;
 import de.sub.goobi.helper.exceptions.SwapException;
 import de.sub.goobi.persistence.managers.ProcessManager;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
-import org.goobi.api.mq.TaskTicket;
-import org.goobi.api.mq.TicketHandler;
-import org.goobi.beans.Process;
-import org.goobi.beans.Step;
-import org.goobi.production.cli.helper.StringPair;
-import org.goobi.production.enums.LogType;
-import org.goobi.production.enums.PluginReturnValue;
-import org.goobi.production.enums.PluginType;
-import org.goobi.production.plugin.PluginLoader;
-import org.goobi.production.plugin.interfaces.IExportPlugin;
 import ugh.dl.Corporate;
 import ugh.dl.DigitalDocument;
 import ugh.dl.DocStruct;
@@ -42,13 +50,6 @@ import ugh.exceptions.MetadataTypeNotAllowedException;
 import ugh.exceptions.PreferencesException;
 import ugh.exceptions.TypeNotAllowedForParentException;
 import ugh.fileformats.mets.MetsMods;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @Log4j2
 public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> {
@@ -103,7 +104,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                         DocStruct physical = dd.createDocStruct(prefs.getDocStrctTypeByName("BoundBook"));
                         dd.setPhysicalDocStruct(physical);
 
-                        //TODO add publicationType
+                        // add publicationType
                         DocStruct logic = dd.createDocStruct(prefs.getDocStrctTypeByName(publicationType));
                         dd.setLogicalDocStruct(logic);
                         // save the process
@@ -337,18 +338,14 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                         }
                     }
 
-                } else {// just write the new one and don't merge any data
-                    String message;
-                    if (!testRun) {
-                        p.writeMetadataFile(catHandler.getFfNew());
-                        Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG, "New Mets file successfully created by catalogue poller plugin");
-                        diff.reset(p.getId(), p.getTitel(), false, "FileFormat was replaced no Diff was created!");
-                        diff.setMergeRecords(false);
-                    } else {
-                        diff.reset(p.getId(), p.getTitel(), false, "FileFormat was replaced no Diff was created!");
-                        diff.setMergeRecords(false);
-                    }
-
+                } else if (!testRun) {
+                    p.writeMetadataFile(catHandler.getFfNew());
+                    Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG, "New Mets file successfully created by catalogue poller plugin");
+                    diff.reset(p.getId(), p.getTitel(), false, "FileFormat was replaced no Diff was created!");
+                    diff.setMergeRecords(false);
+                } else {
+                    diff.reset(p.getId(), p.getTitel(), false, "FileFormat was replaced no Diff was created!");
+                    diff.setMergeRecords(false);
                 }
             } catch (CatalogueHandlerException ex) {
                 Helper.addMessageToProcessJournal(p.getId(), LogType.DEBUG, "Error opening the catalogue:" + ex.getMessage());

@@ -18,12 +18,6 @@
  */
 package de.intranda.goobi.plugins.datapoller.xls;
 
-import de.intranda.goobi.plugins.datapoller.ConfigInfo;
-import de.sub.goobi.helper.StorageProvider;
-import de.sub.goobi.helper.StorageProviderInterface;
-import lombok.extern.log4j.Log4j2;
-import org.goobi.io.BackupFileManager;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,6 +26,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+
+import org.goobi.io.BackupFileManager;
+
+import de.intranda.goobi.plugins.datapoller.ConfigInfo;
+import de.sub.goobi.helper.StorageProvider;
+import de.sub.goobi.helper.StorageProviderInterface;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * Manages the xlsx-reports in the specified folder
