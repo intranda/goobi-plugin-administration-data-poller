@@ -133,6 +133,7 @@ public class DataPoll {
                 if (rInfo != null) {
                     this.ticketStateUnfinished = (info.getDiffSize() < rInfo.getTicketCount() && this.ticketsActive);
                     this.ticketStateTestRun = rInfo.isTestRun();
+                    allowRun = !ticketStateUnfinished;
                 }
             }
 
