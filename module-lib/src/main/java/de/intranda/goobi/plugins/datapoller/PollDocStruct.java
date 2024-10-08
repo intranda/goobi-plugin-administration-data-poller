@@ -39,7 +39,7 @@ public class PollDocStruct {
 
     /**
      * constructor to fill this data model with a given ugh docstruct
-     * 
+     *
      * @param inStruct
      */
     public PollDocStruct(DocStruct inStruct) {
@@ -67,7 +67,7 @@ public class PollDocStruct {
 
     /**
      * add a metadata value to the list of a specific type
-     * 
+     *
      * @param title
      * @param value
      */
@@ -77,7 +77,7 @@ public class PollDocStruct {
 
     /**
      * add a person to the list of a specific person role
-     * 
+     *
      * @param title
      * @param value
      */
@@ -87,7 +87,7 @@ public class PollDocStruct {
 
     /**
      * add a metadata group to the list
-     * 
+     *
      * @param group
      */
 
@@ -106,7 +106,7 @@ public class PollDocStruct {
 
     /**
      * find the right metadata type, if not there create it now
-     * 
+     *
      * @param title
      * @return
      */
@@ -123,7 +123,7 @@ public class PollDocStruct {
 
     /**
      * find the right person role, if not there create it now
-     * 
+     *
      * @param role
      * @return
      */
@@ -153,7 +153,7 @@ public class PollDocStruct {
 
     /**
      * Compare the metadata and persons of the two docstructs
-     * 
+     *
      * @param topstructNew
      * @param topstructOld
      * @return
@@ -195,7 +195,7 @@ public class PollDocStruct {
                     }
                     differences.getMessages()
                             .add(pmtNew.getTitle() + ": Number of old values (" + pmtOld.getValues().size() + ") is different from new values ("
-                                    + pmtNew.getValues().size() + ") <br/>[Old values: " + helperOldValues + " => New values: " + helperNewValues
+                                    + pmtNew.getValues().size() + ") [Old values: " + helperOldValues + " => New values: " + helperNewValues
                                     + "]");
                     differences.getXlsData().add(new XlsData(pmtNew.getTitle(), helperOldValues, helperNewValues));
                 } else {
@@ -278,7 +278,7 @@ public class PollDocStruct {
                     }
                     differences.getMessages()
                             .add(pptNew.getRole() + ": Number of old persons (" + pptOld.getPersons().size() + ") is different from new persons ("
-                                    + pptNew.getPersons().size() + ") <br/>[Old persons: " + helperOldPersons + " => New persons: " + helperNewPersons
+                                    + pptNew.getPersons().size() + ") [Old persons: " + helperOldPersons + " => New persons: " + helperNewPersons
                                     + "]");
                     differences.getXlsData().add(new XlsData(pptNew.getRole(), helperOldPersons, helperNewPersons));
                 } else {
@@ -340,7 +340,7 @@ public class PollDocStruct {
 
                     differences.getMessages()
                             .add(newGroup.getGroupType() + ": Number of metadata in old groups (" + oldGroup.getMetadataHashs().size()
-                                    + ") is different from new groups (" + newGroup.getMetadataHashs().size() + ") <br/>[Old values: "
+                                    + ") is different from new groups (" + newGroup.getMetadataHashs().size() + ") [Old values: "
                                     + helperOldGroups + " => New values: " + helperNewGroups + "]");
                     differences.getXlsData().add(new XlsData(newGroup.getGroupType(), helperOldGroups, helperNewGroups));
                 } else {
