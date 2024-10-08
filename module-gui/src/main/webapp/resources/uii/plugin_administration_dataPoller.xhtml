@@ -227,28 +227,29 @@
                         <ui:repeat
                             var="pd"
                             value="#{AdministrationForm.administrationPlugin.cp.differences}">
-                            <hr />
-                            <h:panelGrid
-                                columns="2"
-                                columnClasses="topAligned"
-                                style="width:100%">
-                                <h:panelGroup>
-                                    <h:outputText value="#{msgs.prozess}: #{pd.processTitle}" />
-                                    <br />
-                                    <h:outputText value="#{msgs.id}: #{pd.processId}" />
-
-                                </h:panelGroup>
-                                <h:panelGroup>
+                            <details open="true">
+                                <summary class="px-1 py-2">
+                                    <h5 class="d-inline-flex gap-3">
+                                        <span>
+                                            <h:outputText value="#{msgs.prozess}: #{pd.processTitle}" />
+                                        </span>
+                                        <span>
+                                            <h:outputText value="#{msgs.id}: #{pd.processId}" />
+                                        </span>
+                                    </h5>
+                                </summary>
+                                <ul class="px-3" role="list">
                                     <ui:repeat
                                         var="mess"
                                         value="#{pd.messages}">
-                                        <h:outputText
-                                            value="#{mess}"
-                                            escape="false" />
-                                        <br />
+                                        <li class="pb-1">
+                                            <h:outputText
+                                                value="#{mess}"
+                                                escape="false" />
+                                        </li>
                                     </ui:repeat>
-                                </h:panelGroup>
-                            </h:panelGrid>
+                                </ul>
+                            </details>
                         </ui:repeat>
                     </div>
                 </ui:fragment>
