@@ -24,13 +24,14 @@ import org.goobi.production.plugin.interfaces.IPlugin;
 
 import de.intranda.goobi.plugins.datapoller.DataPoll;
 import lombok.Data;
-import lombok.extern.log4j.Log4j2;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 @PluginImplementation
 @Data
-@Log4j2
 public class DataPollerPlugin implements IAdministrationPlugin, IPlugin {
+
+    private static final long serialVersionUID = -3574203320176810919L;
+
     // TODO: Duplicated name to break cyclic dependency between base and lib module
     private static final String PLUGIN_NAME = "intranda_administration_data_poller";
     private static final String GUI = "/uii/plugin_administration_dataPoller.xhtml";
@@ -57,21 +58,5 @@ public class DataPollerPlugin implements IAdministrationPlugin, IPlugin {
     public String getGui() {
         return GUI;
     }
-
-    //        public void updateStatusInformation() {
-    //            try {
-    //                // get all job groups
-    //                SchedulerFactory schedFact = new StdSchedulerFactory();
-    //                Scheduler sched = schedFact.getScheduler();
-    //                for (String groupName : sched.getJobGroupNames()) {
-    //                    // get all jobs within the group
-    //                    for (Object name : sched.getJobNames(groupName)) {
-    //                        log.debug("Scheduler job: " + groupName + " - " + name);
-    //                    }
-    //                }
-    //            } catch (SchedulerException e) {
-    //                log.error("Error while reading job information", e);
-    //            }
-    //        }
 
 }

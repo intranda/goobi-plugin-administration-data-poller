@@ -13,15 +13,19 @@ This documentation describes the installation, configuration and use of the Admi
 The plugin consists in total of the following files to be installed
 
 ```bash
-plugin_intranda_administration_data-poller.jar
-plugin_intranda_administration_data-poller-GUI.jar
+plugin-administration-data-poller-base.jar
+plugin-administration-data-poller-gui.jar
+plugin-administration-data-poller-job.jar
+plugin-administration-data-poller-lib.jar
 ```
 
 These files must be installed in the correct directories so that they are in the following paths after installation:
 
 ```bash
-/opt/digiverso/goobi/plugins/administration/plugin_intranda_administration_data-poller.jar
-/opt/digiverso/goobi/plugins/GUI/plugin_intranda_administration_data-poller-GUI.jar
+/opt/digiverso/goobi/plugins/administration/plugin-administration-data-poller-base.jar
+/opt/digiverso/goobi/plugins/GUI/plugin-administration-data-poller-gui.jar
+/opt/digiverso/goobi/plugins/GUI/plugin-administration-data-poller-job.jar
+/opt/digiverso/goobi/plugins/GUI/plugin-administration-data-poller-lib.jar
 ```
 
 In addition, there is a configuration file that must be located at the following location:

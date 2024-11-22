@@ -13,15 +13,19 @@ Die vorliegende Dokumentation beschreibt die Installation, die Konfiguration und
 Das Plugin besteht insgesamt aus den folgenden zu installierenden Dateien
 
 ```bash
-plugin_intranda_administration_data-poller.jar
-plugin_intranda_administration_data-poller-GUI.jar
+plugin-administration-data-poller-base.jar
+plugin-administration-data-poller-gui.jar
+plugin-administration-data-poller-job.jar
+plugin-administration-data-poller-lib.jar
 ```
 
 Diese Dateien müssen in den richtigen Verzeichnissen installiert werden, so dass diese nach der Installation in den folgenden Pfaden vorliegen:
 
 ```bash
-/opt/digiverso/goobi/plugins/administration/plugin_intranda_administration_data-poller.jar
-/opt/digiverso/goobi/plugins/GUI/plugin_intranda_administration_data-poller-GUI.jar
+/opt/digiverso/goobi/plugins/administration/plugin-administration-data-poller-base.jar
+/opt/digiverso/goobi/plugins/GUI/plugin-administration-data-poller-gui.jar
+/opt/digiverso/goobi/plugins/GUI/plugin-administration-data-poller-job.jar
+/opt/digiverso/goobi/plugins/GUI/plugin-administration-data-poller-lib.jar
 ```
 
 Daneben gibt es eine Konfigurationsdatei, die an folgender Stelle liegen muss:
