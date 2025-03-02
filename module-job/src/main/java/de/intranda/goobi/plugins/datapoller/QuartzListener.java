@@ -21,10 +21,6 @@ package de.intranda.goobi.plugins.datapoller;
 import java.util.Date;
 import java.util.HashMap;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-import javax.servlet.annotation.WebListener;
-
 import org.apache.commons.lang.StringUtils;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
@@ -39,6 +35,9 @@ import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.impl.matchers.GroupMatcher;
 
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
+import jakarta.servlet.annotation.WebListener;
 import lombok.extern.log4j.Log4j2;
 
 // This class goes to GUI folder because it ends with *QuartzListener.class
@@ -103,7 +102,7 @@ public class QuartzListener implements ServletContextListener {
                 boolean isRuleRegistered = false;
                 for (JobKey jobKey : sched.getJobKeys(GroupMatcher.jobGroupEquals("Goobi Data Poller Plugin"))) {
                     String jobName = jobKey.getName();
-                    if (jobName.equals("Data Poller " + ruleName)) {
+                    if (("Data Poller " + ruleName).equals(jobName)) {
                         isRuleRegistered = true;
                     }
 
@@ -113,9 +112,14 @@ public class QuartzListener implements ServletContextListener {
                 if (!isRuleRegistered) {
                     JobDataMap map = new JobDataMap();
                     map.put("rule", ruleName);
-                    JobDetail jobDetail = JobBuilder.newJob(QuartzJob.class).withIdentity( "Data Poller " + ruleName, "Goobi Data Poller Plugin").setJobData(map) .build();
-                    Trigger trigger = TriggerBuilder.newTrigger().withIdentity("Data Poller " + ruleName, "Goobi Data Poller Plugin").startAt(startTime.getTime()).
-                            withSchedule(SimpleScheduleBuilder.simpleSchedule().repeatForever().withIntervalInHours(delay))
+                    JobDetail jobDetail = JobBuilder.newJob(QuartzJob.class)
+                            .withIdentity("Data Poller " + ruleName, "Goobi Data Poller Plugin")
+                            .setJobData(map)
+                            .build();
+                    Trigger trigger = TriggerBuilder.newTrigger()
+                            .withIdentity("Data Poller " + ruleName, "Goobi Data Poller Plugin")
+                            .startAt(startTime.getTime())
+                            .withSchedule(SimpleScheduleBuilder.simpleSchedule().repeatForever().withIntervalInHours(delay))
                             .build();
                     // register job and trigger at scheduler
                     sched.scheduleJob(jobDetail, trigger);
