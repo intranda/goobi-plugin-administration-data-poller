@@ -386,7 +386,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                 List<? extends Metadata> remove = docstructOld.getAllMetadataByType(md.getType());
                 if (remove != null) {
                     for (Metadata mdRm : remove) {
-                        docstructOld.removeMetadata(mdRm);
+                        docstructOld.removeMetadata(mdRm, true);
                     }
                 }
             }
@@ -492,7 +492,7 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
                 List<MetadataGroup> groupsToRemove = docstructOld.getAllMetadataGroupsByType(group.getType());
                 if (groupsToRemove != null) {
                     for (MetadataGroup oldGroup : groupsToRemove) {
-                        docstructOld.removeMetadataGroup(oldGroup);
+                        docstructOld.removeMetadataGroup(oldGroup, true);
                     }
                 }
             }
