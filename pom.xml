@@ -4,7 +4,7 @@
   <parent>
     <groupId>io.goobi.workflow</groupId>
     <artifactId>workflow-base</artifactId>
-    <version>25.08</version>
+    <version>25.08.1</version>
     <relativePath/>
   </parent>
   <groupId>io.goobi.workflow.plugin</groupId>
@@ -26,14 +26,9 @@
     <dependency>
       <groupId>io.goobi.workflow</groupId>
       <artifactId>workflow-core</artifactId>
-      <version>25.08</version>
+      <version>25.08.1</version>
       <classifier>classes</classifier>
     </dependency>
-    <dependency>
-      <groupId>de.intranda.ugh</groupId>
-      <artifactId>ugh-core</artifactId>
-      <version>5.0.13</version>
-      <scope>provided</scope>
-    </dependency>
+
   </dependencies>
 </project>
