@@ -93,7 +93,7 @@ public class CatalogueRequestTicketTest {
         Files.copy(defaultGoobiConfig, configFile);
         Files.copy(Paths.get(defaultGoobiConfig.getParent().toString(), "goobi_opac.xml"), opacFile);
 
-        ConfigurationHelper.CONFIG_FILE_NAME = configFile.toString();
+        ConfigurationHelper.configFileName = configFile.toString();
 
         ConfigurationHelper.resetConfigurationFile();
         ConfigurationHelper.getInstance().setParameter("goobiFolder", goobiMainFolder.toString() + "/");

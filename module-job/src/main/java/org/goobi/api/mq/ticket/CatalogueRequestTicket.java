@@ -60,7 +60,8 @@ public class CatalogueRequestTicket implements TicketHandler<PluginReturnValue> 
         PullDiff diff = null;
         Integer processId = ticket.getProcessId();
         Process process = null;
-
+        ticket.setStepId(ticket.getProcessId());
+        ticket.setStepName("Data Poller");
         // get configured rules from ticket
         boolean mergeRecords = Boolean.parseBoolean(ticket.getProperties().get("mergeRecords"));
         boolean analyseSubElements = Boolean.parseBoolean(ticket.getProperties().get("analyseSubElements"));

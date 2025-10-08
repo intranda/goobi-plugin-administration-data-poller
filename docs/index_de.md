@@ -2,7 +2,11 @@
 title: Data Poller
 identifier: intranda_administration_data_poller
 description: Goobi Administration Plugin für die periodische Aktualisierung bestehender METS-Dateien mit Inhalten aus einer Datenabfrage
-published: true  
+published: true
+keywords:
+    - Goobi workflow
+    - Plugin
+    - Administration Plugin
 ---
 
 ## Einführung
