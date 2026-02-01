@@ -29,7 +29,7 @@
             <intranda:box
                 boxType="primary"
                 boxPadding="true"
-                icon="fa-plug"
+                icon="plug"
                 title="#{myPageTitle}">
 
                 <h:form>
@@ -100,54 +100,36 @@
                                                 <h:panelGroup
                                                     class="badge badge-intranda-red"
                                                     rendered="#{!configInfo.analyseSubElements}">
-                                                    <i class="fa fa-circle-o"></i>
-                                                    <span>
-                                                        <h:outputText value="#{msgs.inactive}" />
-                                                    </span>
+                                                    <util:icon-text icon="circle" text="#{msgs.inactive}" />
                                                 </h:panelGroup>
                                                 <h:panelGroup
                                                     class="badge badge-intranda-green"
                                                     rendered="#{configInfo.analyseSubElements}">
-                                                    <i class="fa fa-check-circle"></i>
-                                                    <span>
-                                                        <h:outputText value="#{msgs.active}" />
-                                                    </span>
+                                                    <util:icon-text icon="circle-check" text="#{msgs.active}" />
                                                 </h:panelGroup>
                                             </td>
                                             <td>
                                                 <h:panelGroup
                                                     class="badge badge-intranda-red"
                                                     rendered="#{!configInfo.mergeRecords}">
-                                                    <i class="fa fa-circle-o"></i>
-                                                    <span>
-                                                        <h:outputText value="#{msgs.inactive}" />
-                                                    </span>
+                                                    <util:icon-text icon="circle" text="#{msgs.inactive}" />
                                                 </h:panelGroup>
                                                 <h:panelGroup
                                                     class="badge badge-intranda-green"
                                                     rendered="#{configInfo.mergeRecords}">
-                                                    <i class="fa fa-check-circle"></i>
-                                                    <span>
-                                                        <h:outputText value="#{msgs.active}" />
-                                                    </span>
+                                                    <util:icon-text icon="circle-check" text="#{msgs.active}" />
                                                 </h:panelGroup>
                                             </td>
                                             <td>
                                                 <h:panelGroup
                                                     class="badge badge-intranda-red"
                                                     rendered="#{!configInfo.exportUpdatedRecords}">
-                                                    <i class="fa fa-circle-o"></i>
-                                                    <span>
-                                                        <h:outputText value="#{msgs.inactive}" />
-                                                    </span>
+                                                    <util:icon-text icon="circle" text="#{msgs.inactive}" />
                                                 </h:panelGroup>
                                                 <h:panelGroup
                                                     class="badge badge-intranda-green"
                                                     rendered="#{configInfo.exportUpdatedRecords}">
-                                                    <i class="fa fa-check-circle"></i>
-                                                    <span>
-                                                        <h:outputText value="#{msgs.active}" />
-                                                    </span>
+                                                    <util:icon-text icon="circle-check" text="#{msgs.active}" />
                                                 </h:panelGroup>
                                             </td>
                                             <td>#{configInfo.startTime}</td>
@@ -155,12 +137,12 @@
                                             <td>#{configInfo.lastRun}</td>
                                             <td>
                                                 <button
-                                                    class="btn btn-blank me-3"
+                                                    class="btn btn-icon btn-blank me-3"
                                                     jsf:rel="tooltip"
                                                     jsf:action="#{AdministrationForm.administrationPlugin.cp.executeTest(configInfo.title)}"
                                                     jsf:disabled="#{not AdministrationForm.administrationPlugin.cp.allowRun}"
                                                     title="#{msgs.plugin_admin_dataPoller_runTest}">
-                                                    <i class="fa fa-flask"></i>
+                                                    <util:icon icon="flask" />
                                                     <f:passThroughAttribute
                                                         name="data-toggle"
                                                         value="tooltip" />
@@ -169,12 +151,12 @@
                                                         value="#{msgs.plugin_admin_dataPoller_runTest}" />
                                                 </button>
                                                 <button
-                                                    class="btn btn-blank me-3"
+                                                    class="btn btn-icon btn-blank me-3"
                                                     jsf:rel="tooltip"
                                                     jsf:action="#{AdministrationForm.administrationPlugin.cp.execute(configInfo.title)}"
                                                     jsf:disabled="#{not AdministrationForm.administrationPlugin.cp.allowRun}"
                                                     title="#{msgs.plugin_admin_dataPoller_runNow}">
-                                                    <i class="fa fa-play"></i>
+                                                    <util:icon icon="player-play" />
                                                     <f:passThroughAttribute
                                                         name="data-toggle"
                                                         value="tooltip" />
@@ -183,12 +165,12 @@
                                                         value="#{msgs.plugin_admin_dataPoller_runNow}" />
                                                 </button>
                                                 <button
-                                                    class="btn btn-blank"
+                                                    class="btn btn-icon btn-blank"
                                                     jsf:rel="tooltip"
                                                     jsf:action="#{AdministrationForm.administrationPlugin.cp.download(configInfo.title)}"
                                                     title="#{msgs.plugin_admin_dataPoller_download}"
                                                     jsf:rendered="#{AdministrationForm.administrationPlugin.cp.reportExists(configInfo.title)}">
-                                                    <i class="fa fa-download"></i>
+                                                    <util:icon icon="download" />
                                                     <f:passThroughAttribute
                                                         name="data-toggle"
                                                         value="tooltip" />
