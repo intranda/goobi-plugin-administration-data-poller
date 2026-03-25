@@ -42,6 +42,8 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class XlsWriter {
 
+    private static final int MAX_ROWS_PER_SHEET = 1000000;
+
     private Path path;
     private final DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
 
@@ -86,14 +88,15 @@ public class XlsWriter {
      */
     public Path writeWorkbook(List<PullDiff> differences, long lastRunMillis, String ruleName, boolean testRun, boolean unfinished) {
         Workbook wb = new XSSFWorkbook();
-        Sheet sheet = wb.createSheet("Report Catalogue Poller");
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(lastRunMillis);
 
+        int sheetIndex = 1;
+        Sheet sheet = wb.createSheet("Report Catalogue Poller");
         int rowCounter = 0;
-        //create header
 
+        //create header on first sheet
         Row header = sheet.createRow(rowCounter++);
         writeCellsToRow(header, ruleName, (testRun) ? "test run" : "report", (unfinished) ? "interim result" : "");
         Cell cell = header.createCell(header.getLastCellNum());
@@ -107,6 +110,12 @@ public class XlsWriter {
         //write content
         for (PullDiff difference : differences) {
             for (XlsData data : difference.getXlsData()) {
+                if (rowCounter >= MAX_ROWS_PER_SHEET) {
+                    sheetIndex++;
+                    sheet = wb.createSheet("Report Catalogue Poller (" + sheetIndex + ")");
+                    rowCounter = 0;
+                    writeCellsToRow(sheet.createRow(rowCounter++), "id", "title", "field", "old value", "new value");
+                }
                 writeCellsToRow(sheet.createRow(rowCounter++), String.valueOf(difference.getProcessId()), difference.getProcessTitle(),
                         data.getField(), data.getOldValues(), data.getNewValues());
             }
