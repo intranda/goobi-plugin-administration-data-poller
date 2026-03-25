@@ -4,11 +4,15 @@
   <parent>
     <groupId>io.goobi.workflow</groupId>
     <artifactId>workflow-base</artifactId>
-    <version>26.03-SNAPSHOT</version>
+    <version>dev-SNAPSHOT</version>
     <relativePath/>
   </parent>
   <groupId>io.goobi.workflow.plugin</groupId>
   <artifactId>plugin-administration-data-poller</artifactId>
+  <version>${revision}</version>
+  <properties>
+    <revision>dev-SNAPSHOT</revision>
+  </properties>
   <packaging>pom</packaging>
   <modules>
     <module>module-base</module>
@@ -26,14 +30,8 @@
     <dependency>
       <groupId>io.goobi.workflow</groupId>
       <artifactId>workflow-core</artifactId>
-      <version>26.03-SNAPSHOT</version>
+      <version>${revision}</version>
       <classifier>classes</classifier>
-    </dependency>
-    <dependency>
-      <groupId>de.intranda.ugh</groupId>
-      <artifactId>ugh-core</artifactId>
-      <version>5.0.13</version>
-      <scope>provided</scope>
     </dependency>
   </dependencies>
 </project>
