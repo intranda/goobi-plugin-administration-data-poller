@@ -26,15 +26,18 @@ import java.util.Set;
 import de.intranda.goobi.plugins.datapoller.xls.XlsData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import ugh.dl.Corporate;
 import ugh.dl.DocStruct;
 import ugh.dl.Metadata;
 import ugh.dl.MetadataGroup;
+import ugh.dl.NamePart;
 import ugh.dl.Person;
 
 @Data
 public class PollDocStruct {
     private List<PullMetadataType> types;
     private List<PullPersonType> personTypes;
+    private List<PullCorporateType> corporateTypes;
     private List<PullGroup> groupTypes;
 
     /**
@@ -45,6 +48,7 @@ public class PollDocStruct {
     public PollDocStruct(DocStruct inStruct) {
         types = new ArrayList<>();
         personTypes = new ArrayList<>();
+        corporateTypes = new ArrayList<>();
         groupTypes = new ArrayList<>();
         if (inStruct.getAllMetadata() != null) {
             for (Metadata md : inStruct.getAllMetadata()) {
@@ -54,6 +58,12 @@ public class PollDocStruct {
         if (inStruct.getAllPersons() != null) {
             for (Person p : inStruct.getAllPersons()) {
                 addPerson(p.getType().getName(), p.getFirstname(), p.getLastname(), p.getAuthorityURI(), p.getAuthorityValue());
+            }
+        }
+
+        if (inStruct.getAllCorporates() != null) {
+            for (Corporate c : inStruct.getAllCorporates()) {
+                addCorporate(c);
             }
         }
 
@@ -83,6 +93,21 @@ public class PollDocStruct {
      */
     private void addPerson(String role, String firstName, String lastName, String authorityUrl, String authorityValue) {
         getPullPersonTypeByRole(role).addPerson(firstName, lastName, authorityUrl, authorityValue);
+    }
+
+    /**
+     * add a corporate to the list of a specific corporate role
+     *
+     * @param corporate
+     */
+    private void addCorporate(Corporate corporate) {
+        String subNames = "";
+        for (NamePart np : corporate.getSubNames()) {
+            subNames += np.getValue() + " ";
+        }
+        getPullCorporateTypeByRole(corporate.getRole())
+                .addCorporate(corporate.getMainName(), subNames.trim(), corporate.getPartName(), corporate.getAuthorityURI(),
+                        corporate.getAuthorityValue());
     }
 
     /**
@@ -136,6 +161,17 @@ public class PollDocStruct {
         PullPersonType ppt = new PullPersonType(role);
         personTypes.add(ppt);
         return ppt;
+    }
+
+    public PullCorporateType getPullCorporateTypeByRole(String role) {
+        for (PullCorporateType c : corporateTypes) {
+            if (c.getRole().equals(role)) {
+                return c;
+            }
+        }
+        PullCorporateType pct = new PullCorporateType(role);
+        corporateTypes.add(pct);
+        return pct;
     }
 
     public PullGroup getPullGroupByType(String type) {
@@ -308,6 +344,93 @@ public class PollDocStruct {
             }
         }
 
+        // then collect all available corporate types in old and new record
+        Set<String> allCorporateTypes = new HashSet<>();
+        for (PullCorporateType pctNew : pdsNew.getCorporateTypes()) {
+            allCorporateTypes.add(pctNew.getRole());
+        }
+        for (PullCorporateType pctOld : pdsOld.getCorporateTypes()) {
+            allCorporateTypes.add(pctOld.getRole());
+        }
+
+        // run through all corporates
+        for (String pct : allCorporateTypes) {
+            boolean handleCorporate = fieldFilterList.contains(pct);
+            // if the list is a blackList the behaviour shall be inversed
+            handleCorporate = (isBlockList) ? !handleCorporate : handleCorporate;
+            if (handleCorporate) {
+                PullCorporateType pctNew = pdsNew.getPullCorporateTypeByRole(pct);
+                PullCorporateType pctOld = pdsOld.getPullCorporateTypeByRole(pct);
+                if (pctNew.getCorporates().size() != pctOld.getCorporates().size()) {
+                    // number of corporate fields is different
+                    String helperOldCorporates = "";
+                    for (PullCorporate pc : pctOld.getCorporates()) {
+                        helperOldCorporates += pc.getMainName();
+                        if (pc.getAuthorityUri() != null || pc.getAuthorityValue() != null) {
+                            helperOldCorporates += " (";
+                            if (pc.getAuthorityUri() != null) {
+                                helperOldCorporates += pc.getAuthorityUri();
+                            }
+                            if (pc.getAuthorityUri() != null && pc.getAuthorityValue() != null) {
+                                helperOldCorporates += ": ";
+                            }
+                            if (pc.getAuthorityValue() != null) {
+                                helperOldCorporates += pc.getAuthorityValue();
+                            }
+                            helperOldCorporates += ")";
+                        }
+                        helperOldCorporates += "; ";
+                    }
+                    String helperNewCorporates = "";
+                    for (PullCorporate pc : pctNew.getCorporates()) {
+                        helperNewCorporates += pc.getMainName();
+                        if (pc.getAuthorityUri() != null || pc.getAuthorityValue() != null) {
+                            helperNewCorporates += " (";
+                            if (pc.getAuthorityUri() != null) {
+                                helperNewCorporates += pc.getAuthorityUri();
+                            }
+                            if (pc.getAuthorityUri() != null && pc.getAuthorityValue() != null) {
+                                helperNewCorporates += ": ";
+                            }
+                            if (pc.getAuthorityValue() != null) {
+                                helperNewCorporates += pc.getAuthorityValue();
+                            }
+                            helperNewCorporates += ")";
+                        }
+                        helperNewCorporates += "; ";
+                    }
+                    differences.getMessages()
+                            .add(pctNew.getRole() + ": Number of old corporates (" + pctOld.getCorporates().size()
+                                    + ") is different from new corporates (" + pctNew.getCorporates().size() + ") [Old corporates: "
+                                    + helperOldCorporates + " => New corporates: " + helperNewCorporates + "]");
+                    differences.getXlsData().add(new XlsData(pctNew.getRole(), helperOldCorporates, helperNewCorporates));
+                } else {
+                    // number of corporate fields is the same
+                    for (PullCorporate pc : pctNew.getCorporates()) {
+                        if (!pctOld.getCorporates().contains(pc)) {
+                            differences.getMessages()
+                                    .add(pctNew.getRole() + ": New corporate '" + pc.getMainName() + " (" + pc.getAuthorityUri() + ": "
+                                            + pc.getAuthorityValue() + ")' found.");
+                            differences.getXlsData().add(new XlsData(pctNew.getRole(), "", pc.getMainName()));
+                        } else {
+                            // remove all fields from old list
+                            pctOld.getCorporates().remove(pc);
+                        }
+                    }
+                    // if there are still fields in the old list then these were
+                    // not in the new list
+                    if (pctOld.getCorporates().size() > 0) {
+                        for (PullCorporate pc : pctOld.getCorporates()) {
+                            differences.getMessages()
+                                    .add(pctOld.getRole() + ": Old corporate '" + pc.getMainName() + " (" + pc.getAuthorityUri() + ": "
+                                            + pc.getAuthorityValue() + ")' was not in the new record anymore.");
+                            differences.getXlsData().add(new XlsData(pctOld.getRole(), pc.getMainName(), ""));
+                        }
+                    }
+                }
+            }
+        }
+
         // then collect all available group types in old and new record
         Set<String> allGroupTypes = new HashSet<>();
         for (PullGroup pgtNew : pdsNew.getGroupTypes()) {
@@ -412,6 +535,38 @@ public class PollDocStruct {
         private String firstName;
         private String lastName;
         private String authorityUrl;
+        private String authorityValue;
+    }
+
+    /**
+     * embedded class to manage corporate types
+     */
+    @Data
+    public class PullCorporateType {
+        private String role;
+        private Set<PullCorporate> corporates;
+
+        public PullCorporateType(String role) {
+            this.role = role;
+            corporates = new HashSet<>();
+        }
+
+        public void addCorporate(String mainName, String subNames, String partName, String authorityUri, String authorityValue) {
+            PullCorporate pc = new PullCorporate(mainName, subNames, partName, authorityUri, authorityValue);
+            corporates.add(pc);
+        }
+    }
+
+    /**
+     * embedded class to define a corporate
+     */
+    @Data
+    @AllArgsConstructor
+    public class PullCorporate {
+        private String mainName;
+        private String subNames;
+        private String partName;
+        private String authorityUri;
         private String authorityValue;
     }
 
