@@ -148,7 +148,6 @@ public class CatalogueRequestTicketTest {
         PowerMock.mockStatic(MetadataManager.class);
         //ProcessManager.saveProcess(EasyMock.anyObject(Process.class));
         MetadataManager.updateMetadata(EasyMock.anyInt(), EasyMock.anyObject(Map.class));
-        MetadataManager.updateJSONMetadata(EasyMock.anyInt(), EasyMock.anyObject(Map.class));
 
         EasyMock.replay(co);
         EasyMock.replay(coc);
