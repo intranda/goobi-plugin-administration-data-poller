@@ -25,6 +25,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
+
 import de.intranda.goobi.plugins.datapoller.xls.XlsData;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.StorageProviderInterface;
@@ -47,6 +50,9 @@ import lombok.extern.log4j.Log4j2;
 @NoArgsConstructor
 @XmlAccessorType(XmlAccessType.FIELD)
 public class PullDiff {
+
+    private static final PolicyFactory SANITIZER = new HtmlPolicyBuilder().allowElements("br").toFactory();
+
     private int processId;
     private String processTitle;
     private boolean failed;
@@ -68,6 +74,17 @@ public class PullDiff {
         this.processTitle = processTitle;
         this.failed = failed;
         this.debugMessage = debugMessage;
+    }
+
+    public List<String> getSanitizedMessages() {
+        if (messages == null) {
+            return null;
+        }
+        List<String> sanitized = new ArrayList<>(messages.size());
+        for (String msg : messages) {
+            sanitized.add(msg == null ? null : SANITIZER.sanitize(msg));
+        }
+        return sanitized;
     }
 
     public static void marshalPullDiff(PullDiff diff, String xmlTempFolder, String lastRunMillis) {
