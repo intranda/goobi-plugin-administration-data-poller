@@ -7,7 +7,8 @@
     xmlns:intranda="http://xmlns.jcp.org/jsf/composite/composites"
     xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
     xmlns:p="http://primefaces.org/ui"
-    xmlns:jsf="http://xmlns.jcp.org/jsf">
+    xmlns:jsf="http://xmlns.jcp.org/jsf"
+    xmlns:util="http://goobi.io/util">
 
     <composite:interface>
     </composite:interface>
@@ -21,10 +22,7 @@
 }
 </style>
 
-        <h:outputText
-            styleClass="alert alert-danger d-block"
-            value="#{msgs.noAccessAllowed} Plugin_Goobi_DataPoller"
-            rendered="#{!LoginForm.hasRole('Plugin_Goobi_DataPoller')}" />
+        <util:missing-rights rights="Plugin_Goobi_DataPoller" rendered="true" />
 
         <ui:fragment rendered="#{LoginForm.hasRole('Plugin_Goobi_DataPoller')}">
 
