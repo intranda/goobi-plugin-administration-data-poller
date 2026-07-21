@@ -22,10 +22,7 @@
 }
 </style>
 
-        <h:outputText
-            styleClass="alert alert-danger d-block"
-            value="#{msgs.noAccessAllowed} Plugin_Goobi_DataPoller"
-            rendered="#{!LoginForm.hasRole('Plugin_Goobi_DataPoller')}" />
+        <util:missing-rights rights="Plugin_Goobi_DataPoller" rendered="true" />
 
         <ui:fragment rendered="#{LoginForm.hasRole('Plugin_Goobi_DataPoller')}">
 
